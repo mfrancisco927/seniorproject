@@ -31,17 +31,18 @@ class Song(BaseModel):
   duration_ms = models.IntegerField()
   time_signature = models.IntegerField()
 
-class Profile(BaseModel):
-  user = models.OneToOneField(User, on_delete=models.CASCADE)
-  following = models.ManyToManyField(User, related_name='profile_following')
-  liked_songs = models.ManyToManyField(Song, related_name='profile_liked')
-  disliked_songs = models.ManyToManyField(Song, related_name='profile_disliked')
-
 class Playlist(BaseModel):
   title = models.TextField()
   is_public = models.BooleanField(default=True)
   owner = models.ForeignKey(User, on_delete=models.CASCADE)
   songs = models.ManyToManyField(Song)
+  
+class Profile(BaseModel):
+  user = models.OneToOneField(User, on_delete=models.CASCADE)
+  following = models.ManyToManyField(User, related_name='profile_following')
+  liked_songs = models.ManyToManyField(Song, related_name='profile_liked')
+  disliked_songs = models.ManyToManyField(Song, related_name='profile_disliked')
+  favorite_playlists = models.ManyToManyField(Playlist, related_name='profile_favorite_playlists')
 
 class Radio(BaseModel):
   name = models.TextField()
