@@ -18,3 +18,11 @@ Run `pip install -r requirements.txt` to install the Python modules.
 
 1. Activate the venv: `.\Scripts\activate`
 2. run `python manage.py runserver`
+
+## Updating models
+
+After making changes to the app models, there are two steps to apply these.
+
+1. Create migrations. To do this, type `python manage.py makemigrations`. If there are any issues with your models, the output will advise you where and suggested fixes.
+2. Apply the migrations by entering: `python manage.py migrate`
+
