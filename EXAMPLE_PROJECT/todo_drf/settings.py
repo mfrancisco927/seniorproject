@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'api.apps.ApiConfig',
     
     'rest_framework',
-    'corsheaders', #ADDED BY ISAAC
+    # 'corsheaders', #ADDED BY ISAAC
 
 ]
 
@@ -54,7 +54,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware', #ADDED BY ISAAC
+    # 'corsheaders.middleware.CorsMiddleware', #ADDED BY ISAAC
 ]
 
 ROOT_URLCONF = 'todo_drf.urls'
