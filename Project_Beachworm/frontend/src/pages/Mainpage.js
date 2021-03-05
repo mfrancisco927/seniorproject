@@ -5,15 +5,15 @@ function Mainpage(props) {
   const testingItems = [
     {
     'img':'https://upload.wikimedia.org/wikipedia/en/c/c4/Floral_Green.jpg',
-    'name': 'Floral Green'
+    'name': 'TEST 1! RUN SERVER FOR LIVE DATA'
     },
     {
       'img':'https://media.pitchfork.com/photos/5a71df0d85ed77242d8f1252/1:1/w_320/jpegmafiaveteran.jpg',
-      'name': 'Veteran'
+      'name': 'TEST 2! RUN SERVER FOR LIVE DATA'
     },
     {
       'img':'https://i.pinimg.com/originals/78/6e/a3/786ea3d49748ab17966e4301f0f73bb6.jpg',
-      'name': 'Veteran 2'
+      'name': 'TEST 3! RUN SERVER FOR LIVE DATA'
     }
   ];
 
@@ -28,8 +28,8 @@ function Mainpage(props) {
           const response = await fetch(url);
           const tempdata = await response.json();
 
-          setData(tempdata)
           console.log('New song data received', tempdata)
+          setData(tempdata)
     
         }catch(error){
           console.log(error)
