@@ -1,11 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-'''
-    The models in the DB
-    [Isaac]
-'''
-
 class BaseModel(models.Model):
   created_at = models.DateTimeField('created_time', auto_now_add=True, db_index=True, null=True)
   updated_at = models.DateTimeField('modified_time', auto_now=True)
@@ -67,11 +62,3 @@ class UserPlaylistPlay(BaseModel):
   playlist = models.ForeignKey(Playlist, on_delete=models.CASCADE)
   radio = models.ForeignKey(Radio, on_delete=models.CASCADE)
   listened_at = models.DateTimeField(auto_now_add=True)
-
-# extra from initial example project; remove soon
-class Task(models.Model):
-  title = models.CharField(max_length=200)
-  completed = models.BooleanField(default=False, blank=True, null=True)
-      
-  def __str__(self):
-    return self.title
