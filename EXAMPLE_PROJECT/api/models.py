@@ -30,19 +30,19 @@ class Song(BaseModel):
   tempo = models.FloatField()
   duration_ms = models.IntegerField()
   time_signature = models.IntegerField()
+  
+class Profile(BaseModel):
+  user = models.OneToOneField(User, primary_key=True, on_delete=models.CASCADE)
+  following = models.ManyToManyField("self", related_name='profile_following')
+  liked_songs = models.ManyToManyField(Song, related_name='profile_liked')
+  disliked_songs = models.ManyToManyField(Song, related_name='profile_disliked')
+  favorite_playlists = models.ManyToManyField("Playlist", related_name='profile_favorite_playlists')
 
 class Playlist(BaseModel):
   title = models.TextField()
   is_public = models.BooleanField(default=True)
-  owner = models.ForeignKey(User, on_delete=models.CASCADE)
+  owner = models.ForeignKey(Profile, on_delete=models.CASCADE)
   songs = models.ManyToManyField(Song)
-  
-class Profile(BaseModel):
-  user = models.OneToOneField(User, on_delete=models.CASCADE)
-  following = models.ManyToManyField(User, related_name='profile_following')
-  liked_songs = models.ManyToManyField(Song, related_name='profile_liked')
-  disliked_songs = models.ManyToManyField(Song, related_name='profile_disliked')
-  favorite_playlists = models.ManyToManyField(Playlist, related_name='profile_favorite_playlists')
 
 class Radio(BaseModel):
   name = models.TextField()
@@ -50,20 +50,20 @@ class Radio(BaseModel):
   genre_id = models.TextField()
 
 class UserArtistSeed(BaseModel):
-  user = models.ForeignKey(User, on_delete=models.CASCADE)
+  user = models.ForeignKey(Profile, on_delete=models.CASCADE)
   artist_id = models.TextField()
   
 class UserGenreSeed(BaseModel):
-  user = models.ForeignKey(User, on_delete=models.CASCADE)
+  user = models.ForeignKey(Profile, on_delete=models.CASCADE)
   genre_id = models.TextField()
 
 class UserSongPlay(BaseModel):
-  user = models.ForeignKey(User, on_delete=models.CASCADE)
+  user = models.ForeignKey(Profile, on_delete=models.CASCADE)
   song = models.ForeignKey(Song, on_delete=models.CASCADE)
   listened_at = models.DateTimeField(auto_now_add=True)
   
 class UserPlaylistPlay(BaseModel):
-  user = models.ForeignKey(User, on_delete=models.CASCADE)
+  user = models.ForeignKey(Profile, on_delete=models.CASCADE)
   playlist = models.ForeignKey(Playlist, on_delete=models.CASCADE)
   radio = models.ForeignKey(Radio, on_delete=models.CASCADE)
   listened_at = models.DateTimeField(auto_now_add=True)
