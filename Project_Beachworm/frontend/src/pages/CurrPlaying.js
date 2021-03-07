@@ -17,22 +17,20 @@ function CurrPlaying(props) {
 
     useEffect( () => {
         setCurrSong(songList[songIndex])
-    },[songIndex])
+    },[songIndex, songList])
 
 
     return (
-        <>
-            <div className='playing-wrapper'>
-                <button className='control-button prev-button' onClick={ () => changeSong(-1) }> Prev </button>
+        <div className='playing-wrapper'>
+            <button className='control-button prev-button' onClick={ () => changeSong(-1) }> Prev </button>
 
-                <div className='playing-curr-song'>
-                    <img src={currSong.img} style={{height:'300px',width:'300px'}} alt='ayy' />
-                    <p style={{textAlign:'center'}}>{currSong.name}</p>
-                </div>
-
-                <button className='control-button next-button' onClick={ () => changeSong(1) }> Next </button>
+            <div className='playing-curr-song'>
+                <img src={currSong.img} style={{height:'300px',width:'300px'}} alt='ayy' />
+                <p style={{textAlign:'center'}}>{currSong.name}</p>
             </div>
-        </>
+
+            <button className='control-button next-button' onClick={ () => changeSong(1) }> Next </button>
+        </div>
     )
 
 }

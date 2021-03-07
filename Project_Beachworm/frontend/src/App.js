@@ -1,15 +1,14 @@
 import './App.css';
 import React, { useState } from 'react';
-import Mainpage from './Mainpage.js';
-import Navbar from './Navbar.js';
-import CurrPlaying from './CurrPlaying.js'
-import Profilepage from './Profilepage.js'
-import Searchpage from './Searchpage.js'
-import PlayFooter from './PlayFooter.js'
+import Mainpage from './pages/Mainpage.js';
+import Navbar from './pages/Navbar.js';
+import CurrPlaying from './pages/CurrPlaying.js'
+import Profilepage from './pages/Profilepage.js'
+import Searchpage from './pages/Searchpage.js'
+import PlayFooter from './pages/PlayFooter.js'
 
 function App() {
 
-  
   const [testingItems, setTestingItems] = useState([
     {
     'img':'https://upload.wikimedia.org/wikipedia/en/c/c4/Floral_Green.jpg',
@@ -56,10 +55,8 @@ function App() {
         <Searchpage searchedItem={searchField}/>:
         'an error' }
 
-        {screenIndex != 1 && <PlayFooter />}
+        {screenIndex !== 1 && <PlayFooter />}
         
-
-
     </div>
   )
 

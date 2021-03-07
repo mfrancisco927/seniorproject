@@ -2,9 +2,23 @@ import React , { useState, useEffect } from 'react';
 
 
 function Mainpage(props) {
+  const testingItems = [
+    {
+    'img':'https://upload.wikimedia.org/wikipedia/en/c/c4/Floral_Green.jpg',
+    'name': 'TEST 1! RUN SERVER FOR LIVE DATA'
+    },
+    {
+      'img':'https://media.pitchfork.com/photos/5a71df0d85ed77242d8f1252/1:1/w_320/jpegmafiaveteran.jpg',
+      'name': 'TEST 2! RUN SERVER FOR LIVE DATA'
+    },
+    {
+      'img':'https://i.pinimg.com/originals/78/6e/a3/786ea3d49748ab17966e4301f0f73bb6.jpg',
+      'name': 'TEST 3! RUN SERVER FOR LIVE DATA'
+    }
+  ];
 
   const {changeSong} = props;
-  const [data, setData] = useState({})
+  const [data, setData] = useState(testingItems);
 
   const fetchSongs = async () => {
     console.log('fetching...')
@@ -14,8 +28,8 @@ function Mainpage(props) {
           const response = await fetch(url);
           const tempdata = await response.json();
 
+          console.log('New song data received', tempdata)
           setData(tempdata)
-          console.log(tempdata)
     
         }catch(error){
           console.log(error)
@@ -25,28 +39,12 @@ function Mainpage(props) {
     useEffect( () =>{
       fetchSongs();
     }, [])
-  
-
-    const testingItems = [
-      {
-      'img':'https://upload.wikimedia.org/wikipedia/en/c/c4/Floral_Green.jpg',
-      'name': 'Floral Green'
-      },
-      {
-        'img':'https://media.pitchfork.com/photos/5a71df0d85ed77242d8f1252/1:1/w_320/jpegmafiaveteran.jpg',
-        'name': 'Veteran'
-      },
-      {
-        'img':'https://i.pinimg.com/originals/78/6e/a3/786ea3d49748ab17966e4301f0f73bb6.jpg',
-        'name': 'Veteran 2'
-      }
-    ]
 
   return (
     <>
-    <SongRow changeSong={changeSong} title='Recommended Songs' items={testingItems} />
-    <SongRow changeSong={changeSong} title='Recommended Albums' items={testingItems} />
-    <SongRow changeSong={changeSong} title='Playlists by your Followed' items={testingItems} />
+    <SongRow changeSong={changeSong} title='Recommended Songs' items={data} />
+    <SongRow changeSong={changeSong} title='Recommended Albums' items={data} />
+    <SongRow changeSong={changeSong} title='Playlists by your Followed' items={data} />
     </>
   );
 }

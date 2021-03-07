@@ -10,7 +10,7 @@ Activate the virtual environment by running the *activate* script within the *sc
 .\Scripts\activate
 ```
  
-Run `pip install -r requirements.txt` to install the Python modules.
+Run `pip install -r requirements.txt` to install the Python modules. If new requirements are added, just re-run this command.
 
 ## Starting the Django server
 
@@ -23,6 +23,6 @@ Run `pip install -r requirements.txt` to install the Python modules.
 
 After making changes to the app models, there are two steps to apply these.
 
-1. Create migrations. To do this, type `python manage.py makemigrations api`. To include a descriptive name that will show up in the migrations list, type `python manage.py makemigrations api -- name [DESCRIPTIVE_NAME_HERE]`. In either case, if there are any issues with your models, the output will advise you where and suggested fixes.
+1. Create migrations. To do this, type `python manage.py makemigrations mainsite`. To include a descriptive name that will show up in the migrations list, type `python manage.py makemigrations mainsite -- name [DESCRIPTIVE_NAME_HERE]`. In either case, if there are any issues with your models, the output will advise you where and suggested fixes.
 2. Apply the migrations by entering: `python manage.py migrate`
 
