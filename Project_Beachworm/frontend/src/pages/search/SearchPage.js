@@ -1,6 +1,6 @@
 import './SearchPage.css';
 
-function Searchpage(props) {
+function SearchPage(props) {
 
     let { searchedItem } = props;
 
@@ -60,4 +60,4 @@ function Searchpage(props) {
 }
 
 
-export default Searchpage;
+export default SearchPage;

@@ -1,11 +1,11 @@
 import './App.css';
 import React, { useState } from 'react';
 import { Switch, Route, useHistory } from "react-router-dom";
-import Mainpage from './pages/home/MainPage.js';
+import MainPage from './pages/home/MainPage.js';
 import Navbar from './pages/nav/Navbar.js';
 import Explore from './pages/explore/Explore.js'
 import ProfilePage from './pages/profile/ProfilePage.js'
-import Searchpage from './pages/search/SearchPage.js'
+import SearchPage from './pages/search/SearchPage.js'
 import PlayFooter from './pages/playingToolbar/PlayFooter.js'
 import PlaylistPage from './pages/playlist/PlaylistPage.js'
 
@@ -62,10 +62,10 @@ function App() {
             <PlaylistPage />
           </Route>
           <Route path='/search'>
-            <Searchpage searchedItem={searchField} />
+            <SearchPage searchedItem={searchField} />
           </Route>
           <Route path='/' exact>
-            <Mainpage changeSong={changeSong} />
+            <MainPage changeSong={changeSong} />
           </Route>
           <Route path='*'>
             404
