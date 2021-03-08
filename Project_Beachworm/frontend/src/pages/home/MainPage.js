@@ -42,8 +42,8 @@ function MainPage(props) {
 
   return (
     <div>
-      <SongRow changeSong={changeSong} title='Recommended Songs' items={data} />
       <SongRow changeSong={changeSong} title='Recommended Albums' items={data} />
+      <SongRow changeSong={changeSong} title='Recommended Genres' items={data} />
       <SongRow changeSong={changeSong} title='Playlists by your Followed' items={data} />
     </div>
   );

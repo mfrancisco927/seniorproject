@@ -36,7 +36,7 @@ function App() {
   }
 
   const changeSong = (song) => {
-    history.push('/playing');
+    history.push('/playlist');
     console.log('Changing song to ' + song);
   }
 
