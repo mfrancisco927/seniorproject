@@ -8,6 +8,7 @@ import ProfilePage from './pages/profile/ProfilePage.js'
 import SearchPage from './pages/search/SearchPage.js'
 import PlayFooter from './pages/playingToolbar/PlayFooter.js'
 import PlaylistPage from './pages/playlist/PlaylistPage.js'
+import Landing from './pages/landing/Landing.js'
 
 function App() {
   const history = useHistory();
@@ -44,6 +45,7 @@ function App() {
     <div className='outer-wrapper'>
       <div className='page-wrapper'>
         <Navbar menuList={{
+          '/Landing': 'Landing',
           '/': 'Home',
           '/explore': 'Explore',
           '/profile': 'Profile',
@@ -52,6 +54,9 @@ function App() {
         />
 
         <Switch>
+          <Route path='/landing'>
+            <Landing />
+          </Route>
           <Route path='/explore'>
             <Explore songList={testingItems} />
           </Route>
