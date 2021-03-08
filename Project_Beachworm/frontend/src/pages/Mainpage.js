@@ -41,33 +41,30 @@ function Mainpage(props) {
     }, [])
 
   return (
-    <>
-    <SongRow changeSong={changeSong} title='Recommended Songs' items={data} />
-    <SongRow changeSong={changeSong} title='Recommended Albums' items={data} />
-    <SongRow changeSong={changeSong} title='Playlists by your Followed' items={data} />
-    </>
+    <div>
+      <SongRow changeSong={changeSong} title='Recommended Songs' items={data} />
+      <SongRow changeSong={changeSong} title='Recommended Albums' items={data} />
+      <SongRow changeSong={changeSong} title='Playlists by your Followed' items={data} />
+    </div>
   );
 }
 
 function SongRow(props) {
-
   const {title, items, changeSong} = props;
 
   return (
     <div className='group-wrapper'>
         <div className='group-header'><h2>{title}</h2></div>
-
-        { items.map( (item) => {
-          return(
-            <>    
+        { 
+          items.map((item) => {
+            return (
               <div className='song-wrapper'>
                   <img src={item.img} alt='hello!' onClick={ () => changeSong(item) } /> 
                   <h3> {item.name } </h3>
               </div>
-            </>
-          )
-        } ) }
-        
+            );
+          })
+        }
     </div>
   )
 

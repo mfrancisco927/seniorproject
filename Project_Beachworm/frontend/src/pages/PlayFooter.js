@@ -1,4 +1,6 @@
-import {useState} from 'react';
+import './PlayFooter.css';
+import { useState } from 'react';
+
 
 function PlayFooter() {
   const [isPlaying, setPlaying] = useState(true)

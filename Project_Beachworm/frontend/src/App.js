@@ -1,6 +1,6 @@
 import './App.css';
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Switch, Route, useHistory } from "react-router-dom";
+import { Switch, Route, useHistory } from "react-router-dom";
 import Mainpage from './pages/Mainpage.js';
 import Navbar from './pages/Navbar.js';
 import CurrPlaying from './pages/CurrPlaying.js'
@@ -9,7 +9,7 @@ import Searchpage from './pages/Searchpage.js'
 import PlayFooter from './pages/PlayFooter.js'
 
 function App() {
-  let history = useHistory();
+  const history = useHistory();
 
   const testingItems = [
     {
@@ -36,39 +36,36 @@ function App() {
 
   const changeSong = (song) => {
     history.push('/playing');
-    console.log(testingItems)
+    console.log('Changing song to ' + song);
   }
 
   return (
 
     <div className='page-wrapper'>
-      <Router>
-        <Navbar menuList={{
-          '/': 'Home',
-          'playing': 'Explore',
-          'profile': 'Profile',
-        }} 
-        
-        searchField={searchField} setSearchField={setSearchField} submitSearch={submitSearch}/>
+      <Navbar menuList={{
+        '/': 'Home',
+        '/playing': 'Playing',
+        '/profile': 'Profile',
+      }} searchField={searchField} setSearchField={setSearchField} submitSearch={submitSearch}
+      />
 
-        <Switch>
-          <Route path='/playing'>
-            <CurrPlaying songList={testingItems} />
-          </Route>
-          <Route path='/profile'>
-            <Profilepage />
-          </Route>
-          <Route path='/search'>
-            <Searchpage searchedItem={searchField} />
-          </Route>
-          <Route path='/' exact>
-            <Mainpage changeSong={changeSong} />
-          </Route>
-          <Route path='*'>
-            404
-          </Route>
-        </Switch>
-      </Router>
+      <Switch>
+        <Route path='/playing'>
+          <CurrPlaying songList={testingItems} />
+        </Route>
+        <Route path='/profile'>
+          <Profilepage />
+        </Route>
+        <Route path='/search'>
+          <Searchpage searchedItem={searchField} />
+        </Route>
+        <Route path='/' exact>
+          <Mainpage changeSong={changeSong} />
+        </Route>
+        <Route path='*'>
+          404
+        </Route>
+      </Switch>
 
       <PlayFooter />
     </div>
