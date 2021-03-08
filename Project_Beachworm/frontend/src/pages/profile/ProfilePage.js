@@ -1,5 +1,5 @@
 
-function Profilepage(){
+function ProfilePage(){
 
     return (
         <>
@@ -12,4 +12,4 @@ function Profilepage(){
 }
 
 
-export default Profilepage;
+export default ProfilePage;

@@ -1,3 +1,4 @@
+import './SearchPage.css';
 
 function Searchpage(props) {
 

@@ -1,12 +1,13 @@
 import './App.css';
 import React, { useState } from 'react';
 import { Switch, Route, useHistory } from "react-router-dom";
-import Mainpage from './pages/Mainpage.js';
-import Navbar from './pages/Navbar.js';
-import CurrPlaying from './pages/CurrPlaying.js'
-import Profilepage from './pages/Profilepage.js'
-import Searchpage from './pages/Searchpage.js'
-import PlayFooter from './pages/PlayFooter.js'
+import Mainpage from './pages/home/MainPage.js';
+import Navbar from './pages/nav/Navbar.js';
+import Explore from './pages/explore/Explore.js'
+import ProfilePage from './pages/profile/ProfilePage.js'
+import Searchpage from './pages/search/SearchPage.js'
+import PlayFooter from './pages/playingToolbar/PlayFooter.js'
+import PlaylistPage from './pages/playlist/PlaylistPage.js'
 
 function App() {
   const history = useHistory();
@@ -14,15 +15,15 @@ function App() {
   const testingItems = [
     {
       'img':'https://upload.wikimedia.org/wikipedia/en/c/c4/Floral_Green.jpg',
-      'name': 'Floral Green'
+      'name': '[TEST] Floral Green'
     },
     {
       'img':'https://media.pitchfork.com/photos/5a71df0d85ed77242d8f1252/1:1/w_320/jpegmafiaveteran.jpg',
-      'name': 'Veteran'
+      'name': '[TEST] Veteran'
     },
     {
       'img':'https://i.pinimg.com/originals/78/6e/a3/786ea3d49748ab17966e4301f0f73bb6.jpg',
-      'name': 'Veteran 2'
+      'name': '[TEST] Don\'t Smile At Me'
     }
   ];
 
@@ -44,17 +45,21 @@ function App() {
       <div className='page-wrapper'>
         <Navbar menuList={{
           '/': 'Home',
-          '/playing': 'Playing',
+          '/explore': 'Explore',
           '/profile': 'Profile',
+          '/playlist': 'Playlist (this link won\'t be accessible here in prod)',
         }} searchField={searchField} setSearchField={setSearchField} submitSearch={submitSearch}
         />
 
         <Switch>
-          <Route path='/playing'>
-            <CurrPlaying songList={testingItems} />
+          <Route path='/explore'>
+            <Explore songList={testingItems} />
           </Route>
           <Route path='/profile'>
-            <Profilepage />
+            <ProfilePage />
+          </Route>
+          <Route path='/playlist'>
+            <PlaylistPage />
           </Route>
           <Route path='/search'>
             <Searchpage searchedItem={searchField} />

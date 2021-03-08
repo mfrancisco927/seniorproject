@@ -1,0 +1,17 @@
+.search-results-wrapper{
+    display: flex;
+    flex-direction: column;
+    margin: 5%;
+  }
+  
+  .search-results-wrapper .line-one, .search-results-wrapper .line-two {
+    width: 90%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+  }
+  
+  .result {
+    padding: 10%;
+    border: 1px solid black;
+  }

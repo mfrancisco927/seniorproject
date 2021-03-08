@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import './NavBar.css';
 
 function Navbar(props) {
 
@@ -20,8 +21,8 @@ function Navbar(props) {
         </ul>
         <div className='nav-bar-search-bar'>
           <form onSubmit={submitSearch}>
-            <input classname='nav-bar-search-input'type='text' id='search' name='search'  placeHolder='Search' onChange={ (e) => setSearchField(e.target.value) } />
-            <button class='nav-bar-search-button' type='submit'> Search </button>
+            <input className='nav-bar-search-input' type='text' id='search' name='search'  placeholder='Search' onChange={ (e) => setSearchField(e.target.value) } />
+            <button className='nav-bar-search-button' type='submit'> Search </button>
           </form>
         </div>
       </div>
