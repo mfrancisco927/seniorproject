@@ -10,6 +10,7 @@ import PlayFooter from './pages/playingToolbar/PlayFooter.js';
 import PlaylistPage from './pages/playlist/PlaylistPage.js';
 import Landing from './pages/landing/Landing.js';
 import PageNotFound from './pages/pageNotFound/PageNotFound.js';
+import UserQuestionnaire from './pages/questionnaire/UserQuestionnaire.js';
 
 function App() {
   const history = useHistory();
@@ -49,6 +50,7 @@ function App() {
         <Navbar menuList={{
           '/landing': 'Landing [TEMP]',
           '/': 'Home',
+          '/questionnaire': 'Questionnaire [TEMP]',
           '/explore': 'Explore',
           '/profile': 'Profile',
           '/playlist': 'Playlist [TEMP]',
@@ -60,6 +62,9 @@ function App() {
           </Route>
           <Route path='/explore'>
             <Explore songList={testingItems} />
+          </Route>
+          <Route path='/questionnaire'>
+            <UserQuestionnaire />
           </Route>
           <Route path='/profile'>
             <ProfilePage />
