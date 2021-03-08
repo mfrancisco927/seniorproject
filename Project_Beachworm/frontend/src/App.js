@@ -3,12 +3,13 @@ import React, { useState } from 'react';
 import { Switch, Route, useHistory } from "react-router-dom";
 import MainPage from './pages/home/MainPage.js';
 import Navbar from './pages/nav/Navbar.js';
-import Explore from './pages/explore/Explore.js'
-import ProfilePage from './pages/profile/ProfilePage.js'
-import SearchPage from './pages/search/SearchPage.js'
-import PlayFooter from './pages/playingToolbar/PlayFooter.js'
-import PlaylistPage from './pages/playlist/PlaylistPage.js'
-import Landing from './pages/landing/Landing.js'
+import Explore from './pages/explore/Explore.js';
+import ProfilePage from './pages/profile/ProfilePage.js';
+import SearchPage from './pages/search/SearchPage.js';
+import PlayFooter from './pages/playingToolbar/PlayFooter.js';
+import PlaylistPage from './pages/playlist/PlaylistPage.js';
+import Landing from './pages/landing/Landing.js';
+import PageNotFound from './pages/pageNotFound/PageNotFound.js';
 
 function App() {
   const history = useHistory();
@@ -44,15 +45,15 @@ function App() {
   return (
     <div className='outer-wrapper'>
       <div className='page-wrapper'>
+        {/* pages marked TEMP will not be accessible via nav-bar in production, but through some other context */}
         <Navbar menuList={{
-          '/Landing': 'Landing',
+          '/landing': 'Landing [TEMP]',
           '/': 'Home',
           '/explore': 'Explore',
           '/profile': 'Profile',
-          '/playlist': 'Playlist (this link won\'t be accessible here in prod)',
+          '/playlist': 'Playlist [TEMP]',
         }} searchField={searchField} setSearchField={setSearchField} submitSearch={submitSearch}
         />
-
         <Switch>
           <Route path='/landing'>
             <Landing />
@@ -73,7 +74,7 @@ function App() {
             <MainPage changeSong={changeSong} />
           </Route>
           <Route path='*'>
-            404
+            <PageNotFound />
           </Route>
         </Switch>
       </div>
