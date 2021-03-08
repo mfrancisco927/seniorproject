@@ -1,4 +1,6 @@
-
+.page-wrapper {
+  min-height: 100%;
+}
 
 .nav-bar {
   background-color: #333;

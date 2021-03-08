@@ -40,36 +40,36 @@ function App() {
   }
 
   return (
+    <div className='outer-wrapper'>
+      <div className='page-wrapper'>
+        <Navbar menuList={{
+          '/': 'Home',
+          '/playing': 'Playing',
+          '/profile': 'Profile',
+        }} searchField={searchField} setSearchField={setSearchField} submitSearch={submitSearch}
+        />
 
-    <div className='page-wrapper'>
-      <Navbar menuList={{
-        '/': 'Home',
-        '/playing': 'Playing',
-        '/profile': 'Profile',
-      }} searchField={searchField} setSearchField={setSearchField} submitSearch={submitSearch}
-      />
-
-      <Switch>
-        <Route path='/playing'>
-          <CurrPlaying songList={testingItems} />
-        </Route>
-        <Route path='/profile'>
-          <Profilepage />
-        </Route>
-        <Route path='/search'>
-          <Searchpage searchedItem={searchField} />
-        </Route>
-        <Route path='/' exact>
-          <Mainpage changeSong={changeSong} />
-        </Route>
-        <Route path='*'>
-          404
-        </Route>
-      </Switch>
-
+        <Switch>
+          <Route path='/playing'>
+            <CurrPlaying songList={testingItems} />
+          </Route>
+          <Route path='/profile'>
+            <Profilepage />
+          </Route>
+          <Route path='/search'>
+            <Searchpage searchedItem={searchField} />
+          </Route>
+          <Route path='/' exact>
+            <Mainpage changeSong={changeSong} />
+          </Route>
+          <Route path='*'>
+            404
+          </Route>
+        </Switch>
+      </div>
       <PlayFooter />
     </div>
-  )
+  );
 
 }
 
