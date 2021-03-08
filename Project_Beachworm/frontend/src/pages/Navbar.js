@@ -1,16 +1,22 @@
+import { Link } from 'react-router-dom';
+
 function Navbar(props) {
 
-  const { menuList, changeScreen, setSearchField, submitSearch } = props;
+  const { menuList, setSearchField, submitSearch } = props;
    
   return (
 
       <div className='nav-bar'>
         <ul className='nav-bar-items'>
-          { menuList.map( (menuItem , index) => {
-              return(
-                  <li onClick={ ()=> changeScreen(index)}>  {menuItem} </li>
-              )
-          })}
+          {           
+            Object.entries(menuList).map( (menuPair , index) => {
+                const href = menuPair[0];
+                const pageName = menuPair[1];
+                return(
+                  <Link to={href} key={index}>{pageName}</Link>
+                )
+            })
+          }
         </ul>
         <div className='nav-bar-search-bar'>
           <form onSubmit={submitSearch}>
