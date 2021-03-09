@@ -27,3 +27,7 @@ cover up content with the footer */
     display: inline-block;
     font-size: 16px;
   }
+
+.control-button:active{
+  box-shadow: -5px -10px 5px rgba(51, 51, 51, 0.208) inset;
+}

@@ -1,7 +1,7 @@
 import React , { useState, useEffect } from 'react';
+import './MainPage.css';
 
-
-function Mainpage(props) {
+function MainPage(props) {
   const testingItems = [
     {
     'img':'https://upload.wikimedia.org/wikipedia/en/c/c4/Floral_Green.jpg',
@@ -42,8 +42,8 @@ function Mainpage(props) {
 
   return (
     <div>
-      <SongRow changeSong={changeSong} title='Recommended Songs' items={data} />
       <SongRow changeSong={changeSong} title='Recommended Albums' items={data} />
+      <SongRow changeSong={changeSong} title='Recommended Genres' items={data} />
       <SongRow changeSong={changeSong} title='Playlists by your Followed' items={data} />
     </div>
   );
@@ -70,4 +70,4 @@ function SongRow(props) {
 
 }
 
-export default Mainpage;
+export default MainPage;

@@ -1,0 +1,29 @@
+.group-wrapper {
+    display: flex;
+    background-color: rgba(51, 51, 51, 0.308);
+    margin: 2%;
+    margin-right: 0;
+    padding: 15px;
+    flex-direction: row;
+  }
+  
+  .song-wrapper {
+    margin: 20px;
+    display: flex;
+    text-align: center;
+    flex-direction: column;
+  }
+  
+  .song-wrapper img{
+    height: 300x;
+    width: 300px;
+  }
+  
+  .song-wrapper img:hover{
+    height: 350x;
+    width: 350px;
+  }
+  
+  .song-page-wrapper{
+    background-color: #f2f2f2;
+  }

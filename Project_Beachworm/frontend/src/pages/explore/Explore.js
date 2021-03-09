@@ -1,6 +1,7 @@
 import React, {useState, useEffect } from 'react';
+import './Explore.css';
 
-function CurrPlaying(props) {
+function Explore(props) {
 
     const { songList } = props;
     const [ songIndex, setSongIndex ] = useState(0);
@@ -33,4 +34,4 @@ function CurrPlaying(props) {
 
 }
 
-export default CurrPlaying;
+export default Explore;
