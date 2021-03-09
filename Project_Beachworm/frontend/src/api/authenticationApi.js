@@ -1,8 +1,8 @@
 import axiosInstance from './axiosApi';
 
 const baseUri = '/auth';
-const acquireTokenUri = baseUri + '/token/obtain';
-const spotifyEndpointUri = (userId) => baseUri + '/user/spotify-tokens/users/' + userId;
+const acquireTokenUri = '/token/obtain'; // note, does not use the /auth base.
+const spotifyEndpointUri = (userId) => baseUri + '/spotify-tokens/users/' + userId;
 
 // directly from https://hackernoon.com/110percent-complete-jwt-authentication-with-django-and-react-2020-iejq34ta
 async function signIn(username, password) {
