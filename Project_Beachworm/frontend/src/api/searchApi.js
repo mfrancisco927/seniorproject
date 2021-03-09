@@ -1,6 +1,6 @@
 import axiosInstance from './axiosApi';
 
-const baseUri = '/search';
+const baseUri = '/search/';
 
 async function search(searchText) {
   try {

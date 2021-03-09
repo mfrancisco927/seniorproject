@@ -1,10 +1,10 @@
 import axiosInstance from './axiosApi';
 
 const baseUri = '/recommendations';
-const standardRecommendationUri = (userId) => baseUri + '/user/' + userId;
-const genreRecommendationUri = (genreId) => baseUri + '/genre/' + genreId;
-const artistRecommendationUri = (artistId) => baseUri + '/artist/' + artistId;
-const playlistRecommendationUri = (playlistId) => baseUri + '/playlists/' + playlistId;
+const standardRecommendationUri = (userId) => baseUri + '/user/' + userId + '/';
+const genreRecommendationUri = (genreId) => baseUri + '/genre/' + genreId + '/';
+const artistRecommendationUri = (artistId) => baseUri + '/artist/' + artistId + '/';
+const playlistRecommendationUri = (playlistId) => baseUri + '/playlists/' + playlistId + '/';
 
 async function getRecommendations(userId) {
   const recEndpoint = standardRecommendationUri(userId);
