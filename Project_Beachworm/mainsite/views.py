@@ -9,6 +9,7 @@ from rest_framework_simplejwt import authentication
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import User
 from .serializer import MyTokenObtainPairSerializer, UserSerializer, ChangePasswordSerializer
+
 class ObtainTokenPairWithAdditionalInfo(TokenObtainPairView):
         permission_classes = (permissions.AllowAny,)
         serializer_class = MyTokenObtainPairSerializer
@@ -18,12 +19,20 @@ class UserCreate(APIView):
 
     def post(self, request, format='json'):
         serializer = UserSerializer(data=request.data)
+
         if serializer.is_valid():
             user = serializer.save()
             if user:
                 json = serializer.data
+                self.update_profile(user_id=user.id)
                 return Response(json, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def update_profile(self, user_id):
+        user = User.objects.get(pk=user_id)
+        print(user)
+        user.save()
+        
 
 @api_view(['GET'])
 def get_songs(request):
@@ -49,7 +58,6 @@ class HelloWorldView(APIView):
     def get(self, request):
         print(self.request.user.id)  # Shows you the ID of who is requesting
         print(self.request.user.email)
-
         return Response(data=self.request.user.id, status=status.HTTP_200_OK)
 
 class ChangePasswordView(generics.UpdateAPIView):
