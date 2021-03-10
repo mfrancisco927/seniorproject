@@ -13,8 +13,8 @@ async function signIn(username, password) {
   const acquireTokenEndpoint = acquireTokenUri;
   try {
     const data = await axiosInstance.post(acquireTokenEndpoint, {
-      username: this.state.username,
-      password: this.state.password,
+      username: username,
+      password: password,
     });
     axiosInstance.defaults.headers['Authorization'] = "JWT " + data.access;
     localStorage.setItem('access_token', data.access);
