@@ -21,21 +21,26 @@ class UserCreate(APIView):
         serializer = UserSerializer(data=request.data)
 
         if serializer.is_valid():
+            if User.objects.filter(username=serializer.validated_data['username']).exists():
+                return Response({'username': 'Username already exists'}, status=status.HTTP_400_BAD_REQUEST)
+            if User.objects.filter(email=serializer.validated_data['email']):
+                return Response({'email' : 'Email already exists'}, status=status.HTTP_400_BAD_REQUEST)
+            
             user = serializer.save()
             if user:
                 json = serializer.data
-                self.update_profile(user_id=user.id)
+                # self.update_profile(user_id=user.id)
                 return Response(json, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    def update_profile(self, user_id):
-        user = User.objects.get(pk=user_id)
-        #above method works to add a user but fails here, something with the signal
-        user.profile.following = []
-        user.profile.liked_songs = []
-        user.profile.disliked_songs = []
-        user.profile.favorite_playlists = []
-        user.save()
+    # def update_profile(self, user_id):
+    #     user = User.objects.get(pk=user_id)
+    #     #above method works to add a user but fails here, something with the signal
+    #     user.profile.following = []
+    #     user.profile.liked_songs = []
+    #     user.profile.disliked_songs = []
+    #     user.profile.favorite_playlists = []
+    #     user.save()
 
 @api_view(['GET'])
 def get_songs(request):

@@ -30,11 +30,12 @@ class Song(BaseModel):
   time_signature = models.IntegerField()
   
 class Profile(BaseModel):
-  user = models.OneToOneField(User, primary_key=True, on_delete=models.CASCADE)
+  user = models.OneToOneField(User,primary_key=True, on_delete=models.CASCADE)
   following = models.ManyToManyField("self", related_name='profile_following', symmetrical=False)
   liked_songs = models.ManyToManyField(Song, related_name='profile_liked')
   disliked_songs = models.ManyToManyField(Song, related_name='profile_disliked')
   favorite_playlists = models.ManyToManyField("Playlist", related_name='profile_favorite_playlists')
+
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
