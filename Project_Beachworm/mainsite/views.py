@@ -30,9 +30,12 @@ class UserCreate(APIView):
     
     def update_profile(self, user_id):
         user = User.objects.get(pk=user_id)
-        print(user)
+        #above method works to add a user but fails here, something with the signal
+        user.profile.following = []
+        user.profile.liked_songs = []
+        user.profile.disliked_songs = []
+        user.profile.favorite_playlists = []
         user.save()
-        
 
 @api_view(['GET'])
 def get_songs(request):
