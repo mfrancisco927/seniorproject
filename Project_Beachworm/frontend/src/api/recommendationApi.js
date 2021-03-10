@@ -27,7 +27,7 @@ async function getRecommendationsByArtist(artistId) {
 }
 
 async function getRecommendationsByGenre(genreId) {
-  const genreRecEndpoint = artistRecommendationUri(genreId);
+  const genreRecEndpoint = genreRecommendationUri(genreId);
   try {
     const response = await axiosInstance.get(genreRecEndpoint);
     return response.data;
