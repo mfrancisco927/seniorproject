@@ -1,6 +1,6 @@
 import axiosInstance from './axiosApi';
 
-const baseUri = '/users/';
+const baseUri = '/user/';
 const userEndpointUri = (userId) => baseUri + userId + '/';
 const playlistEndpointUri = (userId) => baseUri + userId + '/playlists/';
 const registerEndpointUri = baseUri + 'create/';
