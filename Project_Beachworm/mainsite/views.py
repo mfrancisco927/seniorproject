@@ -9,6 +9,8 @@ from rest_framework_simplejwt import authentication
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import User
 from .serializer import MyTokenObtainPairSerializer, UserSerializer, ChangePasswordSerializer
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
 
 class ObtainTokenPairWithAdditionalInfo(TokenObtainPairView):
         permission_classes = (permissions.AllowAny,)
