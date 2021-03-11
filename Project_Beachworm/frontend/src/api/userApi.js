@@ -9,7 +9,7 @@ const followingEndpointUri = (userId, targetUid) => profileEndpointUri(userId) +
 const genreSeedEndpointUri = (userId) => profileEndpointUri(userId) + '/seeds/genres/';
 const artistSeedEndpointUri = (userId) => profileEndpointUri(userId) + '/seeds/artists/';
 
-async function getUser(userId) {
+export async function getUser(userId) {
   const userEndpoint = userEndpointUri(userId);
   try {
     const response = await axiosInstance.get(userEndpoint);
@@ -19,7 +19,7 @@ async function getUser(userId) {
   }
 }
 
-async function getPlaylists(userId) {
+export async function getPlaylists(userId) {
   const playlistEndpoint = playlistEndpointUri(userId);
   try {
     const response = await axiosInstance.get(playlistEndpoint);
@@ -29,7 +29,7 @@ async function getPlaylists(userId) {
   }
 }
 
-async function createPlaylist(userId, songIds) {
+export async function createPlaylist(userId, songIds) {
   const playlistEndpoint = playlistEndpointUri(userId);
   try {
     const response = await axiosInstance.post(playlistEndpoint, {
@@ -41,7 +41,7 @@ async function createPlaylist(userId, songIds) {
   }
 }
 
-async function createUser(email, username, password) {
+export async function createUser(email, username, password) {
   try {
     const response = await axiosInstance.post(registerEndpointUri, {
       email: email,
@@ -54,7 +54,7 @@ async function createUser(email, username, password) {
   }
 }
 
-async function getProfile(userId) {
+export async function getProfile(userId) {
   const profileEndpoint = profileEndpointUri(userId);
   try {
     const response = await axiosInstance.get(profileEndpoint);
@@ -64,7 +64,7 @@ async function getProfile(userId) {
   }
 }
 
-async function followUser(userId, targetUserId) {
+export async function followUser(userId, targetUserId) {
   const profileEndpoint = followingEndpointUri(userId, targetUserId);
   try {
     const response = await axiosInstance.get(profileEndpoint);
@@ -74,7 +74,7 @@ async function followUser(userId, targetUserId) {
   }
 }
 
-async function unfollowUser(userId, targetUserId) {
+export async function unfollowUser(userId, targetUserId) {
   const profileEndpoint = followingEndpointUri(userId, targetUserId);
   try {
     const response = await axiosInstance.delete(profileEndpoint);
@@ -84,7 +84,7 @@ async function unfollowUser(userId, targetUserId) {
   }
 }
 
-async function addGenreSeeds(userId, genreIds) {
+export async function addGenreSeeds(userId, genreIds) {
   const genreSeedEndpoint = genreSeedEndpointUri(userId);
   try {
     const response = await axiosInstance.post(genreSeedEndpoint, {
@@ -96,7 +96,7 @@ async function addGenreSeeds(userId, genreIds) {
   }
 }
 
-async function addArtistSeeds(userId, artistIds) {
+export async function addArtistSeeds(userId, artistIds) {
   const artistSeedEndpoint = artistSeedEndpointUri(userId);
   try {
     const response = await axiosInstance.post(artistSeedEndpoint, {

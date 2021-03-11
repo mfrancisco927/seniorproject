@@ -6,7 +6,7 @@ const genreRecommendationUri = (genreId) => baseUri + '/genre/' + genreId + '/';
 const artistRecommendationUri = (artistId) => baseUri + '/artist/' + artistId + '/';
 const playlistRecommendationUri = (playlistId) => baseUri + '/playlists/' + playlistId + '/';
 
-async function getRecommendations(userId) {
+export async function getRecommendations(userId) {
   const recEndpoint = standardRecommendationUri(userId);
   try {
     const response = await axiosInstance.get(recEndpoint);
@@ -16,7 +16,7 @@ async function getRecommendations(userId) {
   }
 }
 
-async function getRecommendationsByArtist(artistId) {
+export async function getRecommendationsByArtist(artistId) {
   const artistRecEndpoint = artistRecommendationUri(artistId);
   try {
     const response = await axiosInstance.get(artistRecEndpoint);
@@ -26,7 +26,7 @@ async function getRecommendationsByArtist(artistId) {
   }
 }
 
-async function getRecommendationsByGenre(genreId) {
+export async function getRecommendationsByGenre(genreId) {
   const genreRecEndpoint = genreRecommendationUri(genreId);
   try {
     const response = await axiosInstance.get(genreRecEndpoint);
@@ -36,7 +36,7 @@ async function getRecommendationsByGenre(genreId) {
   }
 }
 
-async function getRecommendationsByPlaylist(playlistId) {
+export async function getRecommendationsByPlaylist(playlistId) {
   const playlistRecEndpoint = playlistRecommendationUri(playlistId);
   try {
     const response = await axiosInstance.get(playlistRecEndpoint);

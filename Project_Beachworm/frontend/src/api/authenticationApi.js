@@ -6,27 +6,65 @@ const spotifyEndpointUri = (userId) => baseUri + '/spotify-tokens/users/' + user
 // note, token endpoints do not use the /auth/ base
 const tokenBaseUri = '/token/';
 const acquireTokenUri = tokenBaseUri + 'obtain/';
-// const refreshTokenUri = tokenBaseUri + 'refresh/'; // currently handled in axiosApi, no need to duplicate
+const refreshTokenUri = tokenBaseUri + 'refresh/'; // currently handled in axiosApi, no need to duplicate
 
 // directly from https://hackernoon.com/110percent-complete-jwt-authentication-with-django-and-react-2020-iejq34ta
-async function signIn(username, password) {
+export async function signIn(username, password) {
   const acquireTokenEndpoint = acquireTokenUri;
-  try {
-    const data = await axiosInstance.post(acquireTokenEndpoint, {
-      username: username,
-      password: password,
-    });
-    axiosInstance.defaults.headers['Authorization'] = "JWT " + data.access;
-    localStorage.setItem('access_token', data.access);
-    localStorage.setItem('refresh_token', data.refresh);
-    return data;
-  } catch (error) {
+  let success = false;
+
+  const response = await axiosInstance.post(acquireTokenEndpoint, {
+    username: username,
+    password: password,
+  }).then(response => {
+    if (response) {
+      success = true;
+      axiosInstance.defaults.headers['Authorization'] = "JWT " + response.data.access;
+      localStorage.setItem('access_token', response.data.access);
+      localStorage.setItem('refresh_token', response.data.refresh);
+      return response.data;
+    }
+  }).catch(error => {
     console.log(error.stack);
-    throw error;
+    success = false;
+  });
+
+  if (!success) {
+    throw new Error('Sign in request failed');
   }
+
+  return response;
 }
 
-async function getSpotifyToken(userId) {
+export async function refreshToken() {
+  const refreshTokenEndpoint = refreshTokenUri;
+  let success = false;
+
+  const currentRefreshToken = localStorage.getItem('refresh_token');
+
+  const response = await axiosInstance.post(refreshTokenEndpoint, {refresh: currentRefreshToken})
+    .then(response => {
+      if (response) {
+        success = true;
+        localStorage.setItem('access_token', response.data.access);
+        localStorage.setItem('refresh_token', response.data.refresh);
+
+        axiosInstance.defaults.headers['Authorization'] = "JWT " + response.data.access;
+      }
+      return response.data;
+    }).catch(error => {
+      success = false;
+    }
+  );
+
+  if (!success) {
+    throw new Error('Refresh request failed');
+  }
+
+  return response;
+}
+
+export async function getSpotifyToken(userId) {
   const spotifyEndpoint = spotifyEndpointUri(userId);
   try {
     const response = await axiosInstance.get(spotifyEndpoint);
@@ -37,7 +75,7 @@ async function getSpotifyToken(userId) {
   }
 }
 
-async function addSpotifyRefreshToken(userId, refreshToken) {
+export async function addSpotifyRefreshToken(userId, refreshToken) {
   const spotifyEndpoint = spotifyEndpointUri(userId);
   try {
     const response = await axiosInstance.post(spotifyEndpoint, {

@@ -2,7 +2,7 @@ import axiosInstance from './axiosApi';
 
 const baseUri = '/search/';
 
-async function search(searchText) {
+export async function search(searchText) {
   try {
     const response = await axiosInstance.get(baseUri, {
       params: {
