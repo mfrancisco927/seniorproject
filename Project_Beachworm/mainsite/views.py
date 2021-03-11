@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -8,9 +8,19 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt import authentication
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import User
-from .serializer import MyTokenObtainPairSerializer, UserSerializer, ChangePasswordSerializer
+from .serializer import *
+from .models import *
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
+import environ
+import basicauth
+import requests
+import json
+
+env = environ.Env()
+CLIENT_ID = env('CLIENT_ID')
+SECRET = env('SECRET')
+
 
 class ObtainTokenPairWithAdditionalInfo(TokenObtainPairView):
         permission_classes = (permissions.AllowAny,)
@@ -99,3 +109,80 @@ class ChangePasswordView(generics.UpdateAPIView):
             return Response(response)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class SpotifyAuthorize(APIView):
+    def get(self, request, *args, **kwargs):
+        
+        user_id = self.request.user.id
+        url = "https://accounts.spotify.com/authorize"
+        url = url + "?client_id=" + CLIENT_ID
+        url = url + "&response_type=code"
+        url = url + "&redirect_uri=http://127.0.0.1:8000/api/spotify/redirect/"
+        url = url + "&state=" + str(user_id)
+        return redirect(url)
+
+class SpotifyRedirect(APIView):
+    # Must be set to all for redirect back from spotify
+    permission_classes = (permissions.AllowAny,)
+    def get(self, request, *args, **kwargs):        
+        auth_code = request.GET.get('code')
+        user_id = request.GET.get('state')
+        encode = '%s' % basicauth.encode(CLIENT_ID, SECRET)
+        decode = basicauth.decode(encode)
+
+        headers = {'Content-Type' : 'application/x-www-form-urlencoded',
+                    'Authorization' : '%s' % basicauth.encode(CLIENT_ID, SECRET)}
+        payload = {'grant_type': 'authorization_code', 'code' : '%s' % auth_code, 
+                    'redirect_uri':'http://127.0.0.1:8000/api/spotify/redirect/',}
+        r = requests.post("https://accounts.spotify.com/api/token", headers=headers, data=payload)
+        response_dict = json.loads(r.text)
+
+        # Save the refresh token to Profile
+        try: 
+            profile = Profile.objects.get(user=user_id)
+            profile.refresh_token = response_dict['refresh_token']
+            profile.save()
+        except Profile.DoesNotExist:
+            return Response({"access_token" : "error: user does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({"access_token" : response_dict['access_token']}, status=status.HTTP_200_OK)
+
+class SpotifyRefresh(APIView):
+
+    def get(self, request, *args, **kwargs):
+        user_id = self.request.user.id
+
+        try:
+            profile = Profile.objects.get(user=user_id)
+            refresh_token = profile.refresh_token
+        except Profile.DoesNotExist:
+            return Response({"access_token" : "error: user does not exst"}, status=status.HTTP_404_NOT_FOUND)
+
+        if refresh_token == "None":
+            return Response({"access_token" : "error: no refresh token.  may need to sign in to spotify"}, status=status.HTTP_401_UNAUTHORIZED) 
+
+        encode = '%s' % basicauth.encode(CLIENT_ID, SECRET)
+        decode = basicauth.decode(encode)
+
+        headers = {'Content-Type' : 'application/x-www-form-urlencoded',
+                    'Authorization' : '%s' % basicauth.encode(CLIENT_ID, SECRET)}
+        payload = {'grant_type': 'refresh_token', 'refresh_token' : '%s' % refresh_token, 
+                    'redirect_uri':'http://127.0.0.1:8000/api/spotify/redirect/',}
+        r = requests.post("https://accounts.spotify.com/api/token", headers=headers, data=payload)
+        response_dict = json.loads(r.text)
+
+        # Save the refresh token to Profile
+        try: 
+            profile = Profile.objects.get(user=user_id)
+            # In case they send back a different refresh token
+            if 'refresh_token' in response_dict.keys():
+                profile.refresh_token = response_dict['refresh_token']
+                profile.save()
+        except Profile.DoesNotExist:
+            return Response({"access_token" : "error: user does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        if 'access_token' in response_dict.keys():
+            return Response({"access_token" : response_dict['access_token']}, status=status.HTTP_200_OK)
+        return Response({"access_token" : "Error!  Spotify access may have been revoked"}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+        

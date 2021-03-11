@@ -3,6 +3,7 @@ certifi==2020.12.5
 chardet==4.0.0
 Django==3.0.3
 django-cors-headers==3.7.0
+django-environ==0.4.5
 django-rest-passwordreset==1.1.0
 djangorestframework==3.11.0
 djangorestframework-simplejwt==4.6.0
