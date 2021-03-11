@@ -25,10 +25,12 @@ function useProvideAuth() {
 
   const signIn = (user, pass, cb) => {
     return apiSignIn(user, pass).then(result => {
-      setUser(user);
+      const returnedUsername = result.username;
+      setUser(returnedUsername);
       if (cb) {
         cb();
       }
+      return returnedUsername;
     });
   };
 
