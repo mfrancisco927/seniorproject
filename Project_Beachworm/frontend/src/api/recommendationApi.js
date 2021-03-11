@@ -22,7 +22,6 @@ export async function getRecommendationsByGenre(genreId) {
   const genreRecEndpoint = genreRecommendationUri(genreId);
   const response = await axiosInstance.get(genreRecEndpoint);
   return response.data;
-  }
 }
 
 export async function getRecommendationsByPlaylist(playlistId) {
