@@ -55,8 +55,12 @@ function Landing() {
 
     const createNewUser = (event) => {
         const rng = Math.floor(Math.random() * 1000);
-        createUser('example1' + rng + '@example.com', 'testuser' + rng, 'securePassword' + rng).then(value => {
+        const email = 'example' + rng + '@example.com';
+        const user = 'testuser' + rng;
+        const pass = 'securePassword' + rng;
+        createUser(email, user, pass).then(value => {
             console.log(value);
+            alert('Created user with username ' + user +  ' and password ' + pass)
         }).catch(reason => {
             console.log('new user rejected', reason);
         });
