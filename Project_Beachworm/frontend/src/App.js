@@ -1,6 +1,6 @@
 import './App.css';
 import React, { useState } from 'react';
-import { Switch, Route, useHistory } from "react-router-dom";
+import { Switch, Route, useHistory, Redirect } from "react-router-dom";
 import MainPage from './pages/home/MainPage.js';
 import Navbar from './pages/nav/Navbar.js';
 import Explore from './pages/explore/Explore.js';
@@ -12,7 +12,10 @@ import Landing from './pages/landing/Landing.js';
 import PageNotFound from './pages/pageNotFound/PageNotFound.js';
 import UserQuestionnaire from './pages/questionnaire/UserQuestionnaire.js';
 
+import { useAuth } from './hooks/authHooks';
+
 function App() {
+  const auth = useAuth();
   const history = useHistory();
 
   const testingItems = [
@@ -56,6 +59,9 @@ function App() {
           '/playlist': 'Playlist [TEMP]',
         }} searchField={searchField} setSearchField={setSearchField} submitSearch={submitSearch}
         />
+        <AuthorizedOrHidden>
+          <button onClick={(event) => auth.signOut()}>Log out</button>
+        </AuthorizedOrHidden>
         <Switch>
           <Route path='/landing'>
             <Landing />
@@ -63,18 +69,18 @@ function App() {
           <Route path='/explore'>
             <Explore songList={testingItems} />
           </Route>
-          <Route path='/questionnaire'>
+          <PrivateRoute path='/questionnaire'>
             <UserQuestionnaire />
-          </Route>
-          <Route path='/profile'>
+          </PrivateRoute>
+          <PrivateRoute path='/profile'>
             <ProfilePage />
-          </Route>
-          <Route path='/playlist'>
+          </PrivateRoute>
+          <PrivateRoute path='/playlist'>
             <PlaylistPage />
-          </Route>
-          <Route path='/search'>
+          </PrivateRoute>
+          <PrivateRoute path='/search'>
             <SearchPage searchedItem={searchField} />
-          </Route>
+          </PrivateRoute>
           <Route path='/' exact>
             <MainPage changeSong={changeSong} />
           </Route>
@@ -83,10 +89,39 @@ function App() {
           </Route>
         </Switch>
       </div>
-      <PlayFooter />
+      <AuthorizedOrHidden>
+        <PlayFooter />
+      </AuthorizedOrHidden>
     </div>
   );
+}
 
+
+// adapted from https://reactrouter.com/web/example/auth-workflow
+function PrivateRoute({ children, ...rest }) {
+  const auth = useAuth();
+  return (
+    <Route
+      {...rest}
+      render={({ location }) =>
+        auth.user ? (
+          children
+        ) : (
+          <Redirect
+            to={{
+              pathname: "/landing",
+              state: { redirect: location }
+            }}
+          />
+        )
+      }
+    />
+  );
+}
+
+function AuthorizedOrHidden({ children }) {
+  const auth = useAuth();
+  return auth.user ? children : null;
 }
 
 export default App;
