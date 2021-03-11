@@ -25,7 +25,6 @@ export async function signIn(username, password) {
       return response.data;
     }
   }).catch(error => {
-    console.log(error.stack);
     success = false;
   });
 
