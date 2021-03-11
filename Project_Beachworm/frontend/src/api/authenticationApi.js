@@ -1,7 +1,6 @@
 import axiosInstance from './axiosApi';
 
-const baseUri = '/auth';
-const spotifyEndpointUri = (userId) => baseUri + '/spotify-tokens/users/' + userId + '/';
+const spotifyEndpointUri = '/spotify/';
 
 // note, token endpoints do not use the /auth/ base
 const tokenBaseUri = '/token/';
