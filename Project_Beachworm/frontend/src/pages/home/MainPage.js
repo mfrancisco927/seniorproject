@@ -29,9 +29,9 @@ function MainPage(props) {
           const tempdata = await response.json();
 
           console.log('New song data received', tempdata)
-          setData(tempdata)
+          // setData(tempdata)
     
-        }catch(error){
+        } catch(error) {
           console.log(error)
         }
     }
