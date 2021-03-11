@@ -98,6 +98,9 @@ function App() {
 
 
 // adapted from https://reactrouter.com/web/example/auth-workflow
+// acts as a typical route, but if a user is not signed in, it first redirects
+// them to the landing page to sign in. the landing page can use the redirect
+// information passed into history.location.state to redirect the user back
 function PrivateRoute({ children, ...rest }) {
   const auth = useAuth();
   return (
@@ -119,6 +122,7 @@ function PrivateRoute({ children, ...rest }) {
   );
 }
 
+// if the user is signed in, display the children. if not, display nothing at all.
 function AuthorizedOrHidden({ children }) {
   const auth = useAuth();
   return auth.user ? children : null;
