@@ -66,24 +66,14 @@ export async function refreshToken() {
 
 export async function getSpotifyToken(userId) {
   const spotifyEndpoint = spotifyEndpointUri(userId);
-  try {
-    const response = await axiosInstance.get(spotifyEndpoint);
-    return response.data;
-  } catch (error) {
-    console.log(error.stack);
-    throw error;
-  }
+  const response = await axiosInstance.get(spotifyEndpoint);
+  return response.data;
 }
 
 export async function addSpotifyRefreshToken(userId, refreshToken) {
   const spotifyEndpoint = spotifyEndpointUri(userId);
-  try {
-    const response = await axiosInstance.post(spotifyEndpoint, {
-      refreshToken: refreshToken
-    });
-    return response.data;
-  } catch (error) {
-    console.log(error.stack);
-    throw error;
-  }
+  const response = await axiosInstance.post(spotifyEndpoint, {
+    refreshToken: refreshToken,
+  });
+  return response.data;
 }

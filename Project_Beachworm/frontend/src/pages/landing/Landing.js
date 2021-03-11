@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { signIn, refreshToken } from './../../api/authenticationApi';
+import { createUser } from './../../api/userApi';
 
 function Landing() {
     const [username, setUsername] = useState('');
@@ -52,6 +53,16 @@ function Landing() {
         event.preventDefault();
     }
 
+    const createNewUser = (event) => {
+        const rng = Math.floor(Math.random() * 1000);
+        createUser('example1' + rng + '@example.com', 'testuser' + rng, 'securePassword' + rng).then(value => {
+            console.log(value);
+        }).catch(reason => {
+            console.log('new user rejected', reason);
+        });
+        event.preventDefault();
+    }
+
     const signInForm = (
         <form onSubmit={handleSubmit}>
             <label>
@@ -95,6 +106,7 @@ function Landing() {
             {signInForm}
             <button onClick={refreshTokens}>Refresh</button>
             <button onClick={deleteTokens} >Clear local storage</button>
+            <button onClick={createNewUser} >Create user test</button>
             <p>Access token: {access}</p>
             <p>Refresh token: {refresh}</p>
             <p>{errorText ? 'Error text: ' + errorText : ''}</p>

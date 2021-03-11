@@ -11,99 +11,63 @@ const artistSeedEndpointUri = (userId) => profileEndpointUri(userId) + '/seeds/a
 
 export async function getUser(userId) {
   const userEndpoint = userEndpointUri(userId);
-  try {
-    const response = await axiosInstance.get(userEndpoint);
-    return response.data;
-  } catch (error) {
-      console.log(error.stack);
-  }
+  const response = await axiosInstance.get(userEndpoint);
+  return response.data;
 }
 
 export async function getPlaylists(userId) {
   const playlistEndpoint = playlistEndpointUri(userId);
-  try {
-    const response = await axiosInstance.get(playlistEndpoint);
-    return response.data;
-  } catch (error) {
-      console.log(error.stack);
-  }
+  const response = await axiosInstance.get(playlistEndpoint);
+  return response.data;
 }
 
 export async function createPlaylist(userId, songIds) {
   const playlistEndpoint = playlistEndpointUri(userId);
-  try {
-    const response = await axiosInstance.post(playlistEndpoint, {
-      songIds: songIds,
-    });
-    return response.data;
-  } catch (error) {
-      console.log(error.stack);
-  }
+  const response = await axiosInstance.post(playlistEndpoint, {
+    songIds: songIds,
+  });
+  return response.data;
 }
 
 export async function createUser(email, username, password) {
-  try {
-    const response = await axiosInstance.post(registerEndpointUri, {
-      email: email,
-      username: username,
-      password: password,
-    });
-    return response.data;
-  } catch (error) {
-      console.log(error.stack);
-  }
+  const response = await axiosInstance.post(registerEndpointUri, {
+    email: email,
+    username: username,
+    password: password,
+  });
+  return response.data;
 }
 
 export async function getProfile(userId) {
   const profileEndpoint = profileEndpointUri(userId);
-  try {
-    const response = await axiosInstance.get(profileEndpoint);
-    return response.data;
-  } catch (error) {
-      console.log(error.stack);
-  }
+  const response = await axiosInstance.get(profileEndpoint);
+  return response.data;
 }
 
 export async function followUser(userId, targetUserId) {
   const profileEndpoint = followingEndpointUri(userId, targetUserId);
-  try {
-    const response = await axiosInstance.get(profileEndpoint);
-    return response.data;
-  } catch (error) {
-      console.log(error.stack);
-  }
+  const response = await axiosInstance.get(profileEndpoint);
+  return response.data;
 }
 
 export async function unfollowUser(userId, targetUserId) {
   const profileEndpoint = followingEndpointUri(userId, targetUserId);
-  try {
-    const response = await axiosInstance.delete(profileEndpoint);
-    return response.data;
-  } catch (error) {
-      console.log(error.stack);
-  }
+  const response = await axiosInstance.delete(profileEndpoint);
+  return response.data;
 }
 
 export async function addGenreSeeds(userId, genreIds) {
   const genreSeedEndpoint = genreSeedEndpointUri(userId);
-  try {
-    const response = await axiosInstance.post(genreSeedEndpoint, {
-      ids: genreIds 
-    });
-    return response.data;
-  } catch (error) {
-      console.log(error.stack);
-  }
+  const response = await axiosInstance.post(genreSeedEndpoint, {
+    ids: genreIds,
+  });
+  return response.data;
 }
 
 export async function addArtistSeeds(userId, artistIds) {
   const artistSeedEndpoint = artistSeedEndpointUri(userId);
-  try {
-    const response = await axiosInstance.post(artistSeedEndpoint, {
-      ids: artistIds 
-    });
-    return response.data;
-  } catch (error) {
-      console.log(error.stack);
-  }
+  const response = await axiosInstance.post(artistSeedEndpoint, {
+    ids: artistIds,
+  });
+  return response.data;
 }
