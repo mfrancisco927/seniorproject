@@ -7,18 +7,18 @@ cover up content with the footer */
 }
 
 .play-footer {
-    height: 3rem;
+    height: 5rem;
     padding: 1rem;
     display: flex;
     position: fixed;
     bottom: 0;
     justify-content: space-around;
     width: 100%;
-    background-color: #333;
+    background-color: #fd7c54;
   }
 
 .control-button {
-    background-color: #ad2020; /* red */
+    background-color: #90032b; /* red */
     border: none;
     color: white;
     padding: 15px 32px;
