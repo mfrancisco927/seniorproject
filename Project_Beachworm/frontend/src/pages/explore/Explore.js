@@ -1,8 +1,9 @@
 import React, {useState, useEffect } from 'react';
+import { useAuth } from './../../hooks/authHooks';
 import './Explore.css';
 
 function Explore(props) {
-
+    const auth = useAuth();
     const { songList } = props;
     const [ songIndex, setSongIndex ] = useState(0);
     const [ currSong, setCurrSong ] = useState(songList[0]);
@@ -18,16 +19,22 @@ function Explore(props) {
       setCurrSong(songList[songIndex])
     }, [songIndex, songList])
 
-
     return (
       <div className='playing-wrapper'>
         <button className='control-button prev-button' onClick={ () => changeSong(-1) }> Prev </button>
 
-        <div className='playing-curr-song'>
-          <img src={currSong.img} style={{height:'300px',width:'300px'}} alt='ayy' />
-          <p style={{textAlign:'center'}}>{currSong.name}</p>
-        </div>
-
+        {auth.user ? (
+            <div className='playing-curr-song'>
+              <img src={currSong.img} style={{height:'300px',width:'300px'}} alt='current song' />
+              <p style={{textAlign:'center'}}>{currSong.name + ' [SIGNED IN]'}</p>
+            </div>
+          ) : (
+            <div className='playing-curr-song playing-curr-song__guest'>
+              <img src={currSong.img} style={{height:'300px',width:'300px'}} alt='current song' />
+              <p style={{textAlign:'center'}}>{currSong.name + ' [GUEST]'}</p>
+            </div>
+        )}
+        
         <button className='control-button next-button' onClick={ () => changeSong(1) }> Next </button>
       </div>
     );
