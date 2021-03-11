@@ -8,6 +8,7 @@ function Landing() {
     const [access, setAccess] = useState(localStorage.getItem('access_token'))
     const [refresh, setRefresh] = useState(localStorage.getItem('refresh_token'))
 
+    // not needed for production, delete
     const refreshTokens = () => {
         refreshToken().then(value => {
             setErrorText();
@@ -19,12 +20,15 @@ function Landing() {
         updateTokenVars();
     }
 
+    // not needed for production, delete
+    // move the removeItem calls to a log out functionality if we want to keep that
     const deleteTokens = () => {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
         updateTokenVars();
     }
 
+    // not needed for production, delete
     const updateTokenVars = () => {
         setAccess(localStorage.getItem('access_token'));
         setRefresh(localStorage.getItem('refresh_token'));
@@ -34,6 +38,9 @@ function Landing() {
         return (event) => stateSetter(event.target.value);
     }
 
+    // todo: remove set error text stuff, instead do actual form validation.
+    // if an error is still returned by the signIn method, display a 
+    // top-level error on the page and let the user know
     const handleSubmit = (event) => {
         signIn(username, password).then(value => {
             updateTokenVars();
