@@ -1,5 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
 
 class BaseModel(models.Model):
   created_at = models.DateTimeField('created_time', auto_now_add=True, db_index=True, null=True)
@@ -27,12 +30,22 @@ class Song(BaseModel):
   time_signature = models.IntegerField()
   
 class Profile(BaseModel):
-  user = models.OneToOneField(User, primary_key=True, on_delete=models.CASCADE)
-  following = models.ManyToManyField("self", related_name='profile_following')
+  user = models.OneToOneField(User,primary_key=True, on_delete=models.CASCADE)
+  following = models.ManyToManyField("self", related_name='profile_following', symmetrical=False)
   liked_songs = models.ManyToManyField(Song, related_name='profile_liked')
   disliked_songs = models.ManyToManyField(Song, related_name='profile_disliked')
   favorite_playlists = models.ManyToManyField("Playlist", related_name='profile_favorite_playlists')
 
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+  if created:
+    Profile.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+  instance.profile.save()
+  
 class Playlist(BaseModel):
   title = models.TextField()
   is_public = models.BooleanField(default=True)
@@ -62,3 +75,4 @@ class UserPlaylistPlay(BaseModel):
   playlist = models.ForeignKey(Playlist, on_delete=models.CASCADE)
   radio = models.ForeignKey(Radio, on_delete=models.CASCADE)
   listened_at = models.DateTimeField(auto_now_add=True)
+

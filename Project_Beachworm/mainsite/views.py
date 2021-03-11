@@ -2,7 +2,47 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework import permissions, status, generics
+from rest_framework.views import APIView
+from rest_framework_simplejwt import authentication
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth.models import User
+from .serializer import MyTokenObtainPairSerializer, UserSerializer, ChangePasswordSerializer
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
 
+class ObtainTokenPairWithAdditionalInfo(TokenObtainPairView):
+        permission_classes = (permissions.AllowAny,)
+        serializer_class = MyTokenObtainPairSerializer
+
+class UserCreate(APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request, format='json'):
+        serializer = UserSerializer(data=request.data)
+
+        if serializer.is_valid():
+            if User.objects.filter(username=serializer.validated_data['username']).exists():
+                return Response({'username': 'Username already exists'}, status=status.HTTP_400_BAD_REQUEST)
+            if User.objects.filter(email=serializer.validated_data['email']):
+                return Response({'email' : 'Email already exists'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            user = serializer.save()
+            if user:
+                json = serializer.data
+                # self.update_profile(user_id=user.id)
+                return Response(json, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    # def update_profile(self, user_id):
+    #     user = User.objects.get(pk=user_id)
+    #     #above method works to add a user but fails here, something with the signal
+    #     user.profile.following = []
+    #     user.profile.liked_songs = []
+    #     user.profile.disliked_songs = []
+    #     user.profile.favorite_playlists = []
+    #     user.save()
 
 @api_view(['GET'])
 def get_songs(request):
@@ -23,3 +63,39 @@ def get_songs(request):
     ]
 
 	return Response(songs)
+
+class HelloWorldView(APIView):
+    def get(self, request):
+        print(self.request.user.id)  # Shows you the ID of who is requesting
+        print(self.request.user.email)
+        return Response(data=self.request.user.id, status=status.HTTP_200_OK)
+
+class ChangePasswordView(generics.UpdateAPIView):
+    # Endpoint for changing a password
+    serializer_class = ChangePasswordSerializer
+    
+    def get_object(self, queryset=None):
+        obj = self.request.user
+        return obj
+
+    def update(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            # Check old password
+            if not self.object.check_password(serializer.data.get("old_password")):
+                return Response({"old_password": ["Wrong password."]}, status=status.HTTP_400_BAD_REQUEST)
+            # set_password also hashes the password that the user will get
+            self.object.set_password(serializer.data.get("new_password"))
+            self.object.save()
+            response = {
+                'status': 'success',
+                'code': status.HTTP_200_OK,
+                'message': 'Password updated successfully',
+                'data': []
+            }
+
+            return Response(response)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
