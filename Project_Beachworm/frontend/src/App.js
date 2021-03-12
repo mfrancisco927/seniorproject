@@ -10,7 +10,8 @@ import PlayFooter from './pages/playingToolbar/PlayFooter.js';
 import PlaylistPage from './pages/playlist/PlaylistPage.js';
 import Landing from './pages/landing/Landing.js';
 import PageNotFound from './pages/pageNotFound/PageNotFound.js';
-import UserQuestionnaire from './pages/questionnaire/UserQuestionnaire.js';
+import Questionnaire1 from './pages/questionnaire/Questionnaire1.js';
+import Questionnaire2 from './pages/questionnaire/Questionnaire2.js';
 
 import { useAuth } from './hooks/authHooks';
 
@@ -53,7 +54,7 @@ function App() {
         <Navbar menuList={{
           '/landing': 'Landing [TEMP]',
           '/': 'Home',
-          '/questionnaire': 'Questionnaire [TEMP]',
+          '/questionnaire1': 'Questionnaire [TEMP]',
           '/explore': 'Explore',
           '/profile': 'Profile',
           '/playlist': 'Playlist [TEMP]',
@@ -69,8 +70,11 @@ function App() {
           <Route path='/explore'>
             <Explore songList={testingItems} />
           </Route>
-          <PrivateRoute path='/questionnaire'>
-            <UserQuestionnaire />
+          <PrivateRoute path='/questionnaire1'>
+            <Questionnaire1 />
+          </PrivateRoute>
+          <PrivateRoute path='/questionnaire2'>
+            <Questionnaire2 />
           </PrivateRoute>
           <PrivateRoute path='/profile'>
             <ProfilePage />
