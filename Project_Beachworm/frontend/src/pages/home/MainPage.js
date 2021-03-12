@@ -24,7 +24,7 @@ function MainPage(props) {
     console.log('fetching...')
 
         try {
-          let url = 'http://127.0.0.1:8000/get-songs/'
+          let url = 'http://127.0.0.1:8000/api/get-songs/'
           const response = await fetch(url);
           const tempdata = await response.json();
 

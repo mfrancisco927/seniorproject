@@ -1,3 +1,4 @@
 # Virtualenv
 pyvenv.cfg
 Scripts/
+mainsite/.vscode

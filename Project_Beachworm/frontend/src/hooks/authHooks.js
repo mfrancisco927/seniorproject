@@ -21,16 +21,16 @@ export function useAuth() {
 }
 
 function useProvideAuth() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(localStorage.getItem('access_token'));
 
   const signIn = (user, pass, cb) => {
+    console.log('attempting sign in');
     return apiSignIn(user, pass).then(result => {
-      const returnedUsername = result.username;
-      setUser(returnedUsername);
+      setUser(user);
       if (cb) {
         cb();
       }
-      return returnedUsername;
+      return user;
     });
   };
 

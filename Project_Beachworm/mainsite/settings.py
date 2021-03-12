@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 from pathlib import Path
 import os
 from datetime import timedelta
+import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -128,6 +129,9 @@ STATIC_URL = '/static/'
 CORS_ALLOWED_ORIGINS = [ #ADDED BY ISAAC
     "http://localhost:3000",
     "http://localhost:3001",
+    "http://localhost:8000",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:8000",
 ]
 
 # Customized JWT settings
@@ -154,3 +158,7 @@ REST_FRAMEWORK = {
 'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),  # 
 }
+
+# Initalize environment variables
+env = environ.Env()
+environ.Env.read_env()

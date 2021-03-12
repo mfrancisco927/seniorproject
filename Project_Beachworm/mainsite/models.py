@@ -35,6 +35,7 @@ class Profile(BaseModel):
   liked_songs = models.ManyToManyField(Song, related_name='profile_liked')
   disliked_songs = models.ManyToManyField(Song, related_name='profile_disliked')
   favorite_playlists = models.ManyToManyField("Playlist", related_name='profile_favorite_playlists')
+  refresh_token = models.TextField(default="None")
 
 
 @receiver(post_save, sender=User)
