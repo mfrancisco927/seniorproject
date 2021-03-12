@@ -5,7 +5,6 @@ import { useLocation } from 'react-router-dom';
 
 const SpotifyAuth = () => {
   const query = new URLSearchParams(useLocation().search);
-  const success = query.get('success');
   const code = query.get('code');
   const state = query.get('state');
 
@@ -44,7 +43,7 @@ const SpotifyAuth = () => {
   return (
     <div>
       <a href={spotifyAuthLink}>Authorize v2</a>
-      {!spotifyToken && success && state === localAccessToken && <button onClick={store}>Press this button to create credentials!</button>}
+      {!spotifyToken && code && state === localAccessToken && <button onClick={store}>Press this button to create credentials!</button>}
       {spotifyToken && (
         <div>
           <p>Spotify access token: {spotifyToken}</p>

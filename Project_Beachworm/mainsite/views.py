@@ -110,6 +110,8 @@ class ChangePasswordView(generics.UpdateAPIView):
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+# TODO: add http://127.0.0.1:3000/spotify-auth as a spotify redirect uri.
+# will allow us to remove SpotifyAuthorize and SpotifyRedirect and only use SpotifyStore and SpotifyRefresh
 class SpotifyAuthorize(APIView):
     def get(self, request, *args, **kwargs):
         
@@ -128,7 +130,7 @@ class SpotifyRedirect(APIView):
     def get(self, request, *args, **kwargs):    
         auth_code = request.GET.get('code') 
         state = request.GET.get('state') 
-        return redirect("http://localhost:3000/spotify-auth?success=true&code=" + auth_code + "&state=" + state)
+        return redirect("http://127.0.0.1:3000/spotify-auth?code=" + auth_code + "&state=" + state)
 
 class SpotifyStore(APIView):
     # Must be set to all for redirect back from spotify
