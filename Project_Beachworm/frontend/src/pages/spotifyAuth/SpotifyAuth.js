@@ -14,8 +14,8 @@ const SpotifyAuth = () => {
   const clientId = 'e60a380058324c33bb56c0067ca0a325';
   const localAccessToken = localStorage.getItem('access_token');
   const redirectUri = 'http://localhost:3000/spotify-auth';
-  const scopes = "streaming user-read-playback-state user-modify-playback-state"
-  const scopes_encoded = scopes.replace(" ", "%20");
+  const scopes = ["streaming", "user-read-playback-state", "user-modify-playback-state"]
+  const scopes_encoded = scopes.join("%20");
 
   const spotifyAuthLink = `
     ${spotifyEndpoint}?client_id=${clientId}&response_type=code&scope=${scopes_encoded}&redirect_uri=${redirectUri}&state=${localAccessToken}
