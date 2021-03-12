@@ -72,22 +72,9 @@ export async function getSpotifyToken() {
   return response.data;
 }
 
-function getCSRFToken() {
-  const kvPairs = document.cookie.split(';');
-  for (let i = 0; i < kvPairs.length; i++) {
-    const kv = kvPairs[i].split('=', 2);
-    if (kv[0] === 'csrftoken') {
-      return kv[1];
-    }
-  }
-  return undefined;
-}
-
 export async function initiateSpotifyAuth() {
   const spotifyAuthEndpoint = spotifyGetAuthUri;
-  const csrf = getCSRFToken();
-  axiosInstance.defaults.headers['X-CSRFToken'] = csrf; // necessary? unsure
-  const response = await axiosInstance.get(spotifyAuthEndpoint, { useCredentials: true });
+  const response = await axiosInstance.get(spotifyAuthEndpoint);
   console.log(response);
   return response.data;
 }
