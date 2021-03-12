@@ -72,12 +72,12 @@ function App() {
           <Route path='/explore'>
             <Explore songList={testingItems} />
           </Route>
-          <PrivateRoute path='/questionnaire1'>
+          <Route path='/questionnaire1'>
             <Questionnaire1 />
-          </PrivateRoute>
-          <PrivateRoute path='/questionnaire2'>
+          </Route>
+          <Route path='/questionnaire2'>
             <Questionnaire2 />
-          </PrivateRoute>
+          </Route>
           <PrivateRoute path='/profile'>
             <ProfilePage />
           </PrivateRoute>
