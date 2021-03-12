@@ -66,21 +66,6 @@ export async function refreshToken() {
   return response;
 }
 
-export async function getSpotifyToken() {
-  const spotifyAccessTokenEndpoint = spotifyRefreshTokenUri;
-  const response = await axiosInstance.get(spotifyAccessTokenEndpoint);
-  return response.data;
-}
-
-// export async function initiateSpotifyAuth() {
-//   const spotifyAuthEndpoint = spotifyGetAuthUri;
-//   const response = await axiosInstance.get(spotifyAuthEndpoint).then(result => {
-//     console.log(result);
-//   });
-//   console.log(response);
-//   return response.data;
-// }
-
 export async function storeSpotifyAuth(code, state) {
   const spotifyStoreEndpoint = spotifyStoreTokenUri;
   const response = await axiosInstance.post(spotifyStoreEndpoint, {
