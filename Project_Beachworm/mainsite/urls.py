@@ -26,8 +26,6 @@ urlpatterns = [
     path('api/token/obtain/', ObtainTokenPairWithAdditionalInfo.as_view(), name='token_create'),
     path('api/token/refresh/', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
     path('api/user/change-password/', ChangePasswordView.as_view(), name='change-password'),
-    path('api/spotify/get-auth/', SpotifyAuthorize.as_view(), name='spotify-get-auth'),
-    path('api/spotify/redirect/', SpotifyRedirect.as_view(), name='spotify-redirect'),
     path('api/spotify/store-credential/', SpotifyStore.as_view(), name='spotify-store-initial'),
     path('api/spotify/refresh-token/', SpotifyRefresh.as_view(), name='spotify-refresh-token'),
     # A testing path

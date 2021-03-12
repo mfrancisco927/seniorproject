@@ -110,28 +110,6 @@ class ChangePasswordView(generics.UpdateAPIView):
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# TODO: add http://127.0.0.1:3000/spotify-auth as a spotify redirect uri.
-# will allow us to remove SpotifyAuthorize and SpotifyRedirect and only use SpotifyStore and SpotifyRefresh
-class SpotifyAuthorize(APIView):
-    def get(self, request, *args, **kwargs):
-        
-        user_id = self.request.user.id
-        url = "https://accounts.spotify.com/authorize"
-        url = url + "?client_id=" + CLIENT_ID
-        url = url + "&response_type=code"
-        url = url + "&redirect_uri=http://127.0.0.1:8000/api/spotify/redirect/"
-        url = url + "&state=" + str(user_id)
-        return redirect(url)
-
-
-class SpotifyRedirect(APIView):
-    # Must be set to all for redirect back from spotify
-    permission_classes = (permissions.AllowAny,)
-    def get(self, request, *args, **kwargs):    
-        auth_code = request.GET.get('code') 
-        state = request.GET.get('state') 
-        return redirect("http://127.0.0.1:3000/spotify-auth?code=" + auth_code + "&state=" + state)
-
 class SpotifyStore(APIView):
     # Must be set to all for redirect back from spotify
     def post(self, request, *args, **kwargs):        
@@ -144,7 +122,7 @@ class SpotifyStore(APIView):
         headers = {'Content-Type' : 'application/x-www-form-urlencoded',
                     'Authorization' : encode}
         payload = {'grant_type': 'authorization_code', 'code' : '%s' % auth_code, 
-                    'redirect_uri':'http://127.0.0.1:8000/api/spotify/redirect/',}
+                    'redirect_uri':'http://localhost:3000/spotify-auth',}
 
         r = requests.post("https://accounts.spotify.com/api/token", headers=headers, data=payload)
         response_dict = json.loads(r.text)
@@ -179,7 +157,7 @@ class SpotifyRefresh(APIView):
         headers = {'Content-Type' : 'application/x-www-form-urlencoded',
                     'Authorization' : '%s' % basicauth.encode(CLIENT_ID, SECRET)}
         payload = {'grant_type': 'refresh_token', 'refresh_token' : '%s' % refresh_token, 
-                    'redirect_uri':'http://127.0.0.1:8000/api/spotify/redirect/',}
+                    'redirect_uri':'http://localhost:3000/spotify-auth',}
         r = requests.post("https://accounts.spotify.com/api/token", headers=headers, data=payload)
         response_dict = json.loads(r.text)
 
