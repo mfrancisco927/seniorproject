@@ -130,8 +130,8 @@ CORS_ALLOWED_ORIGINS = [ #ADDED BY ISAAC
     "http://localhost:3000",
     "http://localhost:3001",
     "http://localhost:8000",
-    "https://127.0.0.1:8000",
-    "https://accounts.spotify.com",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:8000",
 ]
 
 # Customized JWT settings

@@ -1,6 +1,5 @@
 import axiosInstance from './axiosApi';
 
-
 // note, token endpoints do not use the /auth/ base
 const tokenBaseUri = '/token/';
 const acquireTokenUri = tokenBaseUri + 'obtain/';
@@ -8,8 +7,9 @@ const refreshTokenUri = tokenBaseUri + 'refresh/'; // currently handled in axios
 
 // spotify endpoints
 const spotifyBaseUri = '/spotify/';
-const spotifyGetAuthUri = spotifyBaseUri + 'get-auth/'
+// const spotifyGetAuthUri = spotifyBaseUri + 'get-auth/'
 const spotifyRefreshTokenUri = spotifyBaseUri + 'refresh-token/'
+const spotifyStoreTokenUri = spotifyBaseUri + 'store-credential/'
 
 // directly from https://hackernoon.com/110percent-complete-jwt-authentication-with-django-and-react-2020-iejq34ta
 export async function signIn(username, password) {
@@ -72,17 +72,29 @@ export async function getSpotifyToken() {
   return response.data;
 }
 
-export async function initiateSpotifyAuth() {
-  const spotifyAuthEndpoint = spotifyGetAuthUri;
-  const response = await axiosInstance.get(spotifyAuthEndpoint);
-  console.log(response);
+// export async function initiateSpotifyAuth() {
+//   const spotifyAuthEndpoint = spotifyGetAuthUri;
+//   const response = await axiosInstance.get(spotifyAuthEndpoint).then(result => {
+//     console.log(result);
+//   });
+//   console.log(response);
+//   return response.data;
+// }
+
+export async function storeSpotifyAuth(code, state) {
+  const spotifyStoreEndpoint = spotifyStoreTokenUri;
+  const response = await axiosInstance.post(spotifyStoreEndpoint, {
+    code: code,
+    state: state
+  });
   return response.data;
 }
 
-// export async function addSpotifyRefreshToken(userId, refreshToken) {
-//   const spotifyEndpoint = spotifyEndpointUri(userId);
-//   const response = await axiosInstance.post(spotifyEndpoint, {
-//     refreshToken: refreshToken,
-//   });
-//   return response.data;
-// }
+export async function refreshSpotifyToken() {
+  const spotifyRefreshEndpoint = spotifyRefreshTokenUri;
+  const response = await axiosInstance.get(spotifyRefreshEndpoint).then(result => {
+    localStorage.setItem('spotify_access_token', result.data.access_token);
+    return result;
+  });
+  return response.data;
+}

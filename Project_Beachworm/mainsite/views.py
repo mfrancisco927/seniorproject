@@ -121,19 +121,29 @@ class SpotifyAuthorize(APIView):
         url = url + "&state=" + str(user_id)
         return redirect(url)
 
+
 class SpotifyRedirect(APIView):
     # Must be set to all for redirect back from spotify
     permission_classes = (permissions.AllowAny,)
-    def get(self, request, *args, **kwargs):        
-        auth_code = request.GET.get('code')
-        user_id = request.GET.get('state')
+    def get(self, request, *args, **kwargs):    
+        auth_code = request.GET.get('code') 
+        state = request.GET.get('state') 
+        return redirect("http://localhost:3000/spotify-auth?success=true&code=" + auth_code + "&state=" + state)
+
+class SpotifyStore(APIView):
+    # Must be set to all for redirect back from spotify
+    def post(self, request, *args, **kwargs):        
+        auth_code = request.data['code']      
+        state = request.data['state']
+        user_id = self.request.user.id
         encode = '%s' % basicauth.encode(CLIENT_ID, SECRET)
         decode = basicauth.decode(encode)
 
         headers = {'Content-Type' : 'application/x-www-form-urlencoded',
-                    'Authorization' : '%s' % basicauth.encode(CLIENT_ID, SECRET)}
+                    'Authorization' : encode}
         payload = {'grant_type': 'authorization_code', 'code' : '%s' % auth_code, 
                     'redirect_uri':'http://127.0.0.1:8000/api/spotify/redirect/',}
+
         r = requests.post("https://accounts.spotify.com/api/token", headers=headers, data=payload)
         response_dict = json.loads(r.text)
 
