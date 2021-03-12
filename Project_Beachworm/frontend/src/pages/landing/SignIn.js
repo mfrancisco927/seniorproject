@@ -47,7 +47,6 @@ function SignIn() {
   // top-level error on the page and let the user know
   const handleSubmit = (event) => {
       auth.signIn(username, password).then(value => {
-          console.log('test 4');
           updateTokenVars();
           setErrorText();
           if (redirect) {
