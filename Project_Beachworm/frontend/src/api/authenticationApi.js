@@ -1,11 +1,15 @@
 import axiosInstance from './axiosApi';
 
-const spotifyEndpointUri = '/spotify/';
 
 // note, token endpoints do not use the /auth/ base
 const tokenBaseUri = '/token/';
 const acquireTokenUri = tokenBaseUri + 'obtain/';
 const refreshTokenUri = tokenBaseUri + 'refresh/'; // currently handled in axiosApi, no need to duplicate
+
+// spotify endpoints
+const spotifyBaseUri = '/spotify/';
+const spotifyGetAuthUri = spotifyBaseUri + 'get-auth/'
+const spotifyRefreshTokenUri = spotifyBaseUri + 'refresh-token/'
 
 // directly from https://hackernoon.com/110percent-complete-jwt-authentication-with-django-and-react-2020-iejq34ta
 export async function signIn(username, password) {
@@ -62,16 +66,36 @@ export async function refreshToken() {
   return response;
 }
 
-export async function getSpotifyToken(userId) {
-  const spotifyEndpoint = spotifyEndpointUri(userId);
-  const response = await axiosInstance.get(spotifyEndpoint);
+export async function getSpotifyToken() {
+  const spotifyAccessTokenEndpoint = spotifyRefreshTokenUri;
+  const response = await axiosInstance.get(spotifyAccessTokenEndpoint);
   return response.data;
 }
 
-export async function addSpotifyRefreshToken(userId, refreshToken) {
-  const spotifyEndpoint = spotifyEndpointUri(userId);
-  const response = await axiosInstance.post(spotifyEndpoint, {
-    refreshToken: refreshToken,
-  });
+function getCSRFToken() {
+  const kvPairs = document.cookie.split(';');
+  for (let i = 0; i < kvPairs.length; i++) {
+    const kv = kvPairs[i].split('=', 2);
+    if (kv[0] === 'csrftoken') {
+      return kv[1];
+    }
+  }
+  return undefined;
+}
+
+export async function initiateSpotifyAuth() {
+  const spotifyAuthEndpoint = spotifyGetAuthUri;
+  const csrf = getCSRFToken();
+  axiosInstance.defaults.headers['X-CSRFToken'] = csrf; // necessary? unsure
+  const response = await axiosInstance.get(spotifyAuthEndpoint, { useCredentials: true });
+  console.log(response);
   return response.data;
 }
+
+// export async function addSpotifyRefreshToken(userId, refreshToken) {
+//   const spotifyEndpoint = spotifyEndpointUri(userId);
+//   const response = await axiosInstance.post(spotifyEndpoint, {
+//     refreshToken: refreshToken,
+//   });
+//   return response.data;
+// }

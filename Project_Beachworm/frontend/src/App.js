@@ -11,6 +11,7 @@ import PlaylistPage from './pages/playlist/PlaylistPage.js';
 import Landing from './pages/landing/Landing.js';
 import PageNotFound from './pages/pageNotFound/PageNotFound.js';
 import UserQuestionnaire from './pages/questionnaire/UserQuestionnaire.js';
+import SpotifyAuth from './pages/spotifyAuth/SpotifyAuth.js';
 
 import { useAuth } from './hooks/authHooks';
 
@@ -57,6 +58,7 @@ function App() {
           '/explore': 'Explore',
           '/profile': 'Profile',
           '/playlist': 'Playlist [TEMP]',
+          '/spotify-auth': 'Spotify Auth [TEMP]',
         }} searchField={searchField} setSearchField={setSearchField} submitSearch={submitSearch}
         />
         <AuthorizedOrHidden>
@@ -80,6 +82,9 @@ function App() {
           </PrivateRoute>
           <PrivateRoute path='/search'>
             <SearchPage searchedItem={searchField} />
+          </PrivateRoute>
+          <PrivateRoute path='/spotify-auth'>
+            <SpotifyAuth />
           </PrivateRoute>
           <Route path='/' exact>
             <MainPage changeSong={changeSong} />
