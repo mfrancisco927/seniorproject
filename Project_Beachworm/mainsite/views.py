@@ -9,6 +9,7 @@ from rest_framework_simplejwt import authentication
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import User
 from .serializer import MyTokenObtainPairSerializer, UserSerializer, ChangePasswordSerializer
+import json
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 
@@ -67,8 +68,8 @@ def get_songs(request):
 class HelloWorldView(APIView):
     def get(self, request):
         print(self.request.user.id)  # Shows you the ID of who is requesting
-        print(self.request.user.email)
-        return Response(data=self.request.user.id, status=status.HTTP_200_OK)
+        print(self.request)
+        return Response(data=self.request.query_params, status=status.HTTP_200_OK)
 
 class ChangePasswordView(generics.UpdateAPIView):
     # Endpoint for changing a password
@@ -99,3 +100,15 @@ class ChangePasswordView(generics.UpdateAPIView):
             return Response(response)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class Search(APIView):
+    def get(self, request):
+        auth_manager = SpotifyClientCredentials(client_id='161a6baad1844584b17ff6fbc3a93a4a', client_secret='db12af50b9c24ee8a3493123963a1504')
+        sp = spotipy.Spotify(auth_manager=auth_manager)
+        types = ['artist', 'track', 'album', 'playlist']
+        query = self.request.query_params
+        results = ''
+        for type in types:
+            results = results + json.dumps(sp.search(query, type=type, market='US'))
+        
+        return Response(data=results, status=status.HTTP_200_OK)

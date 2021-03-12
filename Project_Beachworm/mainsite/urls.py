@@ -26,5 +26,5 @@ urlpatterns = [
     path('token/obtain/', ObtainTokenPairWithAdditionalInfo.as_view(), name='token_create'),
     path('token/refresh/', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
     path('user/change-password/', ChangePasswordView.as_view(), name='change-password'),
-    path('hello/', HelloWorldView.as_view(), name='hello_world'),
+    path('search/', Search.as_view(), name='search'),
 ]
