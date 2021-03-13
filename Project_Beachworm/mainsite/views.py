@@ -44,15 +44,6 @@ class UserCreate(APIView):
                 # self.update_profile(user_id=user.id)
                 return Response(json, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    # def update_profile(self, user_id):
-    #     user = User.objects.get(pk=user_id)
-    #     #above method works to add a user but fails here, something with the signal
-    #     user.profile.following = []
-    #     user.profile.liked_songs = []
-    #     user.profile.disliked_songs = []
-    #     user.profile.favorite_playlists = []
-    #     user.save()
 
 @api_view(['GET'])
 def get_songs(request):
@@ -77,8 +68,8 @@ def get_songs(request):
 class HelloWorldView(APIView):
     def get(self, request):
         print(self.request.user.id)  # Shows you the ID of who is requesting
-        print(self.request.user.email)
-        return Response(data=self.request.user.id, status=status.HTTP_200_OK)
+        print(self.request)
+        return Response(data=self.request.query_params, status=status.HTTP_200_OK)
 
 class ChangePasswordView(generics.UpdateAPIView):
     # Endpoint for changing a password
@@ -176,3 +167,16 @@ class SpotifyRefresh(APIView):
 
 
         
+
+class Search(APIView):
+    def get(self, request):
+        auth_manager = SpotifyClientCredentials(client_id=CLIENT_ID, client_secret=SECRET)
+        sp = spotipy.Spotify(auth_manager=auth_manager)
+        types = ['artist', 'track', 'album']
+        query = self.request.query_params
+        results = {}
+        for type in types:
+            results[type + 's'] = sp.search(q=query['q'], type=type, market='US', limit=5)[type + 's']
+
+        return Response(data=results, status=status.HTTP_200_OK)
+

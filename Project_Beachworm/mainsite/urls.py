@@ -28,6 +28,8 @@ urlpatterns = [
     path('api/user/change-password/', ChangePasswordView.as_view(), name='change-password'),
     path('api/spotify/store-credential/', SpotifyStore.as_view(), name='spotify-store-initial'),
     path('api/spotify/refresh-token/', SpotifyRefresh.as_view(), name='spotify-refresh-token'),
+    path('search/', Search.as_view(), name='search'),
     # A testing path
     path('api/hello/', HelloWorldView.as_view(), name='hello_world'),
+
 ]
