@@ -1,7 +1,6 @@
 import { useContext, createContext, useState, useRef } from "react";
 import { refreshSpotifyToken }  from './../api/authenticationApi';
 import { playTrack, pauseCurrentTrack } from './../api/spotifyApi'
-import axiosInstance from "./../api/axiosApi";
 import WebPlaybackReact from './WebPlaybackReact';
 
 const sdkContext = createContext();
@@ -16,8 +15,17 @@ export function ProvideSpotify({ children }) {
   const [playerLoaded, setPlayerLoaded] = useState(false);
   const [playerSelected, setPlayerSelected] = useState(false);
   const [playerState, setPlayerState] = useState({});
+  const [stateCallbacks, setStateCallbacks] = useState({});
 
-  const sdk = useProvideSdk(() => spotifyToken, setSpotifyToken, () => deviceId);
+  const sdk = useProvideSdk(
+    () => spotifyToken,
+    setSpotifyToken,
+    () => deviceId,
+    (keyCallbackPairs) => {
+      setStateCallbacks({...stateCallbacks, ...keyCallbackPairs})
+      console.log('Registered callback(s): ' + Object.entries(keyCallbackPairs).map(entry => entry[0]).join(', '));
+    }
+  );
   
   const webPlaybackSdkProps = {
     playerName: "BeachWorm Player",
@@ -38,7 +46,13 @@ export function ProvideSpotify({ children }) {
       setDeviceId(data.device_id); 
     }),
     onPlayerDeviceSelected: () => setPlayerSelected(true),
-    onPlayerStateChange: (newState) => setPlayerState(newState),
+    onPlayerStateChange: (newState) => {
+      setPlayerState(newState);
+      Object.entries(stateCallbacks).forEach(entry => {
+        const cb = entry[1];
+        cb(newState);
+      })
+    },
     onPlayerError: (playerError => console.error(playerError))
   };
 
@@ -51,8 +65,8 @@ export function ProvideSpotify({ children }) {
   );
 }
 
-function useProvideSdk(getAccessToken, setAccessToken, getDeviceId) {
-  
+function useProvideSdk(getAccessToken, setAccessToken, getDeviceId, addStateListener) {
+
   const refreshToken = async () => {
     return refreshSpotifyToken().then(result => {
       setAccessToken(result.access_token);
@@ -61,14 +75,21 @@ function useProvideSdk(getAccessToken, setAccessToken, getDeviceId) {
   };
 
   const refreshAndTry = async (callback, parameters, firstTry) => {
-    const attempt = () => {
+    const attempt = async () => {
       try {
-        return callback(parameters);
+        return await new Promise(() => {
+          try {
+            parameters ? callback(parameters) : callback();
+            Promise.resolve();
+          } catch (e) {
+            throw e;
+          }
+        });
       } catch (e) {
         console.log('Error in refreshable function', e);
         if (firstTry) {
           console.log('Attempting to retrieve new Spotify token');
-          refreshToken();
+          await refreshToken();
           return refreshAndTry(callback, parameters, false);
         }
       }
@@ -88,20 +109,21 @@ function useProvideSdk(getAccessToken, setAccessToken, getDeviceId) {
     }
   };
 
-  const pause = () => {
+  const pause = async () => {
     console.log('Pausing current song');
-    pauseCurrentTrack(getDeviceId(), getAccessToken());
+    return pauseCurrentTrack(getDeviceId(), getAccessToken());
   };
 
-  const play = (songId) => {
+  const play = async (songId) => {
     console.log(songId ? 'Playing song with id ' + songId : 'Resuming current song');
-    playTrack(songId, getDeviceId(), getAccessToken());
+    return playTrack(songId, getDeviceId(), getAccessToken());
   };
 
-  const skipToTime = (millis) => {
+  const skipToTime = async (millis) => {
     const seconds = Math.floor(millis / 1000);
     const minutes = Math.floor(seconds / 60);
     console.log('Skipping to time ' + (minutes) + ':' + seconds);
+    return new Promise();
   };
 
   return {
@@ -109,5 +131,6 @@ function useProvideSdk(getAccessToken, setAccessToken, getDeviceId) {
     pause: refreshWrapper(pause),
     play: refreshWrapper(play),
     skipToTime: refreshWrapper(skipToTime),
+    addStateListener: addStateListener,
   };
 }

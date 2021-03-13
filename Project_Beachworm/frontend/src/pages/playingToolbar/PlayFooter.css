@@ -8,14 +8,40 @@ cover up content with the footer */
 
 .play-footer {
     height: 5rem;
-    padding: 1rem;
     display: flex;
     position: fixed;
     bottom: 0;
     justify-content: space-around;
     width: 100%;
     background-color: #fd7c54;
-  }
+}
+
+.play-footer > * {
+  margin: 1rem;
+}
+
+.play-footer_song-info {
+  min-width: 15%;
+  max-width: 15%;
+  margin: 0.5em;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  overflow: hidden;
+}
+
+.play-footer_album-art-wrapper {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: min(10%, 80px);
+}
+
+.play-footer_playback-controls {
+    width: 75%;
+    height: 100%;
+}
 
 .control-button {
     background-color: #90032b; /* red */

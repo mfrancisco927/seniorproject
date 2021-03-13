@@ -1,0 +1,12 @@
+.scroll-wrapper {
+    display: block;
+    position: relative;
+    white-space: nowrap;
+    width: 100%;
+    height: 1em;
+}
+
+.child-wrapper {
+    white-space: nowrap;
+    max-width: 100%;
+}
