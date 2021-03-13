@@ -12,6 +12,13 @@ from .serializer import MyTokenObtainPairSerializer, UserSerializer, ChangePassw
 import json
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
+import environ
+import basicauth
+import requests
+
+env = environ.Env()
+CLIENT_ID = env('CLIENT_ID')
+SECRET = env('SECRET')
 
 class ObtainTokenPairWithAdditionalInfo(TokenObtainPairView):
         permission_classes = (permissions.AllowAny,)
@@ -35,15 +42,6 @@ class UserCreate(APIView):
                 # self.update_profile(user_id=user.id)
                 return Response(json, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    # def update_profile(self, user_id):
-    #     user = User.objects.get(pk=user_id)
-    #     #above method works to add a user but fails here, something with the signal
-    #     user.profile.following = []
-    #     user.profile.liked_songs = []
-    #     user.profile.disliked_songs = []
-    #     user.profile.favorite_playlists = []
-    #     user.save()
 
 @api_view(['GET'])
 def get_songs(request):
@@ -103,12 +101,15 @@ class ChangePasswordView(generics.UpdateAPIView):
 
 class Search(APIView):
     def get(self, request):
-        auth_manager = SpotifyClientCredentials(client_id='161a6baad1844584b17ff6fbc3a93a4a', client_secret='db12af50b9c24ee8a3493123963a1504')
+        auth_manager = SpotifyClientCredentials(client_id=CLIENT_ID, client_secret=SECRET)
         sp = spotipy.Spotify(auth_manager=auth_manager)
-        types = ['artist', 'track', 'album', 'playlist']
+        types = ['artist', 'track', 'album']
         query = self.request.query_params
-        results = ''
         for type in types:
-            results = results + json.dumps(sp.search(query, type=type, market='US'))
+            results[type + 's'] = sp.search(q=query['q'], type=type, market='US')
+
+        #add playlist search
+        #cache found songs in db
+
         
         return Response(data=results, status=status.HTTP_200_OK)
