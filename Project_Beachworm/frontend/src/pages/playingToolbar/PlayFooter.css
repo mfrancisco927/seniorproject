@@ -113,3 +113,10 @@ cover up content with the footer */
   margin: 0 0.2em;
   text-decoration: none;
 }
+
+.profile-controls_item__active {
+  color: rgb(23, 93, 126);
+  border: none;
+  margin: 0 0.2em;
+  text-decoration: none;
+}

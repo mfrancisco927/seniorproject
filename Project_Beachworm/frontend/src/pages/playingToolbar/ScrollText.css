@@ -10,3 +10,8 @@
     white-space: nowrap;
     max-width: 100%;
 }
+
+.child-wrapper > * {
+    white-space: nowrap;
+    width: fit-content;
+}

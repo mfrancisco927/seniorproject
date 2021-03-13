@@ -11,10 +11,16 @@ function ScrollText(props) {
   const [scrollWidth, setScrollWidth] = useState(0);
   const [shouldScroll, setShouldScroll] = useState(false);
   const [duration, setDuration] = useState(0);
+  const [scheduled, setScheduled] = useState([]);
 
   const defaultStyle = {
     transition: `left ${duration}ms linear`,
     left: 0,
+  };
+
+  const scheduleNew = (callback, timeout) => {
+    const newTimeout = setTimeout(callback, timeout);
+    setScheduled([...scheduled, newTimeout])
   };
 
   const transitionStyles = shouldScroll ? {
@@ -23,6 +29,11 @@ function ScrollText(props) {
     exiting: { left: 0, transition: `left 0ms linear` },
     exited: { left: 0, transition: `left 0ms linear` },
   } : {};
+
+  // on mount and unmount, clear all timers
+  useEffect(() => {
+    scheduled.forEach(x => clearInterval(x));
+  }, []);
 
   useEffect(() => {
     if (textRef) {
@@ -33,13 +44,15 @@ function ScrollText(props) {
       const newDuration = 1000 * textRef.scrollWidth / pixelsPerSec;
       setDuration(newDuration);
 
-      console.log(textRef.innerHTML + ' cw ' + textRef.clientWidth + ' sw ' + textRef.scrollWidth)
-
       if (wrapperRef && wrapperRef.clientWidth < textRef.scrollWidth) {
         setShouldScroll(true);
 
-        setTimeout(() => {
-          console.log('starting initial scroll');
+        // setTimeout(() => {
+        //   console.log('Starting initial scroll for text ' + textRef.innerHTML);
+        //   setScrolling(true);
+        // }, rampMillis);
+        scheduleNew(() => {
+          console.log('Starting initial scroll for text ' + textRef.innerHTML);
           setScrolling(true);
         }, rampMillis);
       }
@@ -47,15 +60,19 @@ function ScrollText(props) {
   }, [textRef, wrapperRef, rampMillis, speed]);
 
   const handleFinishedScrolling = () => {
-    // console.log('onEntering')
-    setTimeout(() => {
+    // setTimeout(() => {
+    //   setScrolling(true);
+    // }, decayMillis + rampMillis);
+    scheduleNew(() => {
       setScrolling(true);
     }, decayMillis + rampMillis);
   };
 
   const handleRestartScrolling = () => {
-    // console.log('onExiting')
-    setTimeout(() => {
+    // setTimeout(() => {
+    //   setScrolling(false);
+    // }, duration);
+    scheduleNew(() => {
       setScrolling(false);
     }, duration);
   };
@@ -70,18 +87,17 @@ function ScrollText(props) {
     onExiting={handleFinishedScrolling}>
       {
         state => {
-          // console.log('current state ' + state)
           return (
           <div style={{
             ...defaultStyle,
             ...transitionStyles[state]
           }} className="scroll-wrapper" ref={e => setWrapperRef(e)}>
-            <span class="child-wrapper" ref={e => setTextRef(e)}>
+            <span className="child-wrapper" ref={e => setTextRef(e)}>
               {children}
             </span>
             {shouldScroll && <Fragment>
-                <span class="child-wrapper" ref={e => setBulletRef(e)}>{" • "}</span>
-                <span class="child-wrapper">{children}</span>
+                <span className="child-wrapper" ref={e => setBulletRef(e)}>{" • "}</span>
+                <span className="child-wrapper">{children}</span>
               </Fragment>}
           </div>
         )}
