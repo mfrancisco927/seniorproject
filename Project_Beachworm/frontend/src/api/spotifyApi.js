@@ -16,11 +16,3 @@ export async function playTrack(trackId, deviceId, accessToken) {
     { headers: getSdkHeader(accessToken) }
   );
 }
-
-export async function pauseCurrentTrack(deviceId, accessToken) {
-  axiosInstance.put(
-    `https://api.spotify.com/v1/me/player/pause?device_id=${deviceId}`,
-    {},
-    { headers: getSdkHeader(accessToken) },
-  );
-};

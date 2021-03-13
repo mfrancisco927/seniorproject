@@ -8,7 +8,6 @@ function ScrollText(props) {
   const [wrapperRef, setWrapperRef] = useState(null);
   const [bulletRef, setBulletRef] = useState(null);
   const { rampMillis, decayMillis, speed, children } = props;
-  const [clientWidth, setClientWidth] = useState(0);
   const [scrollWidth, setScrollWidth] = useState(0);
   const [shouldScroll, setShouldScroll] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -27,7 +26,6 @@ function ScrollText(props) {
 
   useEffect(() => {
     if (textRef) {
-      setClientWidth(textRef.clientWidth);
       setScrollWidth(textRef.scrollWidth);
       // speed of 0 corresponds to 1 cps, 100 corresponds to 20 cps.
       const charactersPerSec = Math.floor(1 + (19 * speed / 100));
@@ -46,7 +44,7 @@ function ScrollText(props) {
         }, rampMillis);
       }
     }
-  }, [textRef, rampMillis, speed]);
+  }, [textRef, wrapperRef, rampMillis, speed]);
 
   const handleFinishedScrolling = () => {
     // console.log('onEntering')
@@ -91,11 +89,6 @@ function ScrollText(props) {
       }
     </Transition>
   );
-
-  // return <div ref={e => setTextRef(e)}
-  //     className={"scroll-wrapper " }>
-  //   {children}
-  // </div>;
 }
 
 export default ScrollText;

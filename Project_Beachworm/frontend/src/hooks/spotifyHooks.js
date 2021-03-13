@@ -1,6 +1,6 @@
-import { useContext, createContext, useState, useRef } from "react";
+import { useContext, createContext, useState } from "react";
 import { refreshSpotifyToken }  from './../api/authenticationApi';
-import { playTrack, pauseCurrentTrack } from './../api/spotifyApi'
+import { playTrack } from './../api/spotifyApi'
 import WebPlaybackReact from './WebPlaybackReact';
 
 const sdkContext = createContext();
@@ -16,6 +16,7 @@ export function ProvideSpotify({ children }) {
   const [playerSelected, setPlayerSelected] = useState(false);
   const [playerState, setPlayerState] = useState({});
   const [stateCallbacks, setStateCallbacks] = useState({});
+  const [playerRef, setPlayerRef] = useState(null);
 
   const sdk = useProvideSdk(
     () => spotifyToken,
@@ -24,7 +25,8 @@ export function ProvideSpotify({ children }) {
     (keyCallbackPairs) => {
       setStateCallbacks({...stateCallbacks, ...keyCallbackPairs})
       console.log('Registered callback(s): ' + Object.entries(keyCallbackPairs).map(entry => entry[0]).join(', '));
-    }
+    },
+    () => playerRef,
   );
   
   const webPlaybackSdkProps = {
@@ -58,14 +60,14 @@ export function ProvideSpotify({ children }) {
 
   return (
     <sdkContext.Provider value={sdk}>
-      <WebPlaybackReact {...webPlaybackSdkProps}>
+      <WebPlaybackReact {...webPlaybackSdkProps} ref={(e) => e ? setPlayerRef(e.webPlaybackInstance) : setPlayerRef(e)}>
         {children}
       </WebPlaybackReact>
     </sdkContext.Provider>
   );
 }
 
-function useProvideSdk(getAccessToken, setAccessToken, getDeviceId, addStateListener) {
+function useProvideSdk(getAccessToken, setAccessToken, getDeviceId, addStateListener, getPlayer) {
 
   const refreshToken = async () => {
     return refreshSpotifyToken().then(result => {
@@ -111,26 +113,32 @@ function useProvideSdk(getAccessToken, setAccessToken, getDeviceId, addStateList
 
   const pause = async () => {
     console.log('Pausing current song');
-    return pauseCurrentTrack(getDeviceId(), getAccessToken());
+    return getPlayer().pause();
   };
 
   const play = async (songId) => {
     console.log(songId ? 'Playing song with id ' + songId : 'Resuming current song');
-    return playTrack(songId, getDeviceId(), getAccessToken());
+    return songId ? playTrack(songId, getDeviceId(), getAccessToken()) : getPlayer().resume();
   };
 
-  const skipToTime = async (millis) => {
-    const seconds = Math.floor(millis / 1000);
-    const minutes = Math.floor(seconds / 60);
+  const togglePlaying = async () => {
+    console.log('Toggling play');
+    return getPlayer().togglePlay();
+  };
+
+  const seek = async (millis) => {
+    const seconds = Math.floor(millis / 1000) % 60;
+    const minutes = Math.floor(millis / 1000 / 60);
     console.log('Skipping to time ' + (minutes) + ':' + seconds);
-    return new Promise();
+    return getPlayer().seek(millis);
   };
 
   return {
     resume: refreshWrapper(() => {play()}),
     pause: refreshWrapper(pause),
     play: refreshWrapper(play),
-    skipToTime: refreshWrapper(skipToTime),
+    togglePlay: refreshWrapper(togglePlaying),
+    seek: refreshWrapper(seek),
     addStateListener: addStateListener,
   };
 }
