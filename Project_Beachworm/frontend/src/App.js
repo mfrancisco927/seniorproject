@@ -1,6 +1,6 @@
 import './App.css';
 import React, { useState } from 'react';
-import { Switch, Route, useHistory } from "react-router-dom";
+import { Switch, Route, useHistory, Redirect } from "react-router-dom";
 import MainPage from './pages/home/MainPage.js';
 import Navbar from './pages/nav/Navbar.js';
 import Explore from './pages/explore/Explore.js';
@@ -10,9 +10,14 @@ import PlayFooter from './pages/playingToolbar/PlayFooter.js';
 import PlaylistPage from './pages/playlist/PlaylistPage.js';
 import Landing from './pages/landing/Landing.js';
 import PageNotFound from './pages/pageNotFound/PageNotFound.js';
-import UserQuestionnaire from './pages/questionnaire/UserQuestionnaire.js';
+import Questionnaire1 from './pages/questionnaire/Questionnaire1.js';
+import Questionnaire2 from './pages/questionnaire/Questionnaire2.js';
+import SpotifyAuth from './pages/spotifyAuth/SpotifyAuth.js';
+
+import { useAuth } from './hooks/authHooks';
 
 function App() {
+  const auth = useAuth();
   const history = useHistory();
 
   const testingItems = [
@@ -50,12 +55,16 @@ function App() {
         <Navbar menuList={{
           '/landing': 'Landing [TEMP]',
           '/': 'Home',
-          '/questionnaire': 'Questionnaire [TEMP]',
+          '/questionnaire1': 'Questionnaire [TEMP]',
           '/explore': 'Explore',
           '/profile': 'Profile',
           '/playlist': 'Playlist [TEMP]',
+          '/spotify-auth': 'Spotify Auth [TEMP]',
         }} searchField={searchField} setSearchField={setSearchField} submitSearch={submitSearch}
         />
+        <AuthorizedOrHidden>
+          <button onClick={(event) => auth.signOut()}>Log out</button>
+        </AuthorizedOrHidden>
         <Switch>
           <Route path='/landing'>
             <Landing />
@@ -63,18 +72,24 @@ function App() {
           <Route path='/explore'>
             <Explore songList={testingItems} />
           </Route>
-          <Route path='/questionnaire'>
-            <UserQuestionnaire />
+          <Route path='/questionnaire1'>
+            <Questionnaire1 />
           </Route>
-          <Route path='/profile'>
+          <Route path='/questionnaire2'>
+            <Questionnaire2 />
+          </Route>
+          <PrivateRoute path='/profile'>
             <ProfilePage />
-          </Route>
-          <Route path='/playlist'>
+          </PrivateRoute>
+          <PrivateRoute path='/playlist'>
             <PlaylistPage />
-          </Route>
-          <Route path='/search'>
+          </PrivateRoute>
+          <PrivateRoute path='/search'>
             <SearchPage searchedItem={searchField} />
-          </Route>
+          </PrivateRoute>
+          <PrivateRoute path='/spotify-auth'>
+            <SpotifyAuth />
+          </PrivateRoute>
           <Route path='/' exact>
             <MainPage changeSong={changeSong} />
           </Route>
@@ -83,10 +98,43 @@ function App() {
           </Route>
         </Switch>
       </div>
-      <PlayFooter />
+      <AuthorizedOrHidden>
+        <PlayFooter />
+      </AuthorizedOrHidden>
     </div>
   );
+}
 
+
+// adapted from https://reactrouter.com/web/example/auth-workflow
+// acts as a typical route, but if a user is not signed in, it first redirects
+// them to the landing page to sign in. the landing page can use the redirect
+// information passed into history.location.state to redirect the user back
+function PrivateRoute({ children, ...rest }) {
+  const auth = useAuth();
+  return (
+    <Route
+      {...rest}
+      render={({ location }) =>
+        auth.user ? (
+          children
+        ) : (
+          <Redirect
+            to={{
+              pathname: "/landing",
+              state: { redirect: location }
+            }}
+          />
+        )
+      }
+    />
+  );
+}
+
+// if the user is signed in, display the children. if not, display nothing at all.
+function AuthorizedOrHidden({ children }) {
+  const auth = useAuth();
+  return auth.user ? children : null;
 }
 
 export default App;

@@ -1,0 +1,24 @@
+.questionnaire {
+    background: linear-gradient(0deg,#f80b4d, #e96f56, #e8da92, #6fdeef);
+    color: #fff;
+    font-size: 20px;
+  }
+  .questionnaire-items{
+    text-align: center;
+  }
+  .noBorder{
+    text-align: center;
+    color: #000;
+    border: solid 4px transparent;
+    padding: 12px 12px 12px 12px;
+    margin: 0px 0px 0px 0;
+  
+  }
+  
+  .withBorder{
+    text-align: center;
+    color: #000;
+    border: solid 4px black;
+    padding: 12px 12px 12px 12px;
+    margin: 0px 0px 10px 0;
+  }

@@ -21,10 +21,15 @@ from .views import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('get-songs/', views.get_songs),
-    path('user/create/', UserCreate.as_view(), name='create_user'),
-    path('token/obtain/', ObtainTokenPairWithAdditionalInfo.as_view(), name='token_create'),
-    path('token/refresh/', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
-    path('user/change-password/', ChangePasswordView.as_view(), name='change-password'),
+    path('api/get-songs/', views.get_songs),
+    path('api/user/create/', UserCreate.as_view(), name='create_user'),
+    path('api/token/obtain/', ObtainTokenPairWithAdditionalInfo.as_view(), name='token_create'),
+    path('api/token/refresh/', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/user/change-password/', ChangePasswordView.as_view(), name='change-password'),
+    path('api/spotify/store-credential/', SpotifyStore.as_view(), name='spotify-store-initial'),
+    path('api/spotify/refresh-token/', SpotifyRefresh.as_view(), name='spotify-refresh-token'),
     path('search/', Search.as_view(), name='search'),
+    # A testing path
+    path('api/hello/', HelloWorldView.as_view(), name='hello_world'),
+
 ]
