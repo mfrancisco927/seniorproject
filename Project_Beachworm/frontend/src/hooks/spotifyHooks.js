@@ -1,4 +1,4 @@
-import { useContext, createContext, useState, useEffect } from "react";
+import { useContext, createContext, useState } from "react";
 import { refreshSpotifyToken }  from './../api/authenticationApi';
 import { playTrack } from './../api/spotifyApi'
 import WebPlaybackReact from './WebPlaybackReact';
