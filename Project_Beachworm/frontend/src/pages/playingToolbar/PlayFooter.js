@@ -236,6 +236,8 @@ function PlayFooter() {
           onCloseCallback={() => setPopoverAnchorEl(null)}
           deleteFromUserQueue={spotify.deleteUserQueueSong}
           deleteFromContextQueue={spotify.deleteContextQueueSong}
+          clearUserQueue={spotify.clearUserPlayQueue}
+          clearContextQueue={spotify.clearContextPlayQueue}
         />
         <span className="profile-controls_row">
           <PlaylistAddIcon className="profile-controls_item"/>

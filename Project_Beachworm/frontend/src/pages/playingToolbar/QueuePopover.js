@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
 import Popover from '@material-ui/core/Popover';
-import { Card, CardContent } from '@material-ui/core';
+import { Card, CardContent, Button } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 import './QueuePopover.css';
 import ScrollText from './ScrollText';
@@ -12,7 +12,15 @@ const scrollProps = {
 }
 
 function QueuePopover(props) {
-  const { anchorEl, currentTrack, userQueue, contextQueue, onCloseCallback, deleteFromUserQueue, deleteFromContextQueue } = props;
+  const { 
+    anchorEl, 
+    currentTrack, 
+    userQueue, 
+    contextQueue,
+    onCloseCallback,
+    deleteFromUserQueue, deleteFromContextQueue,
+    clearUserQueue, clearContextQueue 
+  } = props;
   
   const queuePopoverBody = () => {
     const songList = (songs, deleteQueueCallback) => {
@@ -47,9 +55,19 @@ function QueuePopover(props) {
       )
     };
 
-    const songHeaderWithList = (text, list, deleteQueueCallback) => (
+    const songHeaderWithList = (text, list, deleteQueueCallback, clearQueueCallback) => (
       <div className="popover-section">
-        <h4 className="popover-section_header">{text}</h4>
+        <span className="popover-section_header-wrapper">
+          <h4 className="popover-section_header">{text}</h4>
+          {clearQueueCallback && (
+            <Button onClick={() => clearQueueCallback()}
+              className="btn-smaller"
+              variant="outlined"
+              size="small">
+                clear
+            </Button>
+          )}
+        </span>
         {songList(list, deleteQueueCallback)}
       </div>
     );
@@ -67,9 +85,9 @@ function QueuePopover(props) {
             {!!currentTrack
               && songHeaderWithList('Currently playing', [currentTrack])}
             {!!userQueue.length
-              && songHeaderWithList('User queue', userQueue, deleteFromUserQueue)}
+              && songHeaderWithList('User queue', userQueue, deleteFromUserQueue, clearUserQueue)}
             {!!contextQueue.length
-              && songHeaderWithList('Context queue', contextQueue, deleteFromContextQueue)}
+              && songHeaderWithList('Context queue', contextQueue, deleteFromContextQueue, clearContextQueue)}
           </Fragment>
           ) : emptyLabel()
         }

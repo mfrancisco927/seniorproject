@@ -165,10 +165,12 @@ function useProvideSdk(getAccessToken, setAccessToken, getDeviceId, addStateList
   }
 
   const clearUserPlayQueue = () => {
+    console.log('Clearing user play queue');
     setUserPlayQueue([]);
   }
 
   const clearContextPlayQueue = () => {
+    console.log('Clearing context play queue');
     setContextPlayQueue([]);
   }
 
