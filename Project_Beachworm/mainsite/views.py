@@ -16,6 +16,8 @@ import environ
 import basicauth
 import requests
 import json
+import dateutil.parser
+from datetime import datetime, date
 
 env = environ.Env()
 CLIENT_ID = env('CLIENT_ID')
@@ -165,9 +167,6 @@ class SpotifyRefresh(APIView):
             return Response({"access_token" : response_dict['access_token']}, status=status.HTTP_200_OK)
         return Response({"access_token" : "Error!  Spotify access may have been revoked"}, status=status.HTTP_401_UNAUTHORIZED)
 
-
-        
-
 class Search(APIView):
     def get(self, request):
         auth_manager = SpotifyClientCredentials(client_id=CLIENT_ID, client_secret=SECRET)
@@ -176,7 +175,43 @@ class Search(APIView):
         query = self.request.query_params
         results = {}
         for type in types:
-            results[type + 's'] = sp.search(q=query['q'], type=type, market='US', limit=5)[type + 's']
+            results[type + 's'] = sp.search(q=query['q'], type=type, market='US', limit=10)[type + 's']
+            #get track IDs for results and query DB for those songs
+            if type == 'track':
+                track_ids = []
+                for i in range(len(results['tracks']['items'])):
+                    track_ids.append(results['tracks']['items'][i]['id'])
+                track_features = sp.audio_features(tracks=track_ids)
+                #print(track_features)
+                for i in range(len(track_ids)):
+                    db_track = Song.objects.filter(song_id = track_ids[i])
+                    #add track to db if it's not there
+                    if not db_track.exists():
+                        trackEntry = Song(
+                            song_id = results['tracks']['items'][i]['id'],
+                            title = results['tracks']['items'][i]['name'],
+                            artists = results['tracks']['items'][i]['artists'][0]['name'],
+                            danceability = float(track_features[i]['danceability']),
+                            energy = float(track_features[i]['energy']),
+                            key = float(track_features[i]['key']),
+                            loudness = float(track_features[i]['loudness']),
+                            mode = float(track_features[i]['mode']),
+                            speechiness = float(track_features[i]['speechiness']),
+                            acousticness = float(track_features[i]['acousticness']),
+                            instrumentalness = float(track_features[i]['instrumentalness']),
+                            liveness = float(track_features[i]['liveness']),
+                            valence = float(track_features[i]['valence']),
+                            tempo = float(track_features[i]['tempo']),
+                            duration_ms = float(track_features[i]['duration_ms']),
+                            time_signature = int(track_features[i]['time_signature']),
+                            img_640 = results['tracks']['items'][i]['album']['images'][0]['url']
+                        )
+                        
+                        trackEntry.save()
+        #return public playlists whose name contains query
+        playlists = list(Playlist.objects.filter(title__icontains=query['q'], is_public=True).values())
+        results['playlists'] = {}
+        results['playlists']['items'] = playlists
 
         return Response(data=results, status=status.HTTP_200_OK)
 
