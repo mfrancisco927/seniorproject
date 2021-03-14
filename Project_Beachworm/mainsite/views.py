@@ -627,6 +627,39 @@ class FollowPlaylist(APIView):
 
         return Response(status=status.HTTP_200_OK)
 
+class ModifyPlaylist(APIView):
+    def put(self, request, playlist_id):
+        data=self.request.data
+        print(data)
+        new_name = data['name']
+        public = bool(data['public'] == 'true')
+
+        try:
+            playlist= Playlist.objects.get(pk=playlist_id)
+        except:
+           return Response({"follow_playlist" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            if new_name is not None:
+                playlist.title = new_name
+            if public is not None:
+                playlist.is_public = public
+        except:
+             return Response({"modify_playlist" : "error: form data incorrect"}, status=status.HTTP_404_NOT_FOUND)
+
+        playlist.save()
+        return Response(status=status.HTTP_200_OK)
+
+    def delete(self, request, playlist_id):
+        try:
+            playlist= Playlist.objects.get(pk=playlist_id)
+        except:
+           return Response({"follow_playlist" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        playlist.delete()
+
+        return Response(status=status.HTTP_200_OK)
+
 class LikeSong(APIView):
 
     def post(self, request, user_id, song_id):
