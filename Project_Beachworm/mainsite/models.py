@@ -28,6 +28,7 @@ class Song(BaseModel):
   tempo = models.FloatField()
   duration_ms = models.IntegerField()
   time_signature = models.IntegerField()
+  img_640 = models.TextField(default='https://imgur.com/a/RMIhpXF')
   
 class Profile(BaseModel):
   user = models.OneToOneField(User,primary_key=True, on_delete=models.CASCADE)

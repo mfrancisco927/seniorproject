@@ -175,15 +175,14 @@ class Search(APIView):
         query = self.request.query_params
         results = {}
         for type in types:
-            results[type + 's'] = sp.search(q=query['q'], type=type, market='US', limit=1)[type + 's']
-            #add tracks to database if they're not there
+            results[type + 's'] = sp.search(q=query['q'], type=type, market='US', limit=10)[type + 's']
+            #get track IDs for results and query DB for those songs
             if type == 'track':
                 track_ids = []
                 for i in range(len(results['tracks']['items'])):
                     track_ids.append(results['tracks']['items'][i]['id'])
-                #print(track_ids)
                 track_features = sp.audio_features(tracks=track_ids)
-                print(track_features)
+                #print(track_features)
                 for i in range(len(track_ids)):
                     db_track = Song.objects.filter(song_id = track_ids[i])
                     #add track to db if it's not there
@@ -204,15 +203,15 @@ class Search(APIView):
                             valence = float(track_features[i]['valence']),
                             tempo = float(track_features[i]['tempo']),
                             duration_ms = float(track_features[i]['duration_ms']),
-                            time_signature = int(track_features[i]['time_signature'])
+                            time_signature = int(track_features[i]['time_signature']),
+                            img_640 = results['tracks']['items'][i]['album']['images'][0]['url']
                         )
+                        
                         trackEntry.save()
         #return public playlists whose name contains query
         playlists = list(Playlist.objects.filter(title__icontains=query['q'], is_public=True).values())
         results['playlists'] = {}
         results['playlists']['items'] = playlists
-        print(results['playlists'])
-           
 
         return Response(data=results, status=status.HTTP_200_OK)
 
