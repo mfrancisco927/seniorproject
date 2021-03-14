@@ -591,7 +591,39 @@ class Playlist(APIView):
     def get(self, request):
         playlist=Playlist.objects.get(self.request.playlist_id)
         return
+class Playlist(APIView):
+    def get(self, request, playlist_id):
+        playlist=Playlist.objects.get(playlist_id)
+        return
 
+class FollowPlaylist(APIView):
+    def post(self, request, user_id, playlist_id):
+        try:
+            playlist= Playlist.objects.get(pk=playlist_id)
+        except:
+            return Response({"follow_playlist" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        try: 
+            profile = Profile.objects.get(user=user_id)
+        except Profile.DoesNotExist:
+            return Response({"follow_playlist" : "error: user does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        profile.favorite_playlists.add(playlist)
+        profile.save()
+
+    def delete(self, request, user_id, playlist_id):
+        try:
+            playlist= Playlist.objects.get(pk=playlist_id)
+        except:
+            return Response({"follow_playlist" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        try: 
+            profile = Profile.objects.get(user=user_id)
+        except Profile.DoesNotExist:
+            return Response({"follow_playlist" : "error: user does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        profile.favorite_playlists.remove(playlist)
+        profile.save()
 class LikeSong(APIView):
 
     def post(self, request, user_id, song_id):

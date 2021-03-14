@@ -49,4 +49,5 @@ urlpatterns = [
 
     path('api/history/<user_id>/likes/<song_id>', LikeSong.as_view(), name='song_like'),
     path('api/history/<user_id>/dislikes/<song_id>', DislikeSong.as_view(), name='song_dislike'),
+    path('api/users/<user_id>/followed-playlists/<playlist_id>', FollowPlaylist.as_view(), name='follow_playlist'),
 ]
