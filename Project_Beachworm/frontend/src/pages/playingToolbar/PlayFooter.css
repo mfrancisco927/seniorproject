@@ -105,6 +105,7 @@ cover up content with the footer */
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
 }
 
 .profile-controls_item {
@@ -114,9 +115,24 @@ cover up content with the footer */
   text-decoration: none;
 }
 
+.profile-controls_row {
+  display: inline-flex;
+  flex-direction: row;
+}
+
 .profile-controls_item__active {
   color: rgb(23, 93, 126);
   border: none;
   margin: 0 0.2em;
   text-decoration: none;
+}
+
+.volume-slider_wrapper {
+  width: 100%;
+  justify-content: center;
+}
+
+.volume-slider_slider {
+  max-width: 50%;
+  margin-left: 0.8em;
 }

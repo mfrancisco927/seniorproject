@@ -205,6 +205,15 @@ function useProvideSdk(getAccessToken, setAccessToken, getDeviceId, addStateList
     setContextPlayQueue([...contextPlayQueue.slice(0, index), ...contextPlayQueue.slice(index + 1)])
   }
 
+  const setVolume = (volume) => {
+    console.log('Setting volume to ' + volume + ' (' + Math.floor(volume * 100 + 0.5) + '%)');
+    return getPlayer().setVolume(volume);
+  }
+
+  const getVolume = () => {
+    return getPlayer().getVolume();
+  }
+
   return {
     resume: refreshWrapper(() => {play()}),
     pause: refreshWrapper(pause),
@@ -221,5 +230,7 @@ function useProvideSdk(getAccessToken, setAccessToken, getDeviceId, addStateList
     deleteContextQueueSong: deleteContextQueueSong,
     dequeueNextSong: dequeueNextSong,
     addStateListener: addStateListener,
+    setVolume: setVolume,
+    getVolume: getVolume,
   };
 }

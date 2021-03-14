@@ -3,6 +3,7 @@ import { useSpotifySdk } from './../../hooks/spotifyHooks';
 import ScrollText from './ScrollText';
 import Slider from '@material-ui/core/Slider';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
+import { VolumeUp, VolumeDown, VolumeMute, VolumeOff } from '@material-ui/icons';
 import PauseIcon from '@material-ui/icons/Pause';
 import SkipNext from '@material-ui/icons/SkipNext';
 import SkipPrevious from '@material-ui/icons/SkipPrevious';
@@ -10,7 +11,6 @@ import PlaylistAddIcon from '@material-ui/icons/PlaylistAdd';
 import ShuffleIcon from '@material-ui/icons/Shuffle';
 import QueueMusicIcon from '@material-ui/icons/QueueMusic';
 import QueuePopover from './QueuePopover';
-// import PlaylistAddCheckIcon from '@material-ui/icons/PlaylistAddCheck';
 
 import './PlayFooter.css';
 
@@ -24,6 +24,8 @@ function PlayFooter() {
   const [popoverAnchorEl, setPopoverAnchorEl] = useState(null);
   const [currentTrack, setCurrentTrack] = useState(null);
   const [shouldShuffle, setShuffle] = useState(false);
+  const [volume, setVolume] = useState(100);
+  const [muted, setMuted] = useState(false);
 
   const testQueueables = [
     {
@@ -78,15 +80,29 @@ function PlayFooter() {
     setAlbumImg(<img className="play-footer_album-art" src={albumImages[1].url} alt={albumName +' album art'} />);
   }
 
-  const handleSlide = (_event, newValue) => {
+  const handleSeekSlide = (_event, newValue) => {
     spotify.seek(newValue / 100 * duration_ms);
+  }
+  
+  const handleVolumeSlide = (_event, newValue) => {
+    setMuted(false);
+    setVolume(newValue);
+    scaleAndSetVolume(newValue);
+  }
+
+  const scaleAndSetVolume = (vol) => {
+    let volFloat = Math.floor(vol + 0.5) / 100;
+    // minimum of 0, maximum of 1.0 enforced. the spotify player has a bug where
+    // a volume of exactly 0 throws an error so 10^-6 is close enough
+    volFloat = Math.max(1e-6, Math.min(volFloat, 1.0));
+    spotify.setVolume(volFloat);
   }
 
   useEffect(() => {
     if (trackEnded) {
       // TODO: fire 'listened to' endpoint to add to user history
       console.log('Track ending detected');
-      const nextSong = spotify.dequeueNextSong();
+      const nextSong = spotify.dequeueNextSong(shouldShuffle);
       if (nextSong) {
         spotify.play(nextSong.id);
       }
@@ -97,31 +113,34 @@ function PlayFooter() {
     setPopoverAnchorEl(event.currentTarget);
   }
 
-  useEffect(() => {
-    spotify.addStateListener({'PlayFooter': (nextState) => {
-      setCurrState(nextState);
-      // update our pause button
-      if (nextState) {
-        setPlaying(!nextState.paused);
-        if (!nextState.paused) {
-          setTrackEnded(false);
-        }
+  const handleNewState = (nextState) => {
+    setCurrState(nextState);
+    // update our pause button
+    if (nextState) {
+      setPlaying(!nextState.paused);
+      
+      if (!nextState.paused) {
+        setTrackEnded(false);
       }
+    }
 
-      // check for the end of the track
-      // spotify doesn't have any sort of "song ended" callback sadly,
-      // so this borrows from this answer: https://github.com/spotify/web-playback-sdk/issues/35#issuecomment-509159445
-      if (!trackEnded && currState
-        && nextState.track_window.previous_tracks.find(x => x.id === nextState.track_window.current_track.id)
-        && !currState.paused
-        && nextState.paused) {
-          // console.log('Track ended');
-          setTrackEnded(true);
-          setCurrentTrack(null);
-      } else {
-        setCurrentTrack(nextState.track_window && nextState.track_window.current_track);
-      }
-    }});
+    // check for the end of the track
+    // spotify doesn't have any sort of "song ended" callback sadly,
+    // so this borrows from this answer: https://github.com/spotify/web-playback-sdk/issues/35#issuecomment-509159445
+    if (!trackEnded && currState
+      && nextState.track_window.previous_tracks.find(x => x.id === nextState.track_window.current_track.id)
+      && !currState.paused
+      && nextState.paused) {
+        // console.log('Track ended');
+        setTrackEnded(true);
+        setCurrentTrack(null);
+    } else {
+      setCurrentTrack(nextState.track_window && nextState.track_window.current_track);
+    }
+  };
+
+  useEffect(() => {
+    spotify.addStateListener({'PlayFooter': (nextState) => handleNewState(nextState)});
   }, []);
 
   const scrollProps = {
@@ -135,7 +154,7 @@ function PlayFooter() {
   }
 
   const handleSkip = () => {
-    const nextSong = spotify.dequeueNextSong();
+    const nextSong = spotify.dequeueNextSong(shouldShuffle);
     if (nextSong) {
       spotify.play(nextSong.id);
     }
@@ -151,10 +170,32 @@ function PlayFooter() {
       }
     }
 
-    const nextSong = spotify.dequeueNextSong();
+    const nextSong = spotify.dequeueNextSong(shouldShuffle);
 
     if (nextSong) {
       spotify.play(nextSong.id);
+    }
+  }
+
+  const getVolumeIcon = () => {
+    const handleMuteClick = () => {
+      if (muted) {
+        setMuted(false);
+        scaleAndSetVolume(volume);
+      } else {
+        setMuted(true);
+        scaleAndSetVolume(0);
+      }
+    }
+
+    if (volume === 0 || muted) {
+      return <VolumeOff onClick={handleMuteClick} />;
+    } else if (volume < 10) {
+      return <VolumeMute onClick={handleMuteClick} />;
+    } else if (volume < 50) {
+      return <VolumeDown onClick={handleMuteClick} />
+    } else {
+      return <VolumeUp onClick={handleMuteClick} />
     }
   }
 
@@ -174,7 +215,7 @@ function PlayFooter() {
           <span className="grid-row scan-wrapper">
             <p className="scan_elapsed">{(position || position === 0) && formatTime(positionMin, positionSec)}</p>
             <span className="scan_slider">
-              <Slider value={position / duration_ms * 100} onChange={handleSlide} aria-labelledby="continuous-slider" />
+              <Slider value={position / duration_ms * 100} onChange={handleSeekSlide} aria-labelledby="continuous-slider" />
             </span>
             <p className="scan_song-length">{(duration_ms || duration_ms === 0) && formatTime(durationMin, durationSec)}</p>
           </span>
@@ -196,18 +237,28 @@ function PlayFooter() {
           deleteFromUserQueue={spotify.deleteUserQueueSong}
           deleteFromContextQueue={spotify.deleteContextQueueSong}
         />
-        <PlaylistAddIcon className="profile-controls_item"/>
-        <ShuffleIcon 
-          onClick={() => setShuffle(!shouldShuffle)}
-          className={"profile-controls_item" + (shouldShuffle ? " profile-controls_item__active" : "")} />
-        <QueueMusicIcon className="profile-controls_item" 
-          aria-owns={popoverAnchorEl ? 'queue-popover' : undefined}
-          aria-haspopup="true"
-          onClick={handleQueueClicked} />
-        <button className="profile-controls_item"
-            onClick={() => spotify.addToUserPlayQueue(testQueueables)}>
-          Enq
-        </button>
+        <span className="profile-controls_row">
+          <PlaylistAddIcon className="profile-controls_item"/>
+          <ShuffleIcon 
+            onClick={() => setShuffle(!shouldShuffle)}
+            className={"profile-controls_item" + (shouldShuffle ? " profile-controls_item__active" : "")} />
+          <QueueMusicIcon className="profile-controls_item" 
+            aria-owns={popoverAnchorEl ? 'queue-popover' : undefined}
+            aria-haspopup="true"
+            onClick={handleQueueClicked} />
+          <button className="profile-controls_item"
+              onClick={() => spotify.addToUserPlayQueue(testQueueables)}>
+            Enq
+          </button>
+        </span>
+        <span className="profile-controls_row volume-slider_wrapper">
+            {getVolumeIcon()}
+            <Slider
+              className="volume-slider_slider"
+              value={muted ? 0 : volume}
+              onChange={handleVolumeSlide}
+              aria-labelledby="continuous-slider" />
+        </span>
       </div>
     </span>
   );
