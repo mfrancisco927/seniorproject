@@ -1,6 +1,7 @@
 import { useContext, createContext, useState } from "react";
 import { refreshSpotifyToken }  from './../api/authenticationApi';
-import { playTrack } from './../api/spotifyApi'
+import { playTrack } from './../api/spotifyApi';
+import { useAuth } from './../hooks/authHooks';
 import WebPlaybackReact from './WebPlaybackReact';
 
 const sdkContext = createContext();
@@ -10,6 +11,7 @@ export function useSpotifySdk() {
 }
 
 export function ProvideSpotify({ children }) {
+  const auth = useAuth();
   const [spotifyToken, setSpotifyToken] = useState(null);
   const [deviceId, setDeviceId] = useState(null);
   const [playerLoaded, setPlayerLoaded] = useState(false);
@@ -39,9 +41,16 @@ export function ProvideSpotify({ children }) {
     playerAutoConnect: true,
     onPlayerRequestAccessToken: (async () => {
       if (!spotifyToken) {
-        const newToken = await refreshSpotifyToken();
-        setSpotifyToken(newToken);
-        return newToken;
+        if (auth.user) {
+          const newToken = await refreshSpotifyToken().then(result => {
+            setSpotifyToken(result);
+            localStorage.setItem('spotify_access_token', result)
+          }, reject => {
+            return null;
+          });
+          return newToken;
+        }
+        return null;
       }
       return spotifyToken;
     }),
@@ -84,8 +93,14 @@ function useProvideSdk(getAccessToken, setAccessToken, getDeviceId, addStateList
 
   const refreshToken = async () => {
     return refreshSpotifyToken().then(result => {
-      setAccessToken(result.access_token);
-      return result.access_token;
+      if (result) {
+        setAccessToken(result.access_token);
+        localStorage.setItem('spotify_access_token', result.access_token);
+      } else {
+        return Promise.reject('No access token from endpoint');
+      }
+    }, reject => {
+      console.log('Access token failed to refresh')
     });
   };
 
@@ -112,7 +127,10 @@ function useProvideSdk(getAccessToken, setAccessToken, getDeviceId, addStateList
 
     // if spotify endpoint tells us we don't have the auth, refresh token and try again
     if (!getAccessToken()) {
-      refreshToken().then(() => attempt());
+      console.log(`Called a Spotify auth-required function, but we have no access token. Will try to refresh token then attempt.`);
+      refreshToken().then(() => attempt(), reject => {
+        console.log('Attempt to refresh token failed. Giving up.');
+      });
     } else {
       attempt();
     }

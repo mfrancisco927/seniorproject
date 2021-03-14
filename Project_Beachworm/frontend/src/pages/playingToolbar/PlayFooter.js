@@ -161,7 +161,6 @@ function PlayFooter() {
   }
   
   const handleToggle = () => {
-    console.log('toggle called', currState);
     if (currState && currState.track_window) {
       if (currState.track_window.current_track) {
         spotify.togglePlay();
