@@ -37,10 +37,10 @@ function QueuePopover(props) {
               <li key={index} className="popover-section_list-item">
                 <Card variant="outlined">
                   <CardContent className="card-content">
-                    <span className={"card-content_text" + (deleteQueueCallback ? " card-content_text__with_control" : "")} >
+                    <div className={"card-content_text" + (deleteQueueCallback ? " card-content_text__with_control" : "")} >
                       <ScrollText className="card-content_line" {...scrollProps}>{song.name}</ScrollText>
                       <ScrollText className="card-content_line" {...scrollProps}>{'ID: ' +song.id}</ScrollText>
-                    </span>
+                    </div>
                     {deleteQueueCallback && (
                       <span className="card-content_controls">
                         <DeleteIcon onClick={() => handleCallback(index)} />
