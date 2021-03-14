@@ -587,4 +587,23 @@ class SongHistory(APIView):
         
         return Response(data = results , status=status.HTTP_200_OK)
         
+class Playlist(APIView):
+    def get(self, request):
+        playlist=Playlist.objects.get(self.request.playlist_id)
+        return
+
+class LikeSong(APIView):
+    def post(self, request):
+        return
+
+    def delete(self, request):
+        return
+
+class DislikeSong(APIView):
+    def post(self, request):
+        return
+
+    def delete(self, request):
+        return
+
 
