@@ -556,7 +556,6 @@ class SongHistory(APIView):
         results['history'] = user_history
         return Response(data = user_history , status=status.HTTP_200_OK)
 
-    #add a song to the user's history
     def post(self, request):
         HISTORY_MAX = 10 #set to 10 for testing purposes, change to 100 when deployed
         query = self.request.query_params
@@ -592,16 +591,15 @@ class Playlist(APIView):
         playlist=Playlist.objects.get(self.request.playlist_id)
         return
 class Playlist(APIView):
-    def get(self, request, playlist_id):
+class PlaylistSongs(APIView):
         playlist=Playlist.objects.get(playlist_id)
-        return
 
 class FollowPlaylist(APIView):
     def post(self, request, user_id, playlist_id):
         try:
             playlist= Playlist.objects.get(pk=playlist_id)
         except:
-            return Response({"follow_playlist" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
+           return Response({"follow_playlist" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
 
         try: 
             profile = Profile.objects.get(user=user_id)
@@ -610,6 +608,8 @@ class FollowPlaylist(APIView):
 
         profile.favorite_playlists.add(playlist)
         profile.save()
+
+        return Response(status=status.HTTP_200_OK)
 
     def delete(self, request, user_id, playlist_id):
         try:
@@ -624,6 +624,9 @@ class FollowPlaylist(APIView):
 
         profile.favorite_playlists.remove(playlist)
         profile.save()
+
+        return Response(status=status.HTTP_200_OK)
+
 class LikeSong(APIView):
 
     def post(self, request, user_id, song_id):
