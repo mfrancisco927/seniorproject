@@ -593,17 +593,87 @@ class Playlist(APIView):
         return
 
 class LikeSong(APIView):
-    def post(self, request):
-        return
 
-    def delete(self, request):
-        return
+    def post(self, request, user_id, song_id):
+        print(user_id, song_id)
 
+        try:
+            song= Song.objects.get(pk=song_id)
+        except:
+            return Response({"like_song" : "error: song does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        try: 
+            profile = Profile.objects.get(user=user_id)
+        except Profile.DoesNotExist:
+            return Response({"like_song" : "error: user does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            profile.disliked_songs.remove(song)
+        except:
+            print("song was not disliked")
+        
+        profile.liked_songs.add(song)
+        profile.save()
+
+        return Response(status=status.HTTP_200_OK)
+
+    def delete(self, request, user_id, song_id):
+        print(user_id, song_id)
+
+        try:
+            song= Song.objects.get(pk=song_id)
+        except:
+            return Response({"like_song" : "error: song does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        try: 
+            profile = Profile.objects.get(user=user_id)
+        except Profile.DoesNotExist:
+            return Response({"like_song" : "error: user does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        
+        profile.liked_songs.remove(song)
+        profile.save()
+
+        return Response(status=status.HTTP_200_OK)
 class DislikeSong(APIView):
-    def post(self, request):
-        return
+    def post(self, request, user_id, song_id):
+        print(user_id, song_id)
 
-    def delete(self, request):
-        return
+        try:
+            song= Song.objects.get(pk=song_id)
+        except:
+            return Response({"like_song" : "error: song does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        try: 
+            profile = Profile.objects.get(user=user_id)
+        except Profile.DoesNotExist:
+            return Response({"like_song" : "error: user does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            profile.liked_songs.remove(song)
+        except:
+            print("song was not liked")
+        
+        profile.disliked_songs.add(song)
+        profile.save()
+
+        return Response(status=status.HTTP_200_OK)
+
+    def delete(self, request, user_id, song_id):
+        print(user_id, song_id)
+
+        try:
+            song= Song.objects.get(pk=song_id)
+        except:
+            return Response({"dislike_song" : "error: song does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        try: 
+            profile = Profile.objects.get(user=user_id)
+        except Profile.DoesNotExist:
+            return Response({"dislike_song" : "error: user does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        
+        profile.disliked_songs.remove(song)
+        profile.save()
+
+        return Response(status=status.HTTP_200_OK)
 
 
