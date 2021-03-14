@@ -1,0 +1,57 @@
+.queue-popover {
+    margin: 1em;
+    max-width: 200px;
+}
+
+.popover-section_header-wrapper {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.popover-section {
+    margin: 0.5em 0;
+}
+
+.popover-section_header {
+    margin: 0;
+}
+
+.popover-section_list {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.popover-section_list-item {
+    margin: 0.3em;
+}
+
+.card-content {
+    padding: 4px !important;
+    display: flex;
+    align-items: center;
+}
+
+.card-content_text {
+    border-radius: 5px 5px;
+    border: 0px solid rgb(158, 153, 153);
+    background-color: rgb(243, 240, 240);
+    overflow: hidden;
+}
+
+.card-content_text__with_control {
+    width: 80%;
+}
+
+.card-content_controls {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    width: 20%;
+}
+
+.btn-smaller {
+    padding: 0 !important;
+    font-size: 0.6rem !important;
+}

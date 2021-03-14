@@ -16,6 +16,9 @@ import SpotifyAuth from './pages/spotifyAuth/SpotifyAuth.js';
 
 import { useAuth } from './hooks/authHooks';
 
+// needed for Spotify SDK
+window.onSpotifyWebPlaybackSDKReady = () => {};
+
 function App() {
   const auth = useAuth();
   const history = useHistory();

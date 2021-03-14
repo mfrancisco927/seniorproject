@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { ProvideAuth } from './hooks/authHooks';
+import { ProvideSpotify } from './hooks/spotifyHooks';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
@@ -10,7 +11,9 @@ ReactDOM.render(
   <React.StrictMode>
     <ProvideAuth>
       <Router>
-        <App />
+        <ProvideSpotify>
+          <App />
+        </ProvideSpotify>
       </Router>
     </ProvideAuth>
   </React.StrictMode>,

@@ -77,9 +77,9 @@ export async function storeSpotifyAuth(code, state) {
 
 export async function refreshSpotifyToken() {
   const spotifyRefreshEndpoint = spotifyRefreshTokenUri;
-  const response = await axiosInstance.get(spotifyRefreshEndpoint).then(result => {
-    localStorage.setItem('spotify_access_token', result.data.access_token);
-    return result;
-  });
-  return response.data;
+  const response = await axiosInstance.get(spotifyRefreshEndpoint).catch(reason => {
+    console.error(reason);
+    return Promise.reject(reason);
+  })
+  return response && response.data.access_token;
 }

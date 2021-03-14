@@ -8,26 +8,129 @@ cover up content with the footer */
 
 .play-footer {
     height: 5rem;
-    padding: 1rem;
     display: flex;
     position: fixed;
     bottom: 0;
     justify-content: space-around;
     width: 100%;
     background-color: #fd7c54;
-  }
+}
+
+.play-footer > * {
+  margin: 1rem;
+}
+
+.play-footer_song-info {
+  min-width: 10%;
+  max-width: 10%;
+  margin: 0.5em;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  overflow: hidden;
+}
+
+.play-footer_album-art-wrapper {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: min(10%, 80px);
+}
+
+.play-footer_playback-controls {
+    display: grid;
+    grid-template-rows: 1fr 1fr 1fr 1fr 1fr;
+    margin: 0;
+    width: 70%;
+    height: 100%;
+}
+
+.player-footer_playback-controls_buttons {
+  grid-row-start: 4;
+  grid-row-end: 6;
+  height: min-content;
+  display: flex;
+  justify-content: center;
+}
 
 .control-button {
-    background-color: #90032b; /* red */
-    border: none;
+    /*background-color: #90032b;*/ /* red */
+    background:none;
     color: white;
-    padding: 15px 32px;
+    border: none;
+    background-color: none;
     text-align: center;
     text-decoration: none;
     display: inline-block;
     font-size: 16px;
   }
 
+.control-button > * {
+    vertical-align: middle;
+}
+
 .control-button:active{
   box-shadow: -5px -10px 5px rgba(51, 51, 51, 0.208) inset;
+}
+
+.scan-wrapper {
+  grid-row-start: 2;
+  grid-row-end: 4;
+  display: inline-flex;
+  padding: 0 5%;
+  max-height: 100%;
+  justify-content: center;
+  align-items: center;
+  text-align: top;
+}
+
+.scan-wrapper > * {
+  margin-left: 1em;
+  margin-right: 1em;
+}
+
+.scan_slider {
+  width: 90%;
+}
+
+.MuiSlider-colorPrimary {
+  color: white !important;
+}
+
+.profile-controls-wrapper {
+  width: 15%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.profile-controls_item {
+  background: none;
+  border: none;
+  margin: 0 0.2em;
+  text-decoration: none;
+}
+
+.profile-controls_row {
+  display: inline-flex;
+  flex-direction: row;
+}
+
+.profile-controls_item__active {
+  color: rgb(23, 93, 126);
+  border: none;
+  margin: 0 0.2em;
+  text-decoration: none;
+}
+
+.volume-slider_wrapper {
+  width: 100%;
+  justify-content: center;
+}
+
+.volume-slider_slider {
+  max-width: 50%;
+  margin-left: 0.8em;
 }
