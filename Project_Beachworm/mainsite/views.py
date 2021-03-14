@@ -16,8 +16,6 @@ import environ
 import basicauth
 import requests
 import json
-import dateutil.parser
-from datetime import datetime, date
 
 env = environ.Env()
 CLIENT_ID = env('CLIENT_ID')
