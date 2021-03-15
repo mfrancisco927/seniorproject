@@ -1,6 +1,7 @@
 import axiosInstance from './axiosApi';
 
 const baseUri = '/user/';
+const currentUserEndpointUri = baseUri + 'current/';
 const userEndpointUri = (userId) => baseUri + userId + '/';
 const playlistEndpointUri = (userId) => baseUri + userId + '/playlists/';
 const registerEndpointUri = baseUri + 'create/';
@@ -8,6 +9,12 @@ const profileEndpointUri = (userId) => baseUri + userId + '/profile/';
 const followingEndpointUri = (userId, targetUid) => profileEndpointUri(userId) + '/following/' + targetUid + '/';
 const genreSeedEndpointUri = (userId) => profileEndpointUri(userId) + '/seeds/genres/';
 const artistSeedEndpointUri = (userId) => profileEndpointUri(userId) + '/seeds/artists/';
+
+export async function getCurrentUser() {
+  const currentUserEndpoint = currentUserEndpointUri;
+  const response = await axiosInstance.get(currentUserEndpoint);
+  return response.data;
+}
 
 export async function getUser(userId) {
   const userEndpoint = userEndpointUri(userId);

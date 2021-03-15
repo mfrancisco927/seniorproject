@@ -54,7 +54,7 @@ function Explore(props) {
         // only if we're not already playing from the explore list, add some more
         if (spotify.getContextPlayQueue().name !== CONTEXT_QUEUE_NAME) {
           console.log('Populating initial load of Explore songs');
-          // const recommendedSongs = await getRecommendations(auth.user.id);
+          // const recommendedSongs = await getRecommendations(auth.id);
           const recommendedSongs = testQueueables; // REMOVE AFTER ENDPOINT TO GET OWN USER ID IMPLEMENTED INTO AUTH!
           const songsMapped = recommendedSongs.map(song => ({'id': song.song_id})); // remap "song_id" to "id"
           spotify.play(songsMapped[0].id);

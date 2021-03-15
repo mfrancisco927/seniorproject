@@ -1,5 +1,6 @@
-import { useContext, createContext, useState } from "react";
+import { useContext, createContext, useState, useEffect } from "react";
 import { signIn as apiSignIn }  from '../api/authenticationApi';
+import { getCurrentUser }  from '../api/userApi';
 
 /* This code is largely adapted from https://reactrouter.com/web/example/auth-workflow
 * `authContext`, `ProvideAuth`, `useAuth` and `useProvideAuth`
@@ -22,6 +23,17 @@ export function useAuth() {
 
 function useProvideAuth() {
   const [user, setUser] = useState(localStorage.getItem('access_token'));
+  const [id, setId] = useState(null);
+
+  useEffect(() => {
+    const updateUser = async () => {
+      console.log('New auth detected. Fetching current user details');
+      await getCurrentUser().then(value => {
+        setId(_prev => value.id);
+      });
+    };
+    updateUser();
+  }, [user]);
 
   const signIn = (user, pass, cb) => {
     console.log('attempting sign in');
@@ -45,6 +57,7 @@ function useProvideAuth() {
 
   return {
     user,
+    id,
     signIn,
     signOut
   };
