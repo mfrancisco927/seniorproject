@@ -6,7 +6,7 @@ import Navbar from './pages/nav/Navbar.js';
 import Explore from './pages/explore/Explore.js';
 import ProfilePage from './pages/profile/ProfilePage.js';
 import SearchPage from './pages/search/SearchPage.js';
-import PlayFooter from './pages/playingToolbar/PlayFooter.js';
+import PlayFooter from './pages/playbackControllers/PlayFooter.js';
 import PlaylistPage from './pages/playlist/PlaylistPage.js';
 import Landing from './pages/landing/Landing.js';
 import PageNotFound from './pages/pageNotFound/PageNotFound.js';

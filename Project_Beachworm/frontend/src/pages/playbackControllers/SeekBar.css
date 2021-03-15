@@ -1,0 +1,17 @@
+.scan-wrapper {
+    display: inline-flex;
+    padding: 0 5%;
+    max-height: 100%;
+    justify-content: center;
+    align-items: center;
+    min-width: 90%;
+}
+
+.scan-wrapper > * {
+    margin-left: 1em;
+    margin-right: 1em;
+}
+
+.scan_slider {
+    width: 100%;
+}
