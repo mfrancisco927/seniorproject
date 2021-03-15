@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import Slider from '@material-ui/core/Slider';
 import { VolumeUp, VolumeDown, VolumeMute, VolumeOff } from '@material-ui/icons';
 import { useSpotifySdk } from './../../hooks/spotifyHooks';
@@ -6,14 +5,12 @@ import './VolumeSlider.css';
 
 function VolumeSlider(props) {
   const { showIcon } = props;
-
-  const [volume, setVolume] = useState(100);
   const spotify = useSpotifySdk();
+  const volume = spotify.getVolume() * 100;
   const muted = spotify.isMuted();
 
   const handleVolumeSlide = (_event, newValue) => {
     spotify.setMuted(false);
-    setVolume(newValue);
     scaleAndSetVolume(newValue);
   }
   
@@ -40,7 +37,7 @@ function VolumeSlider(props) {
   }
 
   const scaleAndSetVolume = (vol) => {
-    let volFloat = Math.floor(vol + 0.5) / 100;
+    let volFloat = vol / 100;
     // minimum of 0, maximum of 1.0 enforced. the spotify player has a bug where
     // a volume of exactly 0 throws an error so 10^-6 is close enough
     volFloat = Math.max(1e-6, Math.min(volFloat, 1.0));
@@ -54,7 +51,8 @@ function VolumeSlider(props) {
         className={"volume-slider_slider" + (showIcon ? "" : "volume-slider_slider__no-icon")}
         value={muted ? 0 : volume}
         onChange={handleVolumeSlide}
-        aria-labelledby="continuous-slider" />
+        aria-labelledby="continuous-slider" 
+        disabled={!spotify.isPlayerReady()}/>
     </div>
   );
 }

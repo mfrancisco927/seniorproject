@@ -89,8 +89,8 @@ export default class WebPlayback extends Component {
     });
 
     this.webPlaybackInstance.on("ready", data => {
-      this.props.onPlayerWaitingForDevice(data);
       console.log("Web Playback SDK: Ready");
+      this.props.onPlayerWaitingForDevice(data);
     });
     
     this.webPlaybackInstance.on("not_ready", data => {

@@ -21,7 +21,7 @@ function QueuePopover(props) {
     deleteFromUserQueue, deleteFromContextQueue,
     clearUserQueue, clearContextQueue 
   } = props;
-  
+
   const queuePopoverBody = () => {
     const songList = (songs, deleteQueueCallback) => {
       const handleCallback = (index) => {
@@ -73,7 +73,7 @@ function QueuePopover(props) {
           </span>
           {songList(truncatedList, deleteQueueCallback)}
           {!!numExtra && (
-            <ScrollText className="card-content_line" {...scrollProps}>{`... and ${numExtra} others!`}</ScrollText>
+            <ScrollText className="card-content_line" {...scrollProps}>{`... and ${numExtra} more!`}</ScrollText>
           )}
         </div>
       );
@@ -87,14 +87,14 @@ function QueuePopover(props) {
       <div className="queue-popover">
         {
           (
-            currentTrack || userQueue.length || contextQueue.length
+            currentTrack || userQueue.length || contextQueue.songs.length
           ) ? (<Fragment>
             {!!currentTrack
               && songHeaderWithList('Currently playing', [currentTrack])}
             {!!userQueue.length
               && songHeaderWithList('User queue', userQueue, 5, deleteFromUserQueue, clearUserQueue)}
-            {!!contextQueue.length
-              && songHeaderWithList('Context queue', contextQueue, 5, deleteFromContextQueue, clearContextQueue)}
+            {!!contextQueue.songs.length
+              && songHeaderWithList('Context queue', contextQueue.songs, 5, deleteFromContextQueue, clearContextQueue)}
           </Fragment>
           ) : emptyLabel()
         }

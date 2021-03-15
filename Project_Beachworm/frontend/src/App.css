@@ -1,12 +1,21 @@
-.outer-wrapper {
+.page-wrapper {
   background: linear-gradient(0deg,#aa0131, #fd6748);
   color: #fff;
-  justify-content: center;
-  align-items: flex;
-  height: 100%;
-}
-
-.page-wrapper {
   height: 100%;
   overflow-y: auto;
+}
+
+/*
+ * overwrite the page height to make the scroll bar not cover up the music toolbar
+ */
+ .page-wrapper__footer {
+  height: calc(100% - 5rem); 
+}
+
+/* creates an invisible pseudelement to make sure we don't 
+cover up content with the footer */
+.page-wrapper__footer:after {
+    content: "";
+    display: block;
+    height: 5rem; /* sum of footer height + padding */
 }

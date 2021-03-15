@@ -16,6 +16,7 @@ export function ProvideSpotify({ children }) {
   const deviceIdRef = useRef(null);
   const [playerLoaded, setPlayerLoaded] = useState(false);
   const [playerSelected, setPlayerSelected] = useState(false);
+  const [playerReady, setPlayerReady] = useState(false);
   const [playerState, setPlayerState] = useState({});
   const [stateCallbacks, setStateCallbacks] = useState({});
   const [onReadyCallbacks, setOnReadyCallbacks] = useState({});
@@ -24,14 +25,19 @@ export function ProvideSpotify({ children }) {
 
   const [trackEnded, setTrackEnded] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [volume, setVolume] = useState(null);
 
-  const handleNewState = (nextState) => {
+  const handleNewState = async (nextState) => {
     // update our pause button
     if (nextState) {
       setPlaying(!nextState.paused);
       
       if (!nextState.paused) {
         setTrackEnded(false);
+      }
+
+      if (playerRef) {
+        setVolume(await playerRef.getVolume());
       }
     }
 
@@ -95,6 +101,7 @@ export function ProvideSpotify({ children }) {
     onPlayerLoading: (() => setPlayerLoaded(true)),
     onPlayerWaitingForDevice: (data => {
       setPlayerSelected(false); 
+      setPlayerReady(true);
       deviceIdRef.current = data.device_id;
       Object.entries(onReadyCallbacks).forEach(entry => {
         entry[1](data);
@@ -117,14 +124,17 @@ export function ProvideSpotify({ children }) {
 
   return (
     <sdkContext.Provider value={useProvideSdk()}>
-      <WebPlaybackReact {...webPlaybackSdkProps} ref={(e) => e ? setPlayerRef(e.webPlaybackInstance) : setPlayerRef(e)}>
-        {children}
-      </WebPlaybackReact>
+      {/* remove the player from the hierarchy if there's no user logged in */}
+      {auth.user ? (
+        <WebPlaybackReact {...webPlaybackSdkProps} ref={(e) => e ? setPlayerRef(e.webPlaybackInstance) : setPlayerRef(e)}>
+          {children}
+        </WebPlaybackReact>
+      ) : children}
     </sdkContext.Provider>
   );
 
   function useProvideSdk() {
-    const [contextPlayQueue, setContextPlayQueue] = useState([]);
+    const [contextPlayQueue, setContextPlayQueue] = useState({ 'name': undefined, 'songs': [] });
     const [userPlayQueue, setUserPlayQueue] = useState([]);
     const [shuffle, setShuffle] = useState(false);
     const [muted, setMuted] = useState(false);
@@ -212,13 +222,12 @@ export function ProvideSpotify({ children }) {
     };
   
     const play = async (songId) => {
-      console.log(deviceIdRef.current);
       console.log(songId ? 'Playing song with id ' + songId : 'Resuming current song');
       return songId ? playTrack(songId, deviceIdRef.current, spotifyTokenRef.current) : playerRef.resume();
     };
   
     const togglePlaying = async () => {
-      console.log('Toggling play');
+      console.log('Toggling playback status');
       return playerRef.togglePlay();
     };
   
@@ -235,7 +244,10 @@ export function ProvideSpotify({ children }) {
     // if you play a song in the middle of a playlist, the following songs
     // in the playlist should be added here.
     const addToContextPlayQueue = (songs) => {
-      setContextPlayQueue([...contextPlayQueue, ...songs]);
+      setContextPlayQueue({
+        name: contextPlayQueue.name,
+        songs: [...contextPlayQueue.songs, ...songs]
+      });
     }
   
     // adds a list of songs to the user requested play queue. this queue
@@ -254,7 +266,7 @@ export function ProvideSpotify({ children }) {
   
     const clearContextPlayQueue = () => {
       console.log('Clearing context play queue');
-      setContextPlayQueue([]);
+      setContextPlayQueue({ name: undefined, songs: []});
     }
   
     // TODO: rework shuffle index or rng seed to a state variable so that
@@ -291,26 +303,26 @@ export function ProvideSpotify({ children }) {
     }
   
     const getContextPlayQueue = () => {
-      return [...contextPlayQueue];
+      return contextPlayQueue;
     }
   
     const deleteUserQueueSong = (index) => {
       console.log('Deleting index ' + index + ' from user queue');
-      setUserPlayQueue([...userPlayQueue.slice(0, index), ...userPlayQueue.slice(index + 1)])
+      setUserPlayQueue([...userPlayQueue.slice(0, index), ...userPlayQueue.slice(index + 1)]);
     }
   
     const deleteContextQueueSong = (index) => {
       console.log('Deleting index ' + index + ' from context queue');
-      setContextPlayQueue([...contextPlayQueue.slice(0, index), ...contextPlayQueue.slice(index + 1)])
+      setContextPlayQueue({
+        name: contextPlayQueue.name,
+        songs: [...contextPlayQueue.slice(0, index), ...contextPlayQueue.slice(index + 1)]
+      });
     }
   
     const setVolume = (volume) => {
-      console.log('Setting volume to ' + volume + ' (' + Math.floor(volume * 100 + 0.5) + '%)');
+      const roundedVol = Math.round(volume * 100000) / 1000;
+      console.log('Setting volume to ' + volume + ' (' + roundedVol + '%)');
       return playerRef.setVolume(volume);
-    }
-  
-    const getVolume = () => {
-      return playerRef.getVolume();
     }
 
     const skip = () => {
@@ -339,7 +351,7 @@ export function ProvideSpotify({ children }) {
       isAutoplaying: () => autoplay,
       // volume controls
       setVolume: setVolume,
-      getVolume: getVolume,
+      getVolume: () => volume,
       isMuted: () => muted,
       setMuted: setMuted,
       // up next (queue) controls
@@ -347,15 +359,18 @@ export function ProvideSpotify({ children }) {
       addToUserPlayQueue: addToUserPlayQueue,
       deleteUserQueueSong: deleteUserQueueSong,
       clearUserPlayQueue: clearUserPlayQueue,
+      setUserPlayQueue: setUserPlayQueue,
       getContextPlayQueue: getContextPlayQueue,
       addToContextPlayQueue: addToContextPlayQueue,
       deleteContextQueueSong: deleteContextQueueSong,
       clearContextPlayQueue: clearContextPlayQueue,
+      setContextPlayQueue: setContextPlayQueue,
       // various functions
       addStateListeners: addStateListeners,
       addOnReadyListeners: addOnReadyListeners,
       addOnDeviceSelectedListeners: addOnDeviceSelectedListeners,
       getPlayerState: () => playerState,
+      isPlayerReady: () => playerReady,
     };
   }
 }

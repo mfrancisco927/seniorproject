@@ -46,21 +46,32 @@ const testQueueables = [
 function Explore(props) {
     const auth = useAuth();
     const spotify = useSpotifySdk();
+    const CONTEXT_QUEUE_NAME = 'Explore';
 
     // on mount, get the songs we need and add them to the queue.
     useEffect(() => {
       const onMount = async (data) => {
-        console.log('Running onMount!', data);
-        
-        // const recommendedSongs = await getRecommendations(auth.user.id);
-        const recommendedSongs = testQueueables; // REMOVE AFTER ENDPOINT TO GET OWN USER ID IMPLEMENTED INTO AUTH!
-        const songsMapped = recommendedSongs.map(song => ({'id': song.song_id})); // remap "song_id" to "id"
-        spotify.clearContextPlayQueue();
-        spotify.play(songsMapped[0].id);
-        spotify.addToContextPlayQueue(songsMapped.slice(1));
+        // only if we're not already playing from the explore list, add some more
+        if (spotify.getContextPlayQueue().name !== CONTEXT_QUEUE_NAME) {
+          console.log('Populating initial load of Explore songs');
+          // const recommendedSongs = await getRecommendations(auth.user.id);
+          const recommendedSongs = testQueueables; // REMOVE AFTER ENDPOINT TO GET OWN USER ID IMPLEMENTED INTO AUTH!
+          const songsMapped = recommendedSongs.map(song => ({'id': song.song_id})); // remap "song_id" to "id"
+          spotify.play(songsMapped[0].id);
+          spotify.setContextPlayQueue({
+            name: CONTEXT_QUEUE_NAME,
+            songs: songsMapped.slice(1)
+          });
+        }
       };
 
-      spotify.addOnReadyListeners({'Explore': onMount});
+      // if the player is already ready, queue up and start.
+      // if not (for example, if they load this webpage directly), add an onReady listener
+      if (spotify.isPlayerReady()) {
+        onMount();
+      } else {
+        spotify.addOnReadyListeners({'Explore': onMount});
+      }
     }, []);
 
     const currState = spotify.getPlayerState();
