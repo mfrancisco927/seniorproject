@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, Fragment } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import './ScrollText.css';
 import { Transition } from 'react-transition-group';
 
@@ -12,45 +12,36 @@ function ScrollText(props) {
   const [wrapperWidth, setWrapperWidth] = useState(0); // width of parent. scrolling occurs if this is < child
   const [shouldScroll, setShouldScroll] = useState(false); // whether or not to scroll at all, based on child and wrapper widths
   const [duration, setDuration] = useState(0); // calculated duration of a single scroll event
-  const [scheduled, setScheduled] = useState([]); // list of scheduled events used to change scrolling status
-
-  const scheduleNew = useCallback((callback, timeout) => {
-    const newTimeout = setTimeout(callback, timeout);
-    setScheduled(scheduled => [...scheduled, newTimeout])
-  }, []);
-
-  const clearScheduled = useCallback(() => {
-    if (scheduled.length) {
-      scheduled.forEach(x => clearInterval(x));
-      setScheduled([]);
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  // theoretically this should have a dependency on scheduled, but
-  // that causes an infinite loop since other methods then have a dependency
-  // on this function
-
-  const scheduleInitial = useCallback(() => {
-    setShouldScroll(true);
-    clearScheduled();
-    scheduleNew(() => {
-      setScrolling(true);
-    }, rampMillis);
-  }, [scheduleNew, clearScheduled, rampMillis]);
+  const [scheduled, setScheduled] = useState(); // most recently scheduled event id used for scrolling status
 
   // every time something important changes, (re)start scrolling, if necessary
   useEffect(() => {
+    console.log('Determining whether to scroll for ' + (childRef && childRef.innerHTML))
     if (wrapperWidth < childWidth) {
+      console.log('yes');
       // speed of 0 corresponds to 1 cps, 100 corresponds to 20 cps.  
       const charactersPerSec = Math.floor(1 + (19 * speed / 100));
       const pixelsPerSec = charactersPerSec * 12; // assuming font size 12
       const newDuration = 1000 * childWidth / pixelsPerSec;
       setDuration(newDuration);
-      scheduleInitial();
+      setShouldScroll(true);
+      setScheduled(setTimeout(() => setScrolling(true), rampMillis));
     } else {
+      setDuration(0);
       setShouldScroll(false);
-      clearScheduled();
+      setScheduled(prev => {
+        clearTimeout(prev);
+        return setTimeout(() => setScrolling(true), rampMillis);
+      });
     }
-  }, [childWidth, wrapperWidth, scheduleInitial, clearScheduled, speed, childRef, wrapperRef]);
+  }, [childWidth, wrapperWidth, rampMillis, speed, childRef, wrapperRef]);
+
+  // on mount and unmount, clear the timeout
+  useEffect(() => {
+    if (scheduled) {
+      clearTimeout(scheduled);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // lint disabled because we WANT this to run every render.
   // since the ref doesn't actually change when the song changes,
@@ -66,17 +57,15 @@ function ScrollText(props) {
   });
 
   const handleFinishedScrolling = () => {
-    scheduleNew(() => {
-      clearScheduled();
+    setScheduled(setTimeout(() => {
       setScrolling(true);
-    }, decayMillis + rampMillis);
+    }, decayMillis + rampMillis));
   };
 
   const handleRestartScrolling = () => {
-    scheduleNew(() => {
-      clearScheduled();
+    setScheduled(setTimeout(() => {
       setScrolling(false);
-    }, duration);
+    }, duration));
   };
 
   const defaultStyle = {

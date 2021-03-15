@@ -1,13 +1,13 @@
 import React, {useState, useEffect } from 'react';
 import { useAuth } from './../../hooks/authHooks';
-// import { useSpotifySdk } from './../../hooks/spotifyHooks';
+import { useSpotifySdk } from './../../hooks/spotifyHooks';
 import './Explore.css';
 
 // wireframe: https://xd.adobe.com/view/8f7d9312-7adc-46a7-bf90-3947da38a70f-da2e/screen/564cc961-1abb-4956-b5a5-ff00ff1be308
 
 function Explore(props) {
     const auth = useAuth();
-    // const spotify = useSpotifySdk();
+    const spotify = useSpotifySdk();
 
     const { songList } = props;
     const [ songIndex, setSongIndex ] = useState(0);
