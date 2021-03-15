@@ -1,0 +1,19 @@
+.volume-slider_wrapper {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
+.volume-slider_icon {
+    margin-right: 0.5em;
+}
+
+.volume-slider_slider {
+    max-width: 50%;
+}
+
+/* todo: this isn't getting added */
+.volume-slider_slider__no-icon {
+    max-width: 75%;
+}
