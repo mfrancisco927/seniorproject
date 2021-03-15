@@ -171,7 +171,9 @@ function PlayFooter() {
             <button className='control-button' onClick={handleToggle}>
               {spotify.isPlaying() ? <PauseIcon /> : <PlayArrowIcon />}
             </button>
-            <SkipNext className='control-button' onClick={() => spotify.skip()}/>
+            <button className='control-button' onClick={spotify.skip}>
+              <SkipNext />
+            </button>
           </div>
       </div>
       <div className="profile-controls-wrapper">

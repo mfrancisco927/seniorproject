@@ -1,16 +1,83 @@
 .playing-wrapper {
     display: flex;
+    flex-direction: column;
     justify-content: space-evenly;
     align-items: center;
-    margin: 15%;
-    margin-top: 5%;
+    width: 70%;
+    height: fit-content;
+    margin: 5% auto;
     border: 1px solid red;
     background-color:  rgba(51, 51, 51, 0.308);
-    padding: 5%;
+}
+
+.control-row {
+    font-size: 3em;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    width: 100%;
+    padding-top: 5%;
 }
 
 /* todo: scale based on screen size */
-.playing-curr-song img {
-    height: 300x;
-    width: 300px;
+
+.btn-control {
+    width: 3em;
+    height: 3em;
+}
+
+.btn-like-dislike {
+    background-color: white !important;
+}
+
+.btn-like-dislike__like {
+    color: rgb(31, 160, 31) !important;
+}
+
+.btn-like-dislike__dislike {
+    color: rgb(151, 43, 23) !important;
+}
+
+.btn-like-dislike_icon {
+    font-size: 2em !important;
+}
+
+.album-image_wrapper {
+    position: relative;
+    width: min(30%, 300px);
+    /* this is actually the height! padding percentages are calculated based on WIDTH
+    so this trick allows you to make a percentage-based square */
+    padding-bottom: min(30%, 300px); 
+    height: 0;
+}
+
+.album-image_image {
+    object-fit: fill;
+    height: auto;
+    max-width: 100%;
+}
+
+.play-song-overlay {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.resume_icon {
+    font-size: 3em !important;
+}
+
+.resume_icon:hover {
+    background-color: none !important;
+}
+
+.btn-next-previous {
+    color: white !important;
+    font-size: 0.6em !important;
+}
+
+.btn-next-previous_icon {
+    font-size: 2.8em !important;
 }
