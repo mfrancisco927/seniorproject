@@ -222,11 +222,6 @@ class GetUser(APIView):
         following = list(profile.following.values_list('user', flat=True))
         disliked_songs = list(profile.disliked_songs.values_list('song_id', flat=True))
         favorite_playlists = list(profile.favorite_playlists.values_list('id', flat=True))
-        print(liked_songs)
-        print(following)
-        print(disliked_songs)
-        print(favorite_playlists)
-
         results= {'id' : user_id, 'username' : self.request.user.username, 'email' : self.request.user.email, 'liked_songs' : liked_songs,
                 'disliked_songs' : disliked_songs, 'following' : following, 'favorite_playlists' : favorite_playlists}
         return Response(data=results, status=status.HTTP_200_OK)
