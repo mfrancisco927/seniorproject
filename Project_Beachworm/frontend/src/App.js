@@ -66,7 +66,7 @@ function App() {
         }} searchField={searchField} setSearchField={setSearchField} submitSearch={submitSearch}
         />
         <AuthorizedOrHidden>
-          <button onClick={(event) => auth.signOut()}>Log out</button>
+          <button onClick={() => auth.signOut()}>Log out</button>
         </AuthorizedOrHidden>
         <Switch>
           <Route path='/landing'>

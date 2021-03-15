@@ -9,7 +9,7 @@
     padding: 5%;
 }
 
-
+/* todo: scale based on screen size */
 .playing-curr-song img {
     height: 300x;
     width: 300px;

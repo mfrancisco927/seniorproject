@@ -1,4 +1,4 @@
-import { useState, useEffect, Fragment } from 'react';
+import { useState, Fragment } from 'react';
 import { useSpotifySdk } from './../../hooks/spotifyHooks';
 import ScrollText from './ScrollText';
 import Slider from '@material-ui/core/Slider';
@@ -16,16 +16,11 @@ import './PlayFooter.css';
 
 function PlayFooter() {
   const spotify = useSpotifySdk();
-  const [isPlaying, setPlaying] = useState(false);
-  const [currState, setCurrState] = useState({});
-  const [prevAlbumUri, setPrevAlbumUri] = useState(null);
-  const [albumImg, setAlbumImg] = useState(null);
-  const [trackEnded, setTrackEnded] = useState(false);
   const [popoverAnchorEl, setPopoverAnchorEl] = useState(null);
-  const [currentTrack, setCurrentTrack] = useState(null);
-  const [shouldShuffle, setShuffle] = useState(false);
   const [volume, setVolume] = useState(100);
-  const [muted, setMuted] = useState(false);
+
+  const shuffling = spotify.isShuffling();
+  const muted = spotify.isMuted();
 
   const testQueueables = [
     {
@@ -53,7 +48,11 @@ function PlayFooter() {
       id: '3VXtkBYkeDqVTECO1OOdXd',
     },
   ]
+
+  const currState = spotify.getPlayerState();
   const position = currState.position;
+  const trackWindow = currState && currState.track_window;
+  const currentTrack = trackWindow && trackWindow.current_track;
 
   const {
     name,
@@ -61,11 +60,9 @@ function PlayFooter() {
     album: {
       images: albumImages,
       name: albumName,
-      uri: albumUri
     },
     duration_ms,
-  } = currState.track_window ? 
-    currState.track_window.current_track :
+  } = currentTrack ||
     { name: undefined, artists: undefined, album: { images: undefined, name: undefined, uri: undefined}, duration_ms: undefined};
 
   const positionSec = Math.floor(position / 1000) % 60;
@@ -73,19 +70,12 @@ function PlayFooter() {
   const durationSec = Math.floor(duration_ms / 1000) % 60;
   const durationMin = Math.floor(duration_ms / 1000 / 60);
 
-  if (albumUri && prevAlbumUri !== albumUri) {
-    console.log(albumImages);
-    console.log(albumUri);
-    setPrevAlbumUri(albumUri);
-    setAlbumImg(<img className="play-footer_album-art" src={albumImages[1].url} alt={albumName +' album art'} />);
-  }
-
   const handleSeekSlide = (_event, newValue) => {
     spotify.seek(newValue / 100 * duration_ms);
   }
   
   const handleVolumeSlide = (_event, newValue) => {
-    setMuted(false);
+    spotify.setMuted(false);
     setVolume(newValue);
     scaleAndSetVolume(newValue);
   }
@@ -98,50 +88,9 @@ function PlayFooter() {
     spotify.setVolume(volFloat);
   }
 
-  useEffect(() => {
-    if (trackEnded) {
-      // TODO: fire 'listened to' endpoint to add to user history
-      console.log('Track ending detected');
-      const nextSong = spotify.dequeueNextSong(shouldShuffle);
-      if (nextSong) {
-        spotify.play(nextSong.id);
-      }
-    }
-  }, [trackEnded]);
-
   const handleQueueClicked = (event) => {
     setPopoverAnchorEl(event.currentTarget);
   }
-
-  const handleNewState = (nextState) => {
-    setCurrState(nextState);
-    // update our pause button
-    if (nextState) {
-      setPlaying(!nextState.paused);
-      
-      if (!nextState.paused) {
-        setTrackEnded(false);
-      }
-    }
-
-    // check for the end of the track
-    // spotify doesn't have any sort of "song ended" callback sadly,
-    // so this borrows from this answer: https://github.com/spotify/web-playback-sdk/issues/35#issuecomment-509159445
-    if (!trackEnded && currState
-      && nextState.track_window.previous_tracks.find(x => x.id === nextState.track_window.current_track.id)
-      && !currState.paused
-      && nextState.paused) {
-        // console.log('Track ended');
-        setTrackEnded(true);
-        setCurrentTrack(null);
-    } else {
-      setCurrentTrack(nextState.track_window && nextState.track_window.current_track);
-    }
-  };
-
-  useEffect(() => {
-    spotify.addStateListener({'PlayFooter': (nextState) => handleNewState(nextState)});
-  }, []);
 
   const scrollProps = {
     rampMillis: 500,
@@ -152,37 +101,28 @@ function PlayFooter() {
   const formatTime = (minutes, seconds) => {
     return `${minutes}`.padStart(1, '0') + ':' + `${seconds}`.padStart(2, '0');
   }
-
-  const handleSkip = () => {
-    const nextSong = spotify.dequeueNextSong(shouldShuffle);
-    if (nextSong) {
-      spotify.play(nextSong.id);
-    }
-  }
   
   const handleToggle = () => {
-    if (currState && currState.track_window) {
-      if (currState.track_window.current_track) {
-        spotify.togglePlay();
-        setPlaying(!isPlaying);
-        return;
+    if (currentTrack) {
+      // toggle and return if there's a currently playing song
+      spotify.togglePlay();
+      return;
+    } else {
+      // if there's no currently playing song, play the next one
+      const nextSong = spotify.dequeueNextSong();
+      if (nextSong) {
+        spotify.play(nextSong.id);
       }
-    }
-
-    const nextSong = spotify.dequeueNextSong(shouldShuffle);
-
-    if (nextSong) {
-      spotify.play(nextSong.id);
     }
   }
 
   const getVolumeIcon = () => {
     const handleMuteClick = () => {
       if (muted) {
-        setMuted(false);
+        spotify.setMuted(false);
         scaleAndSetVolume(volume);
       } else {
-        setMuted(true);
+        spotify.setMuted(true);
         scaleAndSetVolume(0);
       }
     }
@@ -197,6 +137,14 @@ function PlayFooter() {
       return <VolumeUp onClick={handleMuteClick} />
     }
   }
+
+  const albumImg = (
+    albumImages ? (
+      <img className="play-footer_album-art" src={albumImages[1].url} alt={albumName +' album art'} />
+    ) : (
+      <img className="play-footer_album-art" alt={'Album art goes here, but nothing is playing!'} />
+    )
+  )
 
   return (
     <span className='play-footer'>
@@ -221,9 +169,9 @@ function PlayFooter() {
           <div className="player-footer_playback-controls_buttons grid-row">
             <button className='control-button'><SkipPrevious /></button>
             <button className='control-button' onClick={handleToggle}>
-              {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
+              {spotify.isPlaying() ? <PauseIcon /> : <PlayArrowIcon />}
             </button>
-            <SkipNext className='control-button' onClick={handleSkip}/>
+            <SkipNext className='control-button' onClick={() => spotify.skip()}/>
           </div>
       </div>
       <div className="profile-controls-wrapper">
@@ -241,8 +189,8 @@ function PlayFooter() {
         <span className="profile-controls_row">
           <PlaylistAddIcon className="profile-controls_item"/>
           <ShuffleIcon 
-            onClick={() => setShuffle(!shouldShuffle)}
-            className={"profile-controls_item" + (shouldShuffle ? " profile-controls_item__active" : "")} />
+            onClick={() => spotify.setShuffle(!shuffling)}
+            className={"profile-controls_item" + (shuffling ? " profile-controls_item__active" : "")} />
           <QueueMusicIcon className="profile-controls_item" 
             aria-owns={popoverAnchorEl ? 'queue-popover' : undefined}
             aria-haspopup="true"

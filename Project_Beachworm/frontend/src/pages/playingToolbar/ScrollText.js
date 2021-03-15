@@ -16,9 +16,7 @@ function ScrollText(props) {
 
   // every time something important changes, (re)start scrolling, if necessary
   useEffect(() => {
-    console.log('Determining whether to scroll for ' + (childRef && childRef.innerHTML))
     if (wrapperWidth < childWidth) {
-      console.log('yes');
       // speed of 0 corresponds to 1 cps, 100 corresponds to 20 cps.  
       const charactersPerSec = Math.floor(1 + (19 * speed / 100));
       const pixelsPerSec = charactersPerSec * 12; // assuming font size 12
