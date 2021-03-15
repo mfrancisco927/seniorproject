@@ -43,7 +43,7 @@ function App() {
   // wrapper that dynamically sets the show footer status for each page
   const WithFooter = (props) => {
     const path = useLocation().pathname;
-    setShowFooter(footerPages.includes(path));
+    setShowFooter(footerPages.includes(path) && !!auth.user);
     return (
       <Fragment>
         {props.children}
@@ -57,7 +57,7 @@ function App() {
   };
 
   return (
-    <div className={'page-wrapper' + (showFooter && auth.user ? ' page-wrapper__footer' : ' page-wrapper__no-footer')}>
+    <div className={'page-wrapper' + (showFooter ? ' page-wrapper__footer' : ' page-wrapper__no-footer')}>
       {/* pages marked TEMP will not be accessible via nav-bar in production, but through some other context */}
       <Navbar menuList={{
         '/landing': 'Landing [TEMP]',
