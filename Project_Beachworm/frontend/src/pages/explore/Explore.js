@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useAuth } from './../../hooks/authHooks';
 import { useSpotifySdk } from './../../hooks/spotifyHooks';
-import { getRecommendations } from './../../api/recommendationApi';
+// import { getRecommendations } from './../../api/recommendationApi';
 
 import FloatingToolbar from './../playbackControllers/FloatingToolbar';
 
@@ -72,7 +72,7 @@ function Explore(props) {
       } else {
         spotify.addOnReadyListeners({'Explore': onMount});
       }
-    }, []);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const currState = spotify.getPlayerState();
     const trackWindow = currState && currState.track_window;
