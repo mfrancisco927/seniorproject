@@ -47,7 +47,7 @@ function PlayFooter() {
       name: 'Enter',
       id: '3VXtkBYkeDqVTECO1OOdXd',
     },
-  ]
+  ];
 
   const currState = spotify.getPlayerState();
   const position = currState.position;
@@ -142,7 +142,7 @@ function PlayFooter() {
     albumImages ? (
       <img className="play-footer_album-art" src={albumImages[1].url} alt={albumName +' album art'} />
     ) : (
-      <img className="play-footer_album-art" alt={'Album art goes here, but nothing is playing!'} />
+      <img className="play-footer_album-art" alt="" />
     )
   )
 

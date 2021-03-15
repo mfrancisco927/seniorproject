@@ -23,21 +23,6 @@ function App() {
   const auth = useAuth();
   const history = useHistory();
 
-  const testingItems = [
-    {
-      'img':'https://upload.wikimedia.org/wikipedia/en/c/c4/Floral_Green.jpg',
-      'name': '[TEST] Floral Green'
-    },
-    {
-      'img':'https://media.pitchfork.com/photos/5a71df0d85ed77242d8f1252/1:1/w_320/jpegmafiaveteran.jpg',
-      'name': '[TEST] Veteran'
-    },
-    {
-      'img':'https://i.pinimg.com/originals/78/6e/a3/786ea3d49748ab17966e4301f0f73bb6.jpg',
-      'name': '[TEST] Don\'t Smile At Me'
-    }
-  ];
-
   const [ searchField , setSearchField ] = useState('')
 
   const submitSearch = (e) => {
@@ -73,7 +58,7 @@ function App() {
             <Landing />
           </Route>
           <Route path='/explore'>
-            <Explore songList={testingItems} />
+            <Explore />
           </Route>
           <Route path='/questionnaire1'>
             <Questionnaire1 />

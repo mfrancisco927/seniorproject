@@ -1,4 +1,4 @@
-import { useContext, createContext, useState, useEffect } from "react";
+import { useContext, createContext, useState, useEffect, useRef } from "react";
 import { refreshSpotifyToken }  from './../api/authenticationApi';
 import { playTrack } from './../api/spotifyApi';
 import { useAuth } from './../hooks/authHooks';
@@ -12,14 +12,15 @@ export function useSpotifySdk() {
 
 export function ProvideSpotify({ children }) {
   const auth = useAuth();
-  const [spotifyToken, setSpotifyToken] = useState(null);
-  const [deviceId, setDeviceId] = useState(null);
+  const spotifyTokenRef = useRef(null);
+  const deviceIdRef = useRef(null);
   const [playerLoaded, setPlayerLoaded] = useState(false);
   const [playerSelected, setPlayerSelected] = useState(false);
   const [playerState, setPlayerState] = useState({});
   const [stateCallbacks, setStateCallbacks] = useState({});
+  const [onReadyCallbacks, setOnReadyCallbacks] = useState({});
+  const [onDeviceSelectedCallbacks, setOnDeviceSelectedCallbacks] = useState({});
   const [playerRef, setPlayerRef] = useState(null);
-
 
   const [trackEnded, setTrackEnded] = useState(false);
   const [playing, setPlaying] = useState(false);
@@ -46,30 +47,41 @@ export function ProvideSpotify({ children }) {
     }
   };
 
-  const sdk = useProvideSdk(
-    () => spotifyToken,
-    setSpotifyToken,
-    () => deviceId,
-    (keyCallbackPairs) => {
-      // TODO: fix this. right now, it thinks stateCallbacks is empty even after adding
-      // a listener, so if you try to add a second listener it essentially overwrites the first
-      const allCallbacks = {...stateCallbacks, ...keyCallbackPairs};
-      setStateCallbacks(allCallbacks);
-      console.log('New state callbacks registered. All callbacks: ', allCallbacks);
-    },
-    () => playerRef,
-  );
-  
+  const addOnReadyListeners = (keyCallbackPairs) => {
+    Object.entries(keyCallbackPairs).forEach(entry => {
+      console.log('Registered onReady callback:', entry[0]);
+    });
+    setOnReadyCallbacks({...onReadyCallbacks, ...keyCallbackPairs});
+  }
+
+  const addOnDeviceSelectedListeners = (keyCallbackPairs) => {
+    Object.entries(keyCallbackPairs).forEach(entry => {
+      console.log('Registered onDeviceSelected callback:', entry[0]);
+    });
+    setOnDeviceSelectedCallbacks({...onDeviceSelectedCallbacks, ...keyCallbackPairs});
+  }
+
+  const addStateListeners = (keyCallbackPairs) => {
+    // TODO: fix this. right now, it thinks stateCallbacks is empty even after adding
+    // a listener, so if you try to add a second listener it essentially overwrites the first
+    Object.entries(keyCallbackPairs).forEach(entry => {
+      console.log('Registered onStateChanged callback:', entry[0]);
+    });
+    const allCallbacks = {...stateCallbacks, ...keyCallbackPairs};
+    setStateCallbacks(allCallbacks);
+    console.log('New state callbacks registered. All callbacks: ', allCallbacks);
+  };
+
   const webPlaybackSdkProps = {
     playerName: "BeachWorm Player",
     playerInitialVolume: 1.0,
     playerRefreshRateMs: 100,
     playerAutoConnect: true,
     onPlayerRequestAccessToken: (async () => {
-      if (!spotifyToken) {
+      if (!spotifyTokenRef.current) {
         if (auth.user) {
           const newToken = await refreshSpotifyToken().then(result => {
-            setSpotifyToken(result);
+            spotifyTokenRef.current = result;
             localStorage.setItem('spotify_access_token', result)
           }, reject => {
             return null;
@@ -78,39 +90,40 @@ export function ProvideSpotify({ children }) {
         }
         return null;
       }
-      return spotifyToken;
+      return spotifyTokenRef.current;
     }),
     onPlayerLoading: (() => setPlayerLoaded(true)),
     onPlayerWaitingForDevice: (data => {
       setPlayerSelected(false); 
-      setDeviceId(data.device_id); 
+      deviceIdRef.current = data.device_id;
+      Object.entries(onReadyCallbacks).forEach(entry => {
+        entry[1](data);
+      });
     }),
-    onPlayerDeviceSelected: () => setPlayerSelected(true),
+    onPlayerDeviceSelected: () => {
+      setPlayerSelected(true);
+      // notify all stored listeners
+      Object.entries(onDeviceSelectedCallbacks).forEach(entry => entry[1]());
+    },
     onPlayerStateChange: (newState) => {
       setPlayerState(newState);
-
-      // notify all stored listeners
-      Object.entries(stateCallbacks).forEach(entry => {
-        // console.log('Sending update to hook ' + entry[0]);
-        const cb = entry[1];
-        cb(newState);
-      })
-
-      // update other state vars
+      // update other state vars locally
       handleNewState(newState);
+      // notify all stored listeners
+      Object.entries(stateCallbacks).forEach(entry => entry[1](newState));
     },
     onPlayerError: (playerError => console.error(playerError))
   };
 
   return (
-    <sdkContext.Provider value={sdk}>
+    <sdkContext.Provider value={useProvideSdk()}>
       <WebPlaybackReact {...webPlaybackSdkProps} ref={(e) => e ? setPlayerRef(e.webPlaybackInstance) : setPlayerRef(e)}>
         {children}
       </WebPlaybackReact>
     </sdkContext.Provider>
   );
 
-  function useProvideSdk(getAccessToken, setAccessToken, getDeviceId, addStateListener, getPlayer) {
+  function useProvideSdk() {
     const [contextPlayQueue, setContextPlayQueue] = useState([]);
     const [userPlayQueue, setUserPlayQueue] = useState([]);
     const [shuffle, setShuffle] = useState(false);
@@ -141,8 +154,9 @@ export function ProvideSpotify({ children }) {
     const refreshToken = async () => {
       return refreshSpotifyToken().then(result => {
         if (result) {
-          setAccessToken(result.access_token);
+          spotifyTokenRef.current = result.access_token;
           localStorage.setItem('spotify_access_token', result.access_token);
+          return Promise.resolve(result);
         } else {
           return Promise.reject('No access token from endpoint');
         }
@@ -173,9 +187,12 @@ export function ProvideSpotify({ children }) {
       };
   
       // if spotify endpoint tells us we don't have the auth, refresh token and try again
-      if (!getAccessToken()) {
+      if (!spotifyTokenRef.current) {
         console.log(`Called a Spotify auth-required function, but we have no access token. Will try to refresh token then attempt.`);
-        refreshToken().then(() => attempt(), reject => {
+        refreshToken().then(result => {
+          console.log('Attempt succeeded, received token', result);
+          attempt();
+        }, reject => {
           console.log('Attempt to refresh token failed. Giving up.');
         });
       } else {
@@ -191,24 +208,25 @@ export function ProvideSpotify({ children }) {
   
     const pause = async () => {
       console.log('Pausing current song');
-      return getPlayer().pause();
+      return playerRef.pause();
     };
   
     const play = async (songId) => {
+      console.log(deviceIdRef.current);
       console.log(songId ? 'Playing song with id ' + songId : 'Resuming current song');
-      return songId ? playTrack(songId, getDeviceId(), getAccessToken()) : getPlayer().resume();
+      return songId ? playTrack(songId, deviceIdRef.current, spotifyTokenRef.current) : playerRef.resume();
     };
   
     const togglePlaying = async () => {
       console.log('Toggling play');
-      return getPlayer().togglePlay();
+      return playerRef.togglePlay();
     };
   
     const seek = async (millis) => {
       const seconds = Math.floor(millis / 1000) % 60;
       const minutes = Math.floor(millis / 1000 / 60);
       console.log('Skipping to time ' + (minutes) + ':' + seconds);
-      return getPlayer().seek(millis);
+      return playerRef.seek(millis);
     };
   
     // adds a list of songs to the context play queue.
@@ -239,6 +257,8 @@ export function ProvideSpotify({ children }) {
       setContextPlayQueue([]);
     }
   
+    // TODO: rework shuffle index or rng seed to a state variable so that
+    // peek and dequeue return the same song
     const dequeueNextSong = () => {
       // regardless of shuffle status, always try to take the front of the play queue first
       if (userPlayQueue.length) {
@@ -251,6 +271,18 @@ export function ProvideSpotify({ children }) {
         const removed = contextPlayQueue[index];
         setContextPlayQueue([...contextPlayQueue.slice(0, index), ...contextPlayQueue.slice(index + 1)])
         return removed;
+      }
+    }
+
+    const peekNextSong = () => {
+      // regardless of shuffle status, always try to take the front of the play queue first
+      if (userPlayQueue.length) {
+        return userPlayQueue[0];
+      } else {
+        // if play queue is empty, generate an index and pop it while removing everything else
+        const index = shuffle ? Math.floor(Math.random() * contextPlayQueue.length) : 0;
+        const peeked = contextPlayQueue[index];
+        return peeked;
       }
     }
   
@@ -274,11 +306,11 @@ export function ProvideSpotify({ children }) {
   
     const setVolume = (volume) => {
       console.log('Setting volume to ' + volume + ' (' + Math.floor(volume * 100 + 0.5) + '%)');
-      return getPlayer().setVolume(volume);
+      return playerRef.setVolume(volume);
     }
   
     const getVolume = () => {
-      return getPlayer().getVolume();
+      return playerRef.getVolume();
     }
 
     const skip = () => {
@@ -302,6 +334,7 @@ export function ProvideSpotify({ children }) {
       setShuffle: setShuffle,
       isShuffling: () => shuffle,
       dequeueNextSong: dequeueNextSong,
+      peekNextSong: peekNextSong,
       setAutoplay: setAutoplay,
       isAutoplaying: () => autoplay,
       // volume controls
@@ -319,7 +352,9 @@ export function ProvideSpotify({ children }) {
       deleteContextQueueSong: deleteContextQueueSong,
       clearContextPlayQueue: clearContextPlayQueue,
       // various functions
-      addStateListener: addStateListener,
+      addStateListeners: addStateListeners,
+      addOnReadyListeners: addOnReadyListeners,
+      addOnDeviceSelectedListeners: addOnDeviceSelectedListeners,
       getPlayerState: () => playerState,
     };
   }
