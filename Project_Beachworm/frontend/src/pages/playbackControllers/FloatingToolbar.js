@@ -28,17 +28,19 @@ function FloatingToolbar(props) {
   }
 
   return (
-    <div className="explore-toolbar">
-      <SeekBar duration={duration} position={position} />
+    <div className="floating-toolbar">
+      <SeekBar duration={duration} position={position} disabled={!playerState} />
       <div className="controls-wrapper">
-        <span>
-          <VolumeSlider showIcon />
-          <IconButton onClick={handlePlay}>
-            { spotify.isPlaying() ? <PauseIcon /> : <PlayArrowIcon /> }
-          </IconButton>
-          <IconButton onClick={handlePlaylistAdd}>
-            <PlaylistAddIcon />
-          </IconButton>
+        <span className="">
+          <VolumeSlider showIcon disabled={!playerState} />
+          <div className="controls_small-buttons">
+            <IconButton onClick={handlePlay}>
+              { spotify.isPlaying() ? <PauseIcon /> : <PlayArrowIcon /> }
+            </IconButton>
+            <IconButton onClick={handlePlaylistAdd}>
+              <PlaylistAddIcon />
+            </IconButton>
+          </div>
         </span>
       </div>
     </div>

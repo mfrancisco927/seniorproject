@@ -109,7 +109,7 @@ function PlayFooter() {
       </div>
       <div className="play-footer_playback-controls">
           <div className="grid-row seek-wrapper">
-            <SeekBar duration={duration_ms} position={position} />
+            <SeekBar duration={duration_ms} position={position} disabled={!currState} />
           </div>
           <div className="player-footer_playback-controls_buttons grid-row">
             <button className='control-button'><SkipPrevious /></button>

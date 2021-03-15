@@ -3,7 +3,7 @@ import { useSpotifySdk } from './../../hooks/spotifyHooks';
 import './SeekBar.css';
 
 function SeekBar(props) {
-  const { position, duration } = props;
+  const { position, duration, disabled } = props;
   const spotify = useSpotifySdk();
 
   const positionSec = Math.floor(position / 1000) % 60;
@@ -23,7 +23,11 @@ function SeekBar(props) {
     <div className="scan-wrapper">
       <p className="scan_elapsed">{(position || position === 0) && formatTime(positionMin, positionSec)}</p>
       <span className="scan_slider">
-      <Slider value={position / duration * 100} onChange={handleSeekSlide} aria-labelledby="continuous-slider" />
+      <Slider
+        value={position / duration * 100}
+        onChange={handleSeekSlide}
+        disabled={disabled}
+        aria-labelledby="continuous-slider" />
       </span>
       <p className="scan_song-length">{(duration || duration === 0) && formatTime(durationMin, durationSec)}</p>
     </div>

@@ -4,7 +4,7 @@ import { useSpotifySdk } from './../../hooks/spotifyHooks';
 import './VolumeSlider.css';
 
 function VolumeSlider(props) {
-  const { showIcon } = props;
+  const { showIcon, disabled } = props;
   const spotify = useSpotifySdk();
   const volume = spotify.getVolume() * 100;
   const muted = spotify.isMuted();
@@ -52,7 +52,7 @@ function VolumeSlider(props) {
         value={muted ? 0 : volume}
         onChange={handleVolumeSlide}
         aria-labelledby="continuous-slider" 
-        disabled={!spotify.isPlayerReady()}/>
+        disabled={disabled || !spotify.isPlayerReady()}/>
     </div>
   );
 }

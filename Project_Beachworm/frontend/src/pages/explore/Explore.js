@@ -96,7 +96,7 @@ function Explore(props) {
     }
 
     // TODO: maybe?
-    const handlePrevious = () => {}
+    const handlePrevious = () => {};
 
     const handleLike = () => {
       // hit like endpoint with current song
@@ -110,7 +110,7 @@ function Explore(props) {
     const handleSkip = () => {
       // TODO: logic to queue more songs if we're all out
       spotify.skip();
-    }
+    };
 
     const albumImg = (
       albumImages ? (
@@ -162,7 +162,11 @@ function Explore(props) {
             </div>
           )}
           </div>
-        <FloatingToolbar duration={duration_ms} position={position} />
+        <div className="toolbar-wrapper">
+          <FloatingToolbar
+            duration={duration_ms}
+            position={position} />
+        </div>
       </div>
     );
 

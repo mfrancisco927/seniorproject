@@ -5,7 +5,7 @@
     align-items: center;
     width: 70%;
     height: fit-content;
-    margin: 5% auto;
+    margin: 3% auto 3% auto;
     border: 1px solid red;
     background-color:  rgba(51, 51, 51, 0.308);
 }
@@ -80,4 +80,8 @@
 
 .btn-next-previous_icon {
     font-size: 2.8em !important;
+}
+
+.toolbar-wrapper {
+    margin: 3% auto;
 }

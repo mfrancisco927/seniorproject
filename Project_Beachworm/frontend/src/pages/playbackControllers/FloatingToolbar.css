@@ -1,6 +1,17 @@
-.explore-toolbar {
+.floating-toolbar {
     width: 50%;
     margin: 0 auto;
     background-color: rgba(189, 119, 72, 0.637);
     border-radius: 1em;
+}
+
+.controls_small-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.controls_small-buttons > * {
+    margin: 1em;
+    color: white !important;
 }

@@ -280,8 +280,12 @@ export function ProvideSpotify({ children }) {
       } else {
         // if play queue is empty, generate an index and pop it while removing everything else
         const index = shuffle ? Math.floor(Math.random() * contextPlayQueue.length) : 0;
-        const removed = contextPlayQueue[index];
-        setContextPlayQueue([...contextPlayQueue.slice(0, index), ...contextPlayQueue.slice(index + 1)])
+        const contextSongs = contextPlayQueue.songs;
+        const removed = contextSongs[index];
+        setContextPlayQueue({
+          name: contextPlayQueue.name,
+          songs: [...contextSongs.slice(0, index), ...contextSongs.slice(index + 1)],
+        });
         return removed;
       }
     }
@@ -293,7 +297,7 @@ export function ProvideSpotify({ children }) {
       } else {
         // if play queue is empty, generate an index and pop it while removing everything else
         const index = shuffle ? Math.floor(Math.random() * contextPlayQueue.length) : 0;
-        const peeked = contextPlayQueue[index];
+        const peeked = contextPlayQueue.songs[index];
         return peeked;
       }
     }
@@ -315,7 +319,7 @@ export function ProvideSpotify({ children }) {
       console.log('Deleting index ' + index + ' from context queue');
       setContextPlayQueue({
         name: contextPlayQueue.name,
-        songs: [...contextPlayQueue.slice(0, index), ...contextPlayQueue.slice(index + 1)]
+        songs: [...contextPlayQueue.songs.slice(0, index), ...contextPlayQueue.songs.slice(index + 1)]
       });
     }
   
