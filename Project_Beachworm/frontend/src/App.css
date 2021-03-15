@@ -3,4 +3,10 @@
   color: #fff;
   justify-content: center;
   align-items: flex;
+  height: 100%;
+}
+
+.page-wrapper {
+  height: 100%;
+  overflow-y: auto;
 }

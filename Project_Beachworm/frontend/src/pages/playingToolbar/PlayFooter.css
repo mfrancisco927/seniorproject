@@ -1,3 +1,10 @@
+/*
+ * overwrite the page height to make the scroll bar not cover up the music toolbar
+ */
+.page-wrapper {
+  height: calc(100% - 5rem); 
+}
+
 /* creates an invisible pseudelement to make sure we don't 
 cover up content with the footer */
 .page-wrapper:after {
