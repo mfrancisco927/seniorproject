@@ -33,12 +33,16 @@ function FloatingToolbar(props) {
       <div className="controls-wrapper">
         <span className="">
           <VolumeSlider showIcon disabled={!playerState} />
-          <div className="controls_small-buttons">
+          <div className="controls_small-buttons-wrapper">
             <IconButton onClick={handlePlay}>
-              { spotify.isPlaying() ? <PauseIcon /> : <PlayArrowIcon /> }
+              { spotify.isPlaying() ? (
+                <PauseIcon className="controls_small-button"/>
+              ) : (
+                <PlayArrowIcon className="controls_small-button" />
+              )}
             </IconButton>
             <IconButton onClick={handlePlaylistAdd}>
-              <PlaylistAddIcon />
+              <PlaylistAddIcon className="controls_small-button" />
             </IconButton>
           </div>
         </span>

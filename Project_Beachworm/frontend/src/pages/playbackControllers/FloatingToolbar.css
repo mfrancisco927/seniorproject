@@ -5,13 +5,17 @@
     border-radius: 1em;
 }
 
-.controls_small-buttons {
+.controls_small-buttons-wrapper {
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-.controls_small-buttons > * {
+.controls_small-buttons-wrapper > * {
     margin: 1em;
     color: white !important;
+}
+
+.controls_small-button {
+    font-size: 1.2em !important;
 }
