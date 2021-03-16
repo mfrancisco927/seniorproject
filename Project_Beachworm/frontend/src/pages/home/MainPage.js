@@ -65,24 +65,27 @@ class SongRow extends Component {
       title: props.title,
       items: props.items,
     }
-    this.moveRow = this.moveRow.bind(this)
+    this.moveRow = this.moveRow.bind(this);
+    this.songBoxRef = React.createRef();
+
   }
 
   moveRow(direction){
 
     if(direction === 'left'){
-      
+      this.songBoxRef.current.scrollLeft -= 200
     }else if(direction === 'right'){
-
+      this.songBoxRef.current.scrollLeft += 200
     }
 
   }
 
   render() {
     return (
-      <div className='group-wrapper'>
+      <div className='group-wrapper' >
           <div className='group-header'><h2>{this.state.title}</h2></div>
-          <button onClick={() => this.moveRow('left')}>Left</button>
+          <button className='pan pan-left' onClick={() => this.moveRow('left')}>Left</button>
+          <div className='songs-wrapper' ref={this.songBoxRef}>
           { 
             this.state.items.map((item) => {
               return (
@@ -93,8 +96,9 @@ class SongRow extends Component {
               );
             })
           }
+          </div>
     
-          <button onClick={() => this.moveRow('left')}>right</button>
+          <button className='pan pan-right' onClick={() => this.moveRow('right')}>right</button>
       </div>
     );
   }
