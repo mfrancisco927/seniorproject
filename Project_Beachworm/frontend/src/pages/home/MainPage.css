@@ -5,6 +5,8 @@
     margin-right: 0;
     padding: 15px;
     flex-direction: row;
+    overflow: auto;
+    white-space: nowrap;
   }
   
   .song-wrapper {
@@ -26,4 +28,5 @@
   
   .song-page-wrapper{
     background-color: #f2f2f2;
+
   }

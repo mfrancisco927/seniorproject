@@ -1,4 +1,4 @@
-import React , { useState, useEffect } from 'react';
+import React , { Component, useState, useEffect } from 'react';
 import './MainPage.css';
 
 function MainPage(props) {
@@ -11,6 +11,14 @@ function MainPage(props) {
       'img':'https://media.pitchfork.com/photos/5a71df0d85ed77242d8f1252/1:1/w_320/jpegmafiaveteran.jpg',
       'name': 'TEST 2! RUN SERVER FOR LIVE DATA'
     },
+    {
+      'img':'https://i.pinimg.com/originals/78/6e/a3/786ea3d49748ab17966e4301f0f73bb6.jpg',
+      'name': 'TEST 3! RUN SERVER FOR LIVE DATA'
+    },    
+    {
+      'img':'https://i.pinimg.com/originals/78/6e/a3/786ea3d49748ab17966e4301f0f73bb6.jpg',
+      'name': 'TEST 3! RUN SERVER FOR LIVE DATA'
+    },    
     {
       'img':'https://i.pinimg.com/originals/78/6e/a3/786ea3d49748ab17966e4301f0f73bb6.jpg',
       'name': 'TEST 3! RUN SERVER FOR LIVE DATA'
@@ -49,24 +57,47 @@ function MainPage(props) {
   );
 }
 
-function SongRow(props) {
-  const {title, items, changeSong} = props;
+class SongRow extends Component {
 
-  return (
-    <div className='group-wrapper'>
-        <div className='group-header'><h2>{title}</h2></div>
-        { 
-          items.map((item) => {
-            return (
-              <div className='song-wrapper'>
-                  <img src={item.img} alt='hello!' onClick={ () => changeSong(item) } /> 
-                  <h3> {item.name } </h3>
-              </div>
-            );
-          })
-        }
-    </div>
-  )
+  constructor(props){
+    super(props);
+    this.state = {
+      title: props.title,
+      items: props.items,
+    }
+    this.moveRow = this.moveRow.bind(this)
+  }
+
+  moveRow(direction){
+
+    if(direction === 'left'){
+      
+    }else if(direction === 'right'){
+
+    }
+
+  }
+
+  render() {
+    return (
+      <div className='group-wrapper'>
+          <div className='group-header'><h2>{this.state.title}</h2></div>
+          <button onClick={() => this.moveRow('left')}>Left</button>
+          { 
+            this.state.items.map((item) => {
+              return (
+                <div className='song-wrapper'>
+                    <img src={item.img} alt='hello!' onClick={ () => console.log('he')} /> 
+                    <h3> {item.name } </h3>
+                </div>
+              );
+            })
+          }
+    
+          <button onClick={() => this.moveRow('left')}>right</button>
+      </div>
+    );
+  }
 
 }
 
