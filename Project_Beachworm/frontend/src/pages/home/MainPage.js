@@ -1,5 +1,8 @@
 import React , { Component, useState, useEffect } from 'react';
 import './MainPage.css';
+import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
+import ArrowForwardIosIcon from '@material-ui/icons/ArrowForwardIos';
+
 
 function MainPage(props) {
   const testingItems = [
@@ -84,22 +87,25 @@ class SongRow extends Component {
     return (
       <div className='group-wrapper' >
           <div className='group-header'><h2>{this.state.title}</h2></div>
-          <button className='pan pan-left' onClick={() => this.moveRow('left')}>Left</button>
-          <div className='songs-wrapper' ref={this.songBoxRef}>
-          { 
-            this.state.items.map((item) => {
-              return (
-                <div className='song-wrapper'>
-                    <img src={item.img} alt='hello!' onClick={ () => console.log('he')} /> 
-                    <h3> {item.name } </h3>
+              <div className='songs-buttons-wrapper'>
+                  <ArrowBackIosIcon fontSize='large' className='pan pan-left' onClick={() => this.moveRow('left')} />
+                <div className='songs-wrapper' ref={this.songBoxRef}>
+                { 
+                  this.state.items.map((item) => {
+                    return (
+                      <div className='song-wrapper'>
+                          <img src={item.img} alt='hello!' onClick={ () => console.log('he')} /> 
+                          <h3> {item.name } </h3>
+                      </div>
+                    );
+                  })
+                }
                 </div>
-              );
-            })
-          }
-          </div>
-    
-          <button className='pan pan-right' onClick={() => this.moveRow('right')}>right</button>
-      </div>
+                <ArrowForwardIosIcon fontSize='large' className='pan pan-right' onClick={() => this.moveRow('right')}/>
+
+              
+            </div>
+        </div>
     );
   }
 
