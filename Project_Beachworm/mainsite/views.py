@@ -169,6 +169,9 @@ class SpotifyRefresh(APIView):
         return Response({"access_token" : "Error!  Spotify access may have been revoked"}, status=status.HTTP_401_UNAUTHORIZED)
 
 class Search(APIView):
+    # Guests will be allowed to search, so JWT not required
+    permission_classes = (permissions.AllowAny,)
+
     def get(self, request):
         types = ['artist', 'track', 'album']
         query = self.request.query_params
