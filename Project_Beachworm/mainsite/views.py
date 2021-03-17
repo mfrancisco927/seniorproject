@@ -102,6 +102,25 @@ def saveSong(results):
                         
                         trackEntry.save()
 
+def curateSongs(profile, recommendations) :
+    # Curated_recommendations will be sent back to requestor
+    curated_recommendations = {}
+    curated_recommendations['items'] = []
+    number_of_recommendations = 20
+
+    # Go througuh recommendations removing any from user's disliked song list
+    counter = 0
+    for i in range(len(recommendations['items'])) :
+        if not profile.disliked_songs.filter(song_id = recommendations['items'][i]['id']).exists() :
+            curated_recommendations['items'].append(recommendations['items'][i])
+            counter += 1
+        if counter == number_of_recommendations :
+            break
+    saveSong(curated_recommendations)
+
+    return curated_recommendations
+
+
 class HelloWorldView(APIView):
     def get(self, request):
         print(self.request.user.id)  # Shows you the ID of who is requesting
@@ -379,10 +398,16 @@ class UserRecommendations(APIView):
                                                 seed_artists=seed_artists, 
                                                 seed_genres=seed_genres,
                                                 country='US',
-                                                limit=50
+                                                limit=100
                                                 )
+            # Saves all recommendations to the database
+            # must turn tracks into items to make dict same as search dict
+            recommendations['items'] = recommendations.pop('tracks')
 
-            print(json.dumps(recommendations,indent=4))
+            curated_recommendations = curateSongs(profile, recommendations)
+            
+
+            return Response(data=curated_recommendations, status=status.HTTP_200_OK)
 
 
         # ---------------10-30 songs liked  --------------------------------------------
