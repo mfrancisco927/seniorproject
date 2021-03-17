@@ -21,6 +21,9 @@ env = environ.Env()
 CLIENT_ID = env('CLIENT_ID')
 SECRET = env('SECRET')
 
+auth_manager = SpotifyClientCredentials(client_id=CLIENT_ID, client_secret=SECRET)
+sp = spotipy.Spotify(auth_manager=auth_manager)
+
 
 class ObtainTokenPairWithAdditionalInfo(TokenObtainPairView):
         permission_classes = (permissions.AllowAny,)
@@ -167,8 +170,6 @@ class SpotifyRefresh(APIView):
 
 class Search(APIView):
     def get(self, request):
-        auth_manager = SpotifyClientCredentials(client_id=CLIENT_ID, client_secret=SECRET)
-        sp = spotipy.Spotify(auth_manager=auth_manager)
         types = ['artist', 'track', 'album']
         query = self.request.query_params
         results = {}
@@ -225,3 +226,95 @@ class GetUser(APIView):
         results= {'id' : user_id, 'username' : self.request.user.username, 'email' : self.request.user.email, 'liked_songs' : liked_songs,
                 'disliked_songs' : disliked_songs, 'following' : following, 'favorite_playlists' : favorite_playlists}
         return Response(data=results, status=status.HTTP_200_OK)
+
+class Genre(APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self, request):
+        genre_response = sp.recommendation_genre_seeds()
+        # print(json.dumps(genre_response, indent=4))
+
+        return Response(data=genre_response, status=status.HTTP_200_OK)
+
+class GenreSave(APIView):
+    def post(self, request):
+        # Find profile of request, to save the genre seeds
+        user_id = self.request.user.id
+        try : 
+            profile = Profile.objects.get(user=user_id)
+        except ProfileDoesNotExist :
+            return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+
+        genre_list = request.POST.get('genres')
+        print(genre_list)
+        genre_formatted = eval(genre_list)
+
+        if genre_formatted:
+            for genre in genre_formatted :
+                usergenreseed = UserGenreSeed(user = profile, genre_id = genre)
+                # Check if this entry already exists, if not save it
+                if not UserGenreSeed.objects.filter(user=profile, genre_id = genre).exists():
+                    usergenreseed.save()
+
+        return Response({'Status' : 'Genres saved successfully'}, status=status.HTTP_200_OK)
+
+    
+
+class ArtistsFromGenres(APIView):
+    def get(self, request):
+        # This requires genre seeds to already have been saved
+
+        # Find profile of request, to save the genre seeds
+        user_id = self.request.user.id
+        try : 
+            profile = Profile.objects.get(user=user_id)
+        except ProfileDoesNotExist :
+            return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+        queryGenres = UserGenreSeed.objects.filter(user = profile)
+        queryString = ""
+        if queryGenres:
+            for query in queryGenres :
+                queryString += "genre:" + query.genre_id + " OR "
+            # Remove last OR
+            queryString = queryString[:-3]
+            # print(queryString)
+        else :
+            # If no genres exist for user, use the pop genre
+            queryString = "genre:pop"
+        searchResults = sp.search(q=queryString, type="artist", limit=20)
+        # print(json.dumps(searchResults, indent=4))
+
+        return Response(data=searchResults, status=status.HTTP_200_OK)
+
+class ArtistSave(APIView):
+    def post(self,request):
+        # Find profile of request, to save the genre seeds
+        user_id = self.request.user.id
+        try : 
+            profile = Profile.objects.get(user=user_id)
+        except ProfileDoesNotExist :
+            return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+
+        artist_list = request.POST.get('artists')
+        print(artist_list)
+        artist_formatted = eval(artist_list)
+
+        if artist_formatted:
+            for artist in artist_formatted :
+                userartistseed = UserArtistSeed(user = profile, artist_id = artist)
+                # Check if entry already exists, if not save
+                if not UserArtistSeed.objects.filter(user=profile, artist_id=artist).exists():
+                    userartistseed.save()
+        return Response({'Status' : 'Artists saved successfully'}, status=status.HTTP_200_OK)
+
+
+
+
+        
+
+
+        
+
