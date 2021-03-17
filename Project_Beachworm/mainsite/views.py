@@ -68,6 +68,38 @@ def get_songs(request):
 
 	return Response(songs)
 
+def saveSong(results):
+                track_ids = []
+                for i in range(len(results['items'])):
+                    track_ids.append(results['items'][i]['id'])
+                track_features = sp.audio_features(tracks=track_ids)
+                #print(track_features)
+                for i in range(len(track_ids)):
+                    db_track = Song.objects.filter(song_id = track_ids[i])
+                    #add track to db if it's not there
+                    if not db_track.exists():
+                        trackEntry = Song(
+                            song_id = results['items'][i]['id'],
+                            title = results['items'][i]['name'],
+                            artists = results['items'][i]['artists'][0]['name'],
+                            danceability = float(track_features[i]['danceability']),
+                            energy = float(track_features[i]['energy']),
+                            key = float(track_features[i]['key']),
+                            loudness = float(track_features[i]['loudness']),
+                            mode = float(track_features[i]['mode']),
+                            speechiness = float(track_features[i]['speechiness']),
+                            acousticness = float(track_features[i]['acousticness']),
+                            instrumentalness = float(track_features[i]['instrumentalness']),
+                            liveness = float(track_features[i]['liveness']),
+                            valence = float(track_features[i]['valence']),
+                            tempo = float(track_features[i]['tempo']),
+                            duration_ms = float(track_features[i]['duration_ms']),
+                            time_signature = int(track_features[i]['time_signature']),
+                            img_640 = results['items'][i]['album']['images'][0]['url']
+                        )
+                        
+                        trackEntry.save()
+
 class HelloWorldView(APIView):
     def get(self, request):
         print(self.request.user.id)  # Shows you the ID of who is requesting
@@ -180,36 +212,9 @@ class Search(APIView):
             results[type + 's'] = sp.search(q=query['q'], type=type, market='US', limit=10)[type + 's']
             #get track IDs for results and query DB for those songs
             if type == 'track':
-                track_ids = []
-                for i in range(len(results['tracks']['items'])):
-                    track_ids.append(results['tracks']['items'][i]['id'])
-                track_features = sp.audio_features(tracks=track_ids)
-                #print(track_features)
-                for i in range(len(track_ids)):
-                    db_track = Song.objects.filter(song_id = track_ids[i])
-                    #add track to db if it's not there
-                    if not db_track.exists():
-                        trackEntry = Song(
-                            song_id = results['tracks']['items'][i]['id'],
-                            title = results['tracks']['items'][i]['name'],
-                            artists = results['tracks']['items'][i]['artists'][0]['name'],
-                            danceability = float(track_features[i]['danceability']),
-                            energy = float(track_features[i]['energy']),
-                            key = float(track_features[i]['key']),
-                            loudness = float(track_features[i]['loudness']),
-                            mode = float(track_features[i]['mode']),
-                            speechiness = float(track_features[i]['speechiness']),
-                            acousticness = float(track_features[i]['acousticness']),
-                            instrumentalness = float(track_features[i]['instrumentalness']),
-                            liveness = float(track_features[i]['liveness']),
-                            valence = float(track_features[i]['valence']),
-                            tempo = float(track_features[i]['tempo']),
-                            duration_ms = float(track_features[i]['duration_ms']),
-                            time_signature = int(track_features[i]['time_signature']),
-                            img_640 = results['tracks']['items'][i]['album']['images'][0]['url']
-                        )
-                        
-                        trackEntry.save()
+                # Saves songs to database
+                saveSong(results['tracks'])
+
         #return public playlists whose name contains query
         playlists = list(Playlist.objects.filter(title__icontains=query['q'], is_public=True).values())
         results['playlists'] = {}
