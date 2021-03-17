@@ -36,9 +36,9 @@ urlpatterns = [
     path('api/user/profile/seed/artists/', ArtistSave.as_view(), name='artist-save'),
     path('api/recommendation/obtain-artists/', ArtistsFromGenres.as_view(), name='artist-from-genres'),
     # Recommendation endpoints
-    path('api/recommendations/user/', UserRecommendations.as_view(), name='recommendations-user'),
-    path('api/recommendations/genre/', GenreRecommendations.as_view(), name='recommendations-genre'),
-    path('api/recommendations/artist/', ArtistRecommendations.as_view(), name='recommendations-artist'),
+    path('api/recommendation/user/', UserRecommendations.as_view(), name='recommendations-user'),
+    path('api/recommendation/genre/', GenreRecommendations.as_view(), name='recommendations-genre'),
+    path('api/recommendation/artist/', ArtistRecommendations.as_view(), name='recommendations-artist'),
     # This will be a little different TODO add api/recommendations/playlist
     # A testing path
     path('api/hello/', HelloWorldView.as_view(), name='hello_world'),

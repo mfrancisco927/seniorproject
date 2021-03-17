@@ -16,6 +16,8 @@ import environ
 import basicauth
 import requests
 import json
+from random import randint
+import random
 
 env = environ.Env()
 CLIENT_ID = env('CLIENT_ID')
@@ -319,14 +321,93 @@ class ArtistSave(APIView):
         return Response({'Status' : 'Artists saved successfully'}, status=status.HTTP_200_OK)
 
 class UserRecommendations(APIView):
+    
     def get(self,request):
+        user_id = self.request.user.id
+        try : 
+            profile = Profile.objects.get(user=user_id)
+        except ProfileDoesNotExist :
+            return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # These will be passed into recommender function
+        seed_tracks = []
+        seed_artists = []
+        seed_genres = []
+
+        num_songs_liked = profile.liked_songs.all().count()
+        print(num_songs_liked)
+        print("User: " + str(user_id))
+        ################################################################
+        #---------------- Less than 10 songs liked ---------------------
+        if num_songs_liked <= 10 :
+
+            # Get genre seeds for user from database
+            genre_seeds_query = UserGenreSeed.objects.filter(user = profile)
+            # Put genre seeds into a list
+            if genre_seeds_query :
+                genre_seeds_total = []
+                for genre in genre_seeds_query :
+                    genre_seeds_total.append(genre.genre_id)
+                random.shuffle(genre_seeds_total)
+
+            # Get artist seeds for user from databaase
+            artist_seeds_query = UserArtistSeed.objects.filter(user = profile)
+            # Put artist seeds into a list
+            if artist_seeds_query :
+                artist_seeds_total = []
+                for artist in artist_seeds_query :
+                    artist_seeds_total.append(artist.artist_id)
+                # randomize order in list
+                random.shuffle(artist_seeds_total)
+
+            # Generate random number to determine how many genres to put in (at least 1)
+            # Check to make sure there are genre seeds
+            if genre_seeds_total:
+                num_genres = randint(1, len(genre_seeds_total))
+                for i in range(num_genres) :
+                    seed_genres.append(genre_seeds_total[i])
+            if artist_seeds_total:
+                num_artists = min(len(artist_seeds_total), 5 - num_genres)
+                for i in range(num_artists) :
+                    seed_artists.append(artist_seeds_total[i])
+                
+            print(seed_artists)
+            print(seed_genres)
+
+            recommendations = sp.recommendations(
+                                                seed_tracks=seed_tracks, 
+                                                seed_artists=seed_artists, 
+                                                seed_genres=seed_genres,
+                                                country='US',
+                                                limit=50
+                                                )
+
+            print(json.dumps(recommendations,indent=4))
+
+
+        # ---------------10-30 songs liked  --------------------------------------------
+        elif num_songs_liked > 10 and num_songs_liked <= 30 :
+            pass
+        
+
+
+        # -----------------30 + songs liked --------------------------------------------
+        else:
+            pass
+
+
+
         return Response({'placeholder'}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 class GenreRecommendations(APIView):
+    permission_classes = (permissions.AllowAny,)
+
     def get(self,request):
         return Response({'placeholder'}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 class ArtistRecommendations(APIView):
+    permission_classes = (permissions.AllowAny,)
+
     def get(self,request):
         return Response({'placeholder'}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)        
 
