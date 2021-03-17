@@ -318,6 +318,18 @@ class ArtistSave(APIView):
                     userartistseed.save()
         return Response({'Status' : 'Artists saved successfully'}, status=status.HTTP_200_OK)
 
+class UserRecommendations(APIView):
+    def get(self,request):
+        return Response({'placeholder'}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+class GenreRecommendations(APIView):
+    def get(self,request):
+        return Response({'placeholder'}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+class ArtistRecommendations(APIView):
+    def get(self,request):
+        return Response({'placeholder'}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)        
+
 
 
 

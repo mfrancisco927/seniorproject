@@ -30,11 +30,16 @@ urlpatterns = [
     path('api/spotify/refresh-token/', SpotifyRefresh.as_view(), name='spotify-refresh-token'),
     path('api/user/current/', GetUser.as_view(), name='get_current_user'),
     path('search/', Search.as_view(), name='search'),
+    # Initial user creation recommendation seed endpoints
     path('api/recommendation/obtain-genres/', Genre.as_view(), name='genre-obtain'),
     path('api/user/profile/seed/genres/', GenreSave.as_view(), name='genre-save'),
     path('api/user/profile/seed/artists/', ArtistSave.as_view(), name='artist-save'),
     path('api/recommendation/obtain-artists/', ArtistsFromGenres.as_view(), name='artist-from-genres'),
+    # Recommendation endpoints
+    path('api/recommendations/user/', UserRecommendations.as_view(), name='recommendations-user'),
+    path('api/recommendations/genre/', GenreRecommendations.as_view(), name='recommendations-genre'),
+    path('api/recommendations/artist/', ArtistRecommendations.as_view(), name='recommendations-artist'),
+    # This will be a little different TODO add api/recommendations/playlist
     # A testing path
     path('api/hello/', HelloWorldView.as_view(), name='hello_world'),
-
 ]
