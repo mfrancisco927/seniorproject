@@ -420,7 +420,7 @@ class UserRecommendations(APIView):
                                                 country='US',
                                                 limit=100
                                                 )
-            # Saves all recommendations to the database
+         
             # must turn tracks into items to make dict same as search dict
             recommendations['items'] = recommendations.pop('tracks')
 
@@ -452,7 +452,7 @@ class UserRecommendations(APIView):
                                                 country='US',
                                                 limit=100
                                                 )
-            # Saves all recommendations to the database
+           
             # must turn tracks into items to make dict same as search dict
             recommendations['items'] = recommendations.pop('tracks')
 
@@ -473,7 +473,7 @@ class UserRecommendations(APIView):
                                                 country='US',
                                                 limit=100
                                                 )
-            # Saves all recommendations to the database
+            
             # must turn tracks into items to make dict same as search dict
             recommendations['items'] = recommendations.pop('tracks')
 
@@ -483,19 +483,68 @@ class UserRecommendations(APIView):
 
 
 
-        return Response({'placeholder'}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        return Response({'Error': 'Something went wrong'}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 class GenreRecommendations(APIView):
+    # This is an open endpoint meaning we can't compare this to a user's current likes/dislikes
     permission_classes = (permissions.AllowAny,)
 
+
     def get(self,request):
-        return Response({'placeholder'}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        query = self.request.query_params
+        print(query['genre'])
+        if query['genre'] :
+            seed_genre = []
+            
+            query_cleaned = query['genre'].replace('\'','')
+            query_cleaned = query_cleaned.replace('\"','')
+            seed_genre.append(query_cleaned)
+            recommendations = sp.recommendations(
+                                                seed_genres=seed_genre, 
+                                                country='US',
+                                                limit=20
+                                                )
+            
+            # must turn tracks into items to make dict same as search dict
+            recommendations['items'] = recommendations.pop('tracks')
+            recommendations.pop('seeds')
+
+            saveSong(recommendations)
+        
+            return Response(data=recommendations, status=status.HTTP_200_OK)
+        
+        else :
+            return Response({'error:', 'genre invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
 
 class ArtistRecommendations(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def get(self,request):
-        return Response({'placeholder'}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)        
+        query = self.request.query_params
+        print(query['artist'])
+        if query['artist'] :
+            seed_artist = []
+            
+            query_cleaned = query['artist'].replace('\'','')
+            query_cleaned = query_cleaned.replace('\"','')
+            seed_artist.append(query_cleaned)
+            recommendations = sp.recommendations(
+                                                seed_artists=seed_artist, 
+                                                country='US',
+                                                limit=20
+                                                )
+            
+            # must turn tracks into items to make dict same as search dict
+            recommendations['items'] = recommendations.pop('tracks')
+            recommendations.pop('seeds')
+
+            saveSong(recommendations)
+        
+            return Response(data=recommendations, status=status.HTTP_200_OK)
+        
+        else :
+            return Response({'error:', 'artist invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
+      
 
 
 
