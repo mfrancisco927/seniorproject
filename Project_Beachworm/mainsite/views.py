@@ -116,9 +116,32 @@ def curateSongs(profile, recommendations) :
             counter += 1
         if counter == number_of_recommendations :
             break
+        
     saveSong(curated_recommendations)
 
     return curated_recommendations
+
+def genreSeedsShuffled(profile) :
+    # Get genre seeds for user from database
+    genre_seeds_query = UserGenreSeed.objects.filter(user = profile)
+    # Put genre seeds into a list
+    if genre_seeds_query :
+        genre_seeds_total = []
+        for genre in genre_seeds_query :
+            genre_seeds_total.append(genre.genre_id)
+        random.shuffle(genre_seeds_total)
+    return genre_seeds_total
+
+def artistSeedsShuffled(profile) :
+    # Get artist seeds for user from databaase
+    artist_seeds_query = UserArtistSeed.objects.filter(user = profile)
+    # Put artist seeds into a list
+    if artist_seeds_query :
+        artist_seeds_total = []
+        for artist in artist_seeds_query :
+            artist_seeds_total.append(artist.artist_id)
+        # randomize order in list
+        random.shuffle(artist_seeds_total)
 
 
 class HelloWorldView(APIView):
@@ -355,29 +378,12 @@ class UserRecommendations(APIView):
 
         num_songs_liked = profile.liked_songs.all().count()
         print(num_songs_liked)
-        print("User: " + str(user_id))
+      
         ################################################################
         #---------------- Less than 10 songs liked ---------------------
         if num_songs_liked <= 10 :
-
-            # Get genre seeds for user from database
-            genre_seeds_query = UserGenreSeed.objects.filter(user = profile)
-            # Put genre seeds into a list
-            if genre_seeds_query :
-                genre_seeds_total = []
-                for genre in genre_seeds_query :
-                    genre_seeds_total.append(genre.genre_id)
-                random.shuffle(genre_seeds_total)
-
-            # Get artist seeds for user from databaase
-            artist_seeds_query = UserArtistSeed.objects.filter(user = profile)
-            # Put artist seeds into a list
-            if artist_seeds_query :
-                artist_seeds_total = []
-                for artist in artist_seeds_query :
-                    artist_seeds_total.append(artist.artist_id)
-                # randomize order in list
-                random.shuffle(artist_seeds_total)
+            genre_seeds_total = genreSeedsShuffled(profile)
+            artist_seeds_total = artistSeedsShuffled(profile)
 
             # Generate random number to determine how many genres to put in (at least 1)
             # Check to make sure there are genre seeds
@@ -406,7 +412,6 @@ class UserRecommendations(APIView):
 
             curated_recommendations = curateSongs(profile, recommendations)
             
-
             return Response(data=curated_recommendations, status=status.HTTP_200_OK)
 
 
