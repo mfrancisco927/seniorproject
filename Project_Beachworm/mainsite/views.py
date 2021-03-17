@@ -311,7 +311,7 @@ class GenreSave(APIView):
             return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
         genre_list = request.POST.get('genres')
-        print(genre_list)
+        # print(genre_list)
         genre_formatted = eval(genre_list)
 
         if genre_formatted:
@@ -345,7 +345,7 @@ class ArtistsFromGenres(APIView):
                 queryString += "genre:" + query.genre_id + " OR "
             # Remove last OR
             queryString = queryString[:-3]
-            # print(queryString)
+            
         else :
             # If no genres exist for user, use the pop genre
             queryString = "genre:pop"
@@ -364,7 +364,7 @@ class ArtistSave(APIView):
             return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
         artist_list = request.POST.get('artists')
-        print(artist_list)
+       
         artist_formatted = eval(artist_list)
 
         if artist_formatted:
@@ -391,8 +391,7 @@ class UserRecommendations(APIView):
 
         num_songs_liked = profile.liked_songs.all().count()
 
-        print(num_songs_liked)
-      
+        
         ################################################################
         #---------------- Less than 10 songs liked ---------------------
         if num_songs_liked <= 10 :
@@ -492,7 +491,7 @@ class GenreRecommendations(APIView):
 
     def get(self,request):
         query = self.request.query_params
-        print(query['genre'])
+       
         if query['genre'] :
             seed_genre = []
             
@@ -521,7 +520,7 @@ class ArtistRecommendations(APIView):
 
     def get(self,request):
         query = self.request.query_params
-        print(query['artist'])
+       
         if query['artist'] :
             seed_artist = []
             
