@@ -116,7 +116,7 @@ def curateSongs(profile, recommendations) :
             counter += 1
         if counter == number_of_recommendations :
             break
-        
+
     saveSong(curated_recommendations)
 
     return curated_recommendations
@@ -124,25 +124,38 @@ def curateSongs(profile, recommendations) :
 def genreSeedsShuffled(profile) :
     # Get genre seeds for user from database
     genre_seeds_query = UserGenreSeed.objects.filter(user = profile)
+    genre_seeds_total = []
     # Put genre seeds into a list
     if genre_seeds_query :
-        genre_seeds_total = []
         for genre in genre_seeds_query :
             genre_seeds_total.append(genre.genre_id)
         random.shuffle(genre_seeds_total)
+
     return genre_seeds_total
 
 def artistSeedsShuffled(profile) :
-    # Get artist seeds for user from databaase
+    # Get artist seeds for user from database
     artist_seeds_query = UserArtistSeed.objects.filter(user = profile)
     # Put artist seeds into a list
+    artist_seeds_total = []
     if artist_seeds_query :
-        artist_seeds_total = []
         for artist in artist_seeds_query :
             artist_seeds_total.append(artist.artist_id)
         # randomize order in list
         random.shuffle(artist_seeds_total)
+    return artist_seeds_total
 
+def songSeedsShuffled(profile) :
+    # Get song seeds for user from database
+    song_seeds_query = profile.liked_songs.all()
+    # Put songs into a list
+    song_seeds_total = []
+    if song_seeds_query :
+        for song in song_seeds_query :
+            song_seeds_total.append(song.song_id)
+        # randomize
+        random.shuffle(song_seeds_total)
+    return song_seeds_total
 
 class HelloWorldView(APIView):
     def get(self, request):
@@ -377,6 +390,7 @@ class UserRecommendations(APIView):
         seed_genres = []
 
         num_songs_liked = profile.liked_songs.all().count()
+
         print(num_songs_liked)
       
         ################################################################
@@ -396,8 +410,8 @@ class UserRecommendations(APIView):
                 for i in range(num_artists) :
                     seed_artists.append(artist_seeds_total[i])
                 
-            print(seed_artists)
-            print(seed_genres)
+            if not seed_artists and not seed_genres :
+                seed_genres = ['pop']
 
             recommendations = sp.recommendations(
                                                 seed_tracks=seed_tracks, 
@@ -417,13 +431,55 @@ class UserRecommendations(APIView):
 
         # ---------------10-30 songs liked  --------------------------------------------
         elif num_songs_liked > 10 and num_songs_liked <= 30 :
-            pass
-        
+            genre_seeds_total = genreSeedsShuffled(profile)
+            artist_seeds_total = artistSeedsShuffled(profile)
+            
+            # Add 1 genre seed and 1 artist seed, if they exist
+            if genre_seeds_total :
+                seed_genres.append(genre_seeds_total[0])
+            if artist_seeds_total :
+                seed_artists.append(artist_seeds_total[0])
+
+            song_seed_total = songSeedsShuffled(profile)
+
+            for i in range(5 - len(seed_genres) - len(seed_artists)):
+                seed_tracks.append(song_seed_total[i])
+
+            recommendations = sp.recommendations(
+                                                seed_tracks=seed_tracks, 
+                                                seed_artists=seed_artists, 
+                                                seed_genres=seed_genres,
+                                                country='US',
+                                                limit=100
+                                                )
+            # Saves all recommendations to the database
+            # must turn tracks into items to make dict same as search dict
+            recommendations['items'] = recommendations.pop('tracks')
+
+            curated_recommendations = curateSongs(profile, recommendations)
+            
+            return Response(data=curated_recommendations, status=status.HTTP_200_OK)
 
 
         # -----------------30 + songs liked --------------------------------------------
         else:
-            pass
+            song_seed_total = songSeedsShuffled(profile)
+            
+            for i in range(5):
+                seed_tracks.append(song_seed_total[i])
+
+            recommendations = sp.recommendations(
+                                                seed_tracks=seed_tracks, 
+                                                country='US',
+                                                limit=100
+                                                )
+            # Saves all recommendations to the database
+            # must turn tracks into items to make dict same as search dict
+            recommendations['items'] = recommendations.pop('tracks')
+
+            curated_recommendations = curateSongs(profile, recommendations)
+            
+            return Response(data=curated_recommendations, status=status.HTTP_200_OK)
 
 
 
