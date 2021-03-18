@@ -52,7 +52,7 @@ function Explore(props) {
     useEffect(() => {
       const onMount = async (data) => {
         // only if we're not already playing from the explore list, add some more
-        if (spotify.getContextPlayQueue().name !== CONTEXT_QUEUE_NAME) {
+        if (spotify.getContextPlayQueue().name.startsWith('Explore')) {
           console.log('Populating initial load of Explore songs');
           // const recommendedSongs = await getRecommendations(auth.id);
           const recommendedSongs = testQueueables; // REMOVE AFTER ENDPOINT TO GET OWN USER ID IMPLEMENTED INTO AUTH!
