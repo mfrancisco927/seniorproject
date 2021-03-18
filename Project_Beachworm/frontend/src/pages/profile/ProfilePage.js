@@ -1,7 +1,9 @@
 import { useHistory, useParams } from 'react-router-dom';
 import { useAuth } from './../../hooks/authHooks';
 import { getProfile, getCurrentUser, getPlaylists } from './../../api/userApi';
+import { Button } from '@material-ui/core';
 import PersonIcon from '@material-ui/icons/Person';
+import ClearIcon from '@material-ui/icons/Clear';
 
 import TabbedGallery from './TabbedGallery';
 
@@ -14,6 +16,7 @@ function ProfilePage(){
   const [profileData, setProfileData] = useState({'playlists': [], 'following': [], 'followers': []});
   const [dataLoaded, setDataLoaded] = useState(false);
   const [errorLoadingProfile, setErrorLoadingProfile] = useState(false);
+  const [following, setFollowing] = useState(false);
   let { profileId } = useParams();
 
   if (!profileId) {
@@ -71,7 +74,8 @@ function ProfilePage(){
           'username': 'xX_quik_$c0pez_Xx',
         };
         tempProfile.following = new Array(13).fill(tempFollowee);
-
+        tempProfile.username = tempProfile.username || "epic_hax0r1337";
+        setFollowing(tempProfile.followers.includes(auth.id)); // TODO: move this into the final 'then' above, check to see if we need to map objects to id
         setProfileData(tempProfile);
         setDataLoaded(true);
       });
@@ -79,7 +83,7 @@ function ProfilePage(){
     };
 
     updateProfileData();
-  }, [profileId, viewingSelf]);
+  }, [profileId, viewingSelf, auth.id]);
 
   const ImageSquare = (props) => {
     const { children, onClick, ...restProps } = props;
@@ -122,6 +126,15 @@ function ProfilePage(){
     ),
   };
 
+  const toggleFollow = () => {
+    // TODO: API calls to follow, unfollow
+    if (following) {
+      setFollowing(false);
+    } else {
+      setFollowing(true);
+    }
+  };
+
   return (
     <div className='profile-page-wrapper'>
       {errorLoadingProfile && dataLoaded ? (
@@ -130,7 +143,27 @@ function ProfilePage(){
         <Fragment>
           <div className="profile-header_container">
             <PersonIcon className="profile-header_icon" />
-            <h1 className="profile-header_username">{profileData.username}</h1>
+            {viewingSelf ? (
+              <h1 className="profile-header_username profile-header_username__self">{profileData.username}</h1>
+            ) : (
+              <div className="profile-header_interaction-wrapper">
+                <h2 className="profile-header_username">{profileData.username}</h2>
+                <Button className="profile-header_follow-button"
+                onClick={toggleFollow}
+                disableFocusRipple>
+                  {following ? (
+                    <Fragment>
+                      <ClearIcon className="follow-button_x-icon" /> Unfollow
+                    </Fragment>
+                  ) : (
+                    <Fragment>
+                      Follow
+                    </Fragment>
+                  )}
+                </Button>
+              </div>
+            )}
+            
           </div>
           <TabbedGallery tabItemCreationCallbacks={tabItemCreationCallbacks}>
             {[profileData.playlists, profileData.following, profileData.followers]}

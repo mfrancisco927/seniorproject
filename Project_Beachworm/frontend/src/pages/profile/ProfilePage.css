@@ -1,5 +1,5 @@
 .profile-header_container {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     width: 100%;
     padding: 2em;
@@ -9,9 +9,27 @@
     font-size: 12em !important;
 }
 
-.profile-header_username {
+.profile-header_interaction-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    height: 100%;
+    font-size: 2em;
     margin-left: 1em;
+    justify-content: space-around;
+}
+
+.profile-header_interaction-wrapper > * {
+    flex-grow: 1;
+}
+
+.profile-header_username {
+    margin: 0;
+}
+
+.profile-header_username__self {
     font-size: 3em;
+    margin-left: .67em;
 }
 
 .gallery-item {
@@ -43,4 +61,21 @@
     border-radius: 10px;
     font-size: 1.5em;
     padding: 0 5px;
+}
+
+.profile-header_follow-button {
+    font-size: 1em !important;
+    color: white !important;
+    padding-left: 0.5em !important;
+    padding-right: 0.5em !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    margin-top: 0.5em !important;
+}
+
+.MuiButton-label {
+    height: 1em;
+}
+
+.follow-button_x-icon {
+    margin-right: 0.5em;
 }
