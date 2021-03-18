@@ -265,9 +265,9 @@ class Search(APIView):
         types = ['artist', 'track', 'album']
         query = self.request.query_params
         results = {}
-        if query['q'] == '' or query['q'] == ';':
+        if query['q'] == '' or query['q'] == ';' or query['q'] == '*' or query['q'] == None:
             for type in types:
-                results[type + 's'] = {"href" : "", "items" : []}
+                results[type + 's'] = {"href" : query['q'], "items" : []}
             results['playlists'] = {"items" : []}
             return Response(data=results, status=status.HTTP_200_OK)
         else:
