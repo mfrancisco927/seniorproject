@@ -16,10 +16,15 @@ import environ
 import basicauth
 import requests
 import json
+from random import randint
+import random
 
 env = environ.Env()
 CLIENT_ID = env('CLIENT_ID')
 SECRET = env('SECRET')
+
+auth_manager = SpotifyClientCredentials(client_id=CLIENT_ID, client_secret=SECRET)
+sp = spotipy.Spotify(auth_manager=auth_manager)
 
 
 class ObtainTokenPairWithAdditionalInfo(TokenObtainPairView):
@@ -64,6 +69,93 @@ def get_songs(request):
     ]
 
 	return Response(songs)
+
+def saveSong(results):
+                track_ids = []
+                for i in range(len(results['items'])):
+                    track_ids.append(results['items'][i]['id'])
+                track_features = sp.audio_features(tracks=track_ids)
+                #print(track_features)
+                for i in range(len(track_ids)):
+                    db_track = Song.objects.filter(song_id = track_ids[i])
+                    #add track to db if it's not there
+                    if not db_track.exists():
+                        trackEntry = Song(
+                            song_id = results['items'][i]['id'],
+                            title = results['items'][i]['name'],
+                            artists = results['items'][i]['artists'][0]['name'],
+                            danceability = float(track_features[i]['danceability']),
+                            energy = float(track_features[i]['energy']),
+                            key = float(track_features[i]['key']),
+                            loudness = float(track_features[i]['loudness']),
+                            mode = float(track_features[i]['mode']),
+                            speechiness = float(track_features[i]['speechiness']),
+                            acousticness = float(track_features[i]['acousticness']),
+                            instrumentalness = float(track_features[i]['instrumentalness']),
+                            liveness = float(track_features[i]['liveness']),
+                            valence = float(track_features[i]['valence']),
+                            tempo = float(track_features[i]['tempo']),
+                            duration_ms = float(track_features[i]['duration_ms']),
+                            time_signature = int(track_features[i]['time_signature']),
+                            img_640 = results['items'][i]['album']['images'][0]['url']
+                        )
+                        
+                        trackEntry.save()
+
+def curateSongs(profile, recommendations) :
+    # Curated_recommendations will be sent back to requestor
+    curated_recommendations = {}
+    curated_recommendations['items'] = []
+    number_of_recommendations = 20
+
+    # Go througuh recommendations removing any from user's disliked song list
+    counter = 0
+    for i in range(len(recommendations['items'])) :
+        if not profile.disliked_songs.filter(song_id = recommendations['items'][i]['id']).exists() :
+            curated_recommendations['items'].append(recommendations['items'][i])
+            counter += 1
+        if counter == number_of_recommendations :
+            break
+
+    saveSong(curated_recommendations)
+
+    return curated_recommendations
+
+def genreSeedsShuffled(profile) :
+    # Get genre seeds for user from database
+    genre_seeds_query = UserGenreSeed.objects.filter(user = profile)
+    genre_seeds_total = []
+    # Put genre seeds into a list
+    if genre_seeds_query :
+        for genre in genre_seeds_query :
+            genre_seeds_total.append(genre.genre_id)
+        random.shuffle(genre_seeds_total)
+
+    return genre_seeds_total
+
+def artistSeedsShuffled(profile) :
+    # Get artist seeds for user from database
+    artist_seeds_query = UserArtistSeed.objects.filter(user = profile)
+    # Put artist seeds into a list
+    artist_seeds_total = []
+    if artist_seeds_query :
+        for artist in artist_seeds_query :
+            artist_seeds_total.append(artist.artist_id)
+        # randomize order in list
+        random.shuffle(artist_seeds_total)
+    return artist_seeds_total
+
+def songSeedsShuffled(profile) :
+    # Get song seeds for user from database
+    song_seeds_query = profile.liked_songs.all()
+    # Put songs into a list
+    song_seeds_total = []
+    if song_seeds_query :
+        for song in song_seeds_query :
+            song_seeds_total.append(song.song_id)
+        # randomize
+        random.shuffle(song_seeds_total)
+    return song_seeds_total
 
 class HelloWorldView(APIView):
     def get(self, request):
@@ -166,9 +258,10 @@ class SpotifyRefresh(APIView):
         return Response({"access_token" : "Error!  Spotify access may have been revoked"}, status=status.HTTP_401_UNAUTHORIZED)
 
 class Search(APIView):
+    # Guests will be allowed to search, so JWT not required
+    permission_classes = (permissions.AllowAny,)
+
     def get(self, request):
-        auth_manager = SpotifyClientCredentials(client_id=CLIENT_ID, client_secret=SECRET)
-        sp = spotipy.Spotify(auth_manager=auth_manager)
         types = ['artist', 'track', 'album']
         query = self.request.query_params
         results = {}
@@ -176,36 +269,9 @@ class Search(APIView):
             results[type + 's'] = sp.search(q=query['q'], type=type, market='US', limit=10)[type + 's']
             #get track IDs for results and query DB for those songs
             if type == 'track':
-                track_ids = []
-                for i in range(len(results['tracks']['items'])):
-                    track_ids.append(results['tracks']['items'][i]['id'])
-                track_features = sp.audio_features(tracks=track_ids)
-                #print(track_features)
-                for i in range(len(track_ids)):
-                    db_track = Song.objects.filter(song_id = track_ids[i])
-                    #add track to db if it's not there
-                    if not db_track.exists():
-                        trackEntry = Song(
-                            song_id = results['tracks']['items'][i]['id'],
-                            title = results['tracks']['items'][i]['name'],
-                            artists = results['tracks']['items'][i]['artists'][0]['name'],
-                            danceability = float(track_features[i]['danceability']),
-                            energy = float(track_features[i]['energy']),
-                            key = float(track_features[i]['key']),
-                            loudness = float(track_features[i]['loudness']),
-                            mode = float(track_features[i]['mode']),
-                            speechiness = float(track_features[i]['speechiness']),
-                            acousticness = float(track_features[i]['acousticness']),
-                            instrumentalness = float(track_features[i]['instrumentalness']),
-                            liveness = float(track_features[i]['liveness']),
-                            valence = float(track_features[i]['valence']),
-                            tempo = float(track_features[i]['tempo']),
-                            duration_ms = float(track_features[i]['duration_ms']),
-                            time_signature = int(track_features[i]['time_signature']),
-                            img_640 = results['tracks']['items'][i]['album']['images'][0]['url']
-                        )
-                        
-                        trackEntry.save()
+                # Saves songs to database
+                saveSong(results['tracks'])
+
         #return public playlists whose name contains query
         playlists = list(Playlist.objects.filter(title__icontains=query['q'], is_public=True).values())
         results['playlists'] = {}
@@ -225,3 +291,265 @@ class GetUser(APIView):
         results= {'id' : user_id, 'username' : self.request.user.username, 'email' : self.request.user.email, 'liked_songs' : liked_songs,
                 'disliked_songs' : disliked_songs, 'following' : following, 'favorite_playlists' : favorite_playlists}
         return Response(data=results, status=status.HTTP_200_OK)
+
+class Genre(APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self, request):
+        genre_response = sp.recommendation_genre_seeds()
+        # print(json.dumps(genre_response, indent=4))
+
+        return Response(data=genre_response, status=status.HTTP_200_OK)
+
+class GenreSave(APIView):
+    def post(self, request):
+        # Find profile of request, to save the genre seeds
+        user_id = self.request.user.id
+        try : 
+            profile = Profile.objects.get(user=user_id)
+        except ProfileDoesNotExist :
+            return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+
+        genre_list = request.POST.get('genres')
+        # print(genre_list)
+        genre_formatted = eval(genre_list)
+
+        if genre_formatted:
+            for genre in genre_formatted :
+                usergenreseed = UserGenreSeed(user = profile, genre_id = genre)
+                # Check if this entry already exists, if not save it
+                if not UserGenreSeed.objects.filter(user=profile, genre_id = genre).exists():
+                    usergenreseed.save()
+
+        return Response({'Status' : 'Genres saved successfully'}, status=status.HTTP_200_OK)
+
+    
+
+class ArtistsFromGenres(APIView):
+    def get(self, request):
+        # This requires genre seeds to already have been saved
+
+        # Find profile of request, to save the genre seeds
+        user_id = self.request.user.id
+        try : 
+            profile = Profile.objects.get(user=user_id)
+        except ProfileDoesNotExist :
+            return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+        queryGenres = UserGenreSeed.objects.filter(user = profile)
+        queryString = ""
+        if queryGenres:
+            for query in queryGenres :
+                queryString += "genre:" + query.genre_id + " OR "
+            # Remove last OR
+            queryString = queryString[:-3]
+            
+        else :
+            # If no genres exist for user, use the pop genre
+            queryString = "genre:pop"
+        searchResults = sp.search(q=queryString, type="artist", limit=20)
+        # print(json.dumps(searchResults, indent=4))
+
+        return Response(data=searchResults, status=status.HTTP_200_OK)
+
+class ArtistSave(APIView):
+    def post(self,request):
+        # Find profile of request, to save the genre seeds
+        user_id = self.request.user.id
+        try : 
+            profile = Profile.objects.get(user=user_id)
+        except ProfileDoesNotExist :
+            return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+
+        artist_list = request.POST.get('artists')
+       
+        artist_formatted = eval(artist_list)
+
+        if artist_formatted:
+            for artist in artist_formatted :
+                userartistseed = UserArtistSeed(user = profile, artist_id = artist)
+                # Check if entry already exists, if not save
+                if not UserArtistSeed.objects.filter(user=profile, artist_id=artist).exists():
+                    userartistseed.save()
+        return Response({'Status' : 'Artists saved successfully'}, status=status.HTTP_200_OK)
+
+class UserRecommendations(APIView):
+    
+    def get(self,request):
+        user_id = self.request.user.id
+        try : 
+            profile = Profile.objects.get(user=user_id)
+        except ProfileDoesNotExist :
+            return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # These will be passed into recommender function
+        seed_tracks = []
+        seed_artists = []
+        seed_genres = []
+
+        num_songs_liked = profile.liked_songs.all().count()
+
+        
+        ################################################################
+        #---------------- Less than 10 songs liked ---------------------
+        if num_songs_liked <= 10 :
+            genre_seeds_total = genreSeedsShuffled(profile)
+            artist_seeds_total = artistSeedsShuffled(profile)
+
+            # Generate random number to determine how many genres to put in (at least 1)
+            # Check to make sure there are genre seeds
+            if genre_seeds_total:
+                num_genres = randint(1, len(genre_seeds_total))
+                for i in range(num_genres) :
+                    seed_genres.append(genre_seeds_total[i])
+            if artist_seeds_total:
+                num_artists = min(len(artist_seeds_total), 5 - num_genres)
+                for i in range(num_artists) :
+                    seed_artists.append(artist_seeds_total[i])
+                
+            if not seed_artists and not seed_genres :
+                seed_genres = ['pop']
+
+            recommendations = sp.recommendations(
+                                                seed_tracks=seed_tracks, 
+                                                seed_artists=seed_artists, 
+                                                seed_genres=seed_genres,
+                                                country='US',
+                                                limit=100
+                                                )
+         
+            # must turn tracks into items to make dict same as search dict
+            recommendations['items'] = recommendations.pop('tracks')
+
+            curated_recommendations = curateSongs(profile, recommendations)
+            
+            return Response(data=curated_recommendations, status=status.HTTP_200_OK)
+
+
+        # ---------------10-30 songs liked  --------------------------------------------
+        elif num_songs_liked > 10 and num_songs_liked <= 30 :
+            genre_seeds_total = genreSeedsShuffled(profile)
+            artist_seeds_total = artistSeedsShuffled(profile)
+            
+            # Add 1 genre seed and 1 artist seed, if they exist
+            if genre_seeds_total :
+                seed_genres.append(genre_seeds_total[0])
+            if artist_seeds_total :
+                seed_artists.append(artist_seeds_total[0])
+
+            song_seed_total = songSeedsShuffled(profile)
+
+            for i in range(5 - len(seed_genres) - len(seed_artists)):
+                seed_tracks.append(song_seed_total[i])
+
+            recommendations = sp.recommendations(
+                                                seed_tracks=seed_tracks, 
+                                                seed_artists=seed_artists, 
+                                                seed_genres=seed_genres,
+                                                country='US',
+                                                limit=100
+                                                )
+           
+            # must turn tracks into items to make dict same as search dict
+            recommendations['items'] = recommendations.pop('tracks')
+
+            curated_recommendations = curateSongs(profile, recommendations)
+            
+            return Response(data=curated_recommendations, status=status.HTTP_200_OK)
+
+
+        # -----------------30 + songs liked --------------------------------------------
+        else:
+            song_seed_total = songSeedsShuffled(profile)
+            
+            for i in range(5):
+                seed_tracks.append(song_seed_total[i])
+
+            recommendations = sp.recommendations(
+                                                seed_tracks=seed_tracks, 
+                                                country='US',
+                                                limit=100
+                                                )
+            
+            # must turn tracks into items to make dict same as search dict
+            recommendations['items'] = recommendations.pop('tracks')
+
+            curated_recommendations = curateSongs(profile, recommendations)
+            
+            return Response(data=curated_recommendations, status=status.HTTP_200_OK)
+
+
+
+        return Response({'Error': 'Something went wrong'}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+class GenreRecommendations(APIView):
+    # This is an open endpoint meaning we can't compare this to a user's current likes/dislikes
+    permission_classes = (permissions.AllowAny,)
+
+
+    def get(self,request):
+        query = self.request.query_params
+       
+        if query['genre'] :
+            seed_genre = []
+            
+            query_cleaned = query['genre'].replace('\'','')
+            query_cleaned = query_cleaned.replace('\"','')
+            seed_genre.append(query_cleaned)
+            recommendations = sp.recommendations(
+                                                seed_genres=seed_genre, 
+                                                country='US',
+                                                limit=20
+                                                )
+            
+            # must turn tracks into items to make dict same as search dict
+            recommendations['items'] = recommendations.pop('tracks')
+            recommendations.pop('seeds')
+
+            saveSong(recommendations)
+        
+            return Response(data=recommendations, status=status.HTTP_200_OK)
+        
+        else :
+            return Response({'error:', 'genre invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
+
+class ArtistRecommendations(APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self,request):
+        query = self.request.query_params
+       
+        if query['artist'] :
+            seed_artist = []
+            
+            query_cleaned = query['artist'].replace('\'','')
+            query_cleaned = query_cleaned.replace('\"','')
+            seed_artist.append(query_cleaned)
+            recommendations = sp.recommendations(
+                                                seed_artists=seed_artist, 
+                                                country='US',
+                                                limit=20
+                                                )
+            
+            # must turn tracks into items to make dict same as search dict
+            recommendations['items'] = recommendations.pop('tracks')
+            recommendations.pop('seeds')
+
+            saveSong(recommendations)
+        
+            return Response(data=recommendations, status=status.HTTP_200_OK)
+        
+        else :
+            return Response({'error:', 'artist invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
+      
+
+
+
+
+        
+
+
+        
+
