@@ -28,6 +28,7 @@ class Song(BaseModel):
   tempo = models.FloatField()
   duration_ms = models.IntegerField()
   time_signature = models.IntegerField()
+  img_640 = models.TextField(default='https://imgur.com/a/RMIhpXF')
   
 class Profile(BaseModel):
   user = models.OneToOneField(User,primary_key=True, on_delete=models.CASCADE)
@@ -35,6 +36,7 @@ class Profile(BaseModel):
   liked_songs = models.ManyToManyField(Song, related_name='profile_liked')
   disliked_songs = models.ManyToManyField(Song, related_name='profile_disliked')
   favorite_playlists = models.ManyToManyField("Playlist", related_name='profile_favorite_playlists')
+  refresh_token = models.TextField(default="None")
 
 
 @receiver(post_save, sender=User)
@@ -47,6 +49,7 @@ def save_user_profile(sender, instance, **kwargs):
   instance.profile.save()
   
 class Playlist(BaseModel):
+  id = models.IntegerField(primary_key=True)
   title = models.TextField()
   is_public = models.BooleanField(default=True)
   owner = models.ForeignKey(Profile, on_delete=models.CASCADE)

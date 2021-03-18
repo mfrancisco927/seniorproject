@@ -21,10 +21,25 @@ from .views import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('get-songs/', views.get_songs),
-    path('user/create/', UserCreate.as_view(), name='create_user'),
-    path('token/obtain/', ObtainTokenPairWithAdditionalInfo.as_view(), name='token_create'),
-    path('token/refresh/', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
-    path('user/change-password/', ChangePasswordView.as_view(), name='change-password'),
-    path('hello/', HelloWorldView.as_view(), name='hello_world'),
+    path('api/get-songs/', views.get_songs),
+    path('api/user/create/', UserCreate.as_view(), name='create_user'),
+    path('api/token/obtain/', ObtainTokenPairWithAdditionalInfo.as_view(), name='token_create'),
+    path('api/token/refresh/', jwt_views.TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/user/change-password/', ChangePasswordView.as_view(), name='change-password'),
+    path('api/spotify/store-credential/', SpotifyStore.as_view(), name='spotify-store-initial'),
+    path('api/spotify/refresh-token/', SpotifyRefresh.as_view(), name='spotify-refresh-token'),
+    path('api/user/current/', GetUser.as_view(), name='get_current_user'),
+    path('search/', Search.as_view(), name='search'),
+    # Initial user creation recommendation seed endpoints
+    path('api/recommendation/obtain-genres/', Genre.as_view(), name='genre-obtain'),
+    path('api/user/profile/seed/genres/', GenreSave.as_view(), name='genre-save'),
+    path('api/recommendation/obtain-artists/', ArtistsFromGenres.as_view(), name='artist-from-genres'),
+    path('api/user/profile/seed/artists/', ArtistSave.as_view(), name='artist-save'),
+    # Recommendation endpoints
+    path('api/recommendation/user/', UserRecommendations.as_view(), name='recommendations-user'),
+    path('api/recommendation/genre/', GenreRecommendations.as_view(), name='recommendations-genre'),
+    path('api/recommendation/artist/', ArtistRecommendations.as_view(), name='recommendations-artist'),
+    # This will be a little different TODO add api/recommendations/playlist
+    # A testing path
+    path('api/hello/', HelloWorldView.as_view(), name='hello_world'),
 ]
