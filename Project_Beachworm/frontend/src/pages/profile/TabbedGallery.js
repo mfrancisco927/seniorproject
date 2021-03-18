@@ -9,7 +9,11 @@ function TabbedGallery(props) {
 
   const createTab = (name, index) => {
     return (
-      <Button className="tab-button" key={index} onClick={() => setSelectedTabIndex(index)}>
+      <Button
+      className={'tab-button' + (index === selectedTabIndex ? ' tab-button_selected' : '')}
+      key={index}
+      onClick={() => setSelectedTabIndex(index)}
+      disableFocusRipple>
         {name}
       </Button>
     );
