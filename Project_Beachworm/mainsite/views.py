@@ -637,7 +637,7 @@ class ModifyPlaylist(APIView):
         try:
             playlist= Playlist.objects.get(pk=playlist_id)
         except:
-           return Response({"follow_playlist" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
+           return Response({"modify_playlist" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
 
         try:
             if new_name is not None:
@@ -654,7 +654,7 @@ class ModifyPlaylist(APIView):
         try:
             playlist= Playlist.objects.get(pk=playlist_id)
         except:
-           return Response({"follow_playlist" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
+           return Response({"modify_playlist" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
 
         playlist.delete()
 
