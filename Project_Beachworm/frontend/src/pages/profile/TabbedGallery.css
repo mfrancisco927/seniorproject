@@ -22,7 +22,25 @@
 }
 
 .gallery_row-wrapper {
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
     min-width: 100%;
-    min-height: 10em;
+    padding: 2em 0;
+    border-radius: 10px;
     background-color: rgba(255, 255, 255, 0.3);
+}
+
+.gallery_row-wrapper > * {
+    margin: 0 1em;
+}
+
+.gallery_row-item:first-of-type {
+    padding-left: 2em;
+    margin-left: 0;
+}
+
+.gallery_row-item:last-child {
+    padding-right: 2em;
+    margin-right: 0;
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@material-ui/core';
 import './TabbedGallery.css';
 
@@ -10,7 +10,7 @@ function TabbedGallery(props) {
   const createTab = (name, index) => {
     return (
       <Button className="tab-button" key={index} onClick={() => setSelectedTabIndex(index)}>
-        {'[' + name + ']'}
+        {name}
       </Button>
     );
   }
@@ -29,10 +29,6 @@ function TabbedGallery(props) {
       </div>  
     );
   };
-
-  useEffect(() => {
-    console.log('New tab loaded:' + tabNames[selectedTabIndex]);
-  }, [tabNames, selectedTabIndex]);
 
   return (
     <div className="gallery_container">

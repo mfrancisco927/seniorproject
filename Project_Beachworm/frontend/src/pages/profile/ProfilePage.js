@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
 import { useAuth } from './../../hooks/authHooks';
 import { getProfile, getCurrentUser, getPlaylists } from './../../api/userApi';
 import PersonIcon from '@material-ui/icons/Person';
@@ -10,6 +10,7 @@ import { useEffect, useState, Fragment } from 'react';
 
 function ProfilePage(){
   const auth = useAuth();
+  const history = useHistory();
   const [profileData, setProfileData] = useState({'playlists': [], 'following': [], 'followers': []});
   const [dataLoaded, setDataLoaded] = useState(false);
   const [errorLoadingProfile, setErrorLoadingProfile] = useState(false);
@@ -47,43 +48,72 @@ function ProfilePage(){
         if (reject.response.status === 404) {
           console.error('404 on playlist request.');
         }
-        // add in some fake playlist data for testing
-        tempProfile.playlists = [];
         return Promise.reject(reject);
       }).catch(() => {
         // setErrorLoadingProfile(true); // uncomment once endpoint is added
       }).finally(() => {
+        
+        // add in some fake playlist data for testing
+        const tempPlaylist = {
+          'name': 'Playlist Name!',
+          'id': '23',
+        };
+        tempProfile.playlists = new Array(10).fill(tempPlaylist);
+
+        // add in fake following and follower data for testing
+        const tempFollower = {
+          'id': 12,
+          'username': 'Johnny Depp',
+        };
+        tempProfile.followers = new Array(12).fill(tempFollower);
+        const tempFollowee = {
+          'id': 15,
+          'username': 'xX_quik_$c0pez_Xx',
+        };
+        tempProfile.following = new Array(13).fill(tempFollowee);
+
         setProfileData(tempProfile);
         setDataLoaded(true);
       });
-      console.log('Profile output', tempProfile);
+      // console.log('Profile output', tempProfile);
     };
 
     updateProfileData();
   }, [profileId, viewingSelf]);
 
   const ImageSquare = (props) => {
-    const { children, ...restProps } = props;
+    const { children, onClick, ...restProps } = props;
     return (
-      <image {...restProps}>
-        {children}
-      </image>
+      <div className="gallery-item">
+        <img className="gallery-item_img" alt="music" {...restProps} />
+        <div className="gallery-item_overlay"  onClick={onClick}>
+          <span className="gallery-item_overlay-text">
+            {children}
+          </span>
+        </div>
+      </div>
     );
   }
 
   const tabItemCreationCallbacks = {
     'Playlists': (playlist) => (
-      <ImageSquare onClick={() => console.log('Clicked a playlist!')}>
+      <ImageSquare
+        src="https://images-na.ssl-images-amazon.com/images/I/51Ib3jYSStL._AC_SY450_.jpg"
+        onClick={() => console.log('Clicked a playlist!')}>
         {playlist.name}
       </ImageSquare>
     ),
     'Following': (followedUser) => (
-      <ImageSquare onClick={() => console.log('Clicked a followed user!')}>
+      <ImageSquare
+      src="https://images-na.ssl-images-amazon.com/images/I/51Ib3jYSStL._AC_SY450_.jpg"
+      onClick={() => history.push(`/profile/${followedUser.id}`)}>
         {followedUser.username}
       </ImageSquare>
     ),
     'Followers': (follower) => (
-      <ImageSquare onClick={() => console.log('Clicked a follower!')}>
+      <ImageSquare
+      src="https://images-na.ssl-images-amazon.com/images/I/51Ib3jYSStL._AC_SY450_.jpg"
+      onClick={() => history.push(`/profile/${follower.id}`)}>
         {follower.username}
       </ImageSquare>
     ),
@@ -100,7 +130,7 @@ function ProfilePage(){
             <h1 className="profile-header_username">{profileData.username}</h1>
           </div>
           <TabbedGallery tabItemCreationCallbacks={tabItemCreationCallbacks}>
-            {[profileData.playlists, profileData.following, profileData.following]}
+            {[profileData.playlists, profileData.following, profileData.followers]}
           </TabbedGallery>
         </Fragment>
       )}
