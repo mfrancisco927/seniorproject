@@ -66,6 +66,10 @@
                         transparent)
 }
 
+.songs-wrapper{
+  scrollbar-width: none;
+}
+
 .pan{
   height: 30px;
   align-self: center;

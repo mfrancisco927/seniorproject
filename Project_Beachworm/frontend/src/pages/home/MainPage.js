@@ -2,29 +2,39 @@ import React , { Component, useState, useEffect } from 'react';
 import './MainPage.css';
 import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
 import ArrowForwardIosIcon from '@material-ui/icons/ArrowForwardIos';
+import { useAuth } from './../../hooks/authHooks';
+import { useSpotifySdk } from './../../hooks/spotifyHooks';
 
 
 function MainPage(props) {
+
+  const spotify = useSpotifySdk();
+
   const testingItems = [
     {
     'img':'https://upload.wikimedia.org/wikipedia/en/c/c4/Floral_Green.jpg',
-    'name': 'TEST 1! RUN SERVER FOR LIVE DATA'
+    'name': 'TEST 1! RUN SERVER FOR LIVE DATA',
+    song_id: '3VXtkBYkeDqVTECO1OOdXd',
     },
     {
       'img':'https://media.pitchfork.com/photos/5a71df0d85ed77242d8f1252/1:1/w_320/jpegmafiaveteran.jpg',
-      'name': 'TEST 2! RUN SERVER FOR LIVE DATA'
+      'name': 'TEST 2! RUN SERVER FOR LIVE DATA',
+      song_id: '3VXtkBYkeDqVTECO1OOdXd',
     },
     {
       'img':'https://i.pinimg.com/originals/78/6e/a3/786ea3d49748ab17966e4301f0f73bb6.jpg',
-      'name': 'TEST 3! RUN SERVER FOR LIVE DATA'
+      'name': 'TEST 3! RUN SERVER FOR LIVE DATA',
+      song_id: '3VXtkBYkeDqVTECO1OOdXd',
     },    
     {
       'img':'https://i.pinimg.com/originals/78/6e/a3/786ea3d49748ab17966e4301f0f73bb6.jpg',
-      'name': 'TEST 3! RUN SERVER FOR LIVE DATA'
+      'name': 'TEST 3! RUN SERVER FOR LIVE DATA',
+      song_id: '3VXtkBYkeDqVTECO1OOdXd',
     },    
     {
       'img':'https://i.pinimg.com/originals/78/6e/a3/786ea3d49748ab17966e4301f0f73bb6.jpg',
-      'name': 'TEST 3! RUN SERVER FOR LIVE DATA'
+      'name': 'TEST 3! RUN SERVER FOR LIVE DATA',
+      song_id: '3VXtkBYkeDqVTECO1OOdXd',
     }
   ];
 
@@ -53,9 +63,9 @@ function MainPage(props) {
 
   return (
     <div>
-      <SongRow changeSong={changeSong} title='Recommended Albums' items={data} />
-      <SongRow changeSong={changeSong} title='Recommended Genres' items={data} />
-      <SongRow changeSong={changeSong} title='Playlists by your Followed' items={data} />
+      <SongRow spotify={spotify} title='Recommended Albums' items={data} />
+      <SongRow spotify={spotify} title='Recommended Genres' items={data} />
+      <SongRow spotify={spotify} title='Playlists by your Followed' items={data} />
     </div>
   );
 }
@@ -66,21 +76,28 @@ class SongRow extends Component {
     super(props);
     this.state = {
       title: props.title,
+      hasOverflow: false,
       items: props.items,
+      spotify: props.spotify,
     }
     this.moveRow = this.moveRow.bind(this);
     this.songBoxRef = React.createRef();
+    this.changeSong = this.changeSong.bind(this);
+  }
 
+  componentDidMount(){
   }
 
   moveRow(direction){
-
     if(direction === 'left'){
-      this.songBoxRef.current.scrollLeft -= 200
-    }else if(direction === 'right'){
-      this.songBoxRef.current.scrollLeft += 200
+      this.songBoxRef.current.scrollLeft -= 200;
+    }else if(direction === 'right'){        
+      this.songBoxRef.current.scrollLeft += 200;
     }
+  }
 
+  changeSong(id){
+    this.state.spotify.play(id);
   }
 
   render() {
@@ -94,7 +111,7 @@ class SongRow extends Component {
                   this.state.items.map((item) => {
                     return (
                       <div className='song-wrapper'>
-                          <img src={item.img} alt='hello!' onClick={ () => console.log('he')} /> 
+                          <img src={item.img} alt='hello!' onClick={ () => this.changeSong(item.id)} /> 
                           <h3> {item.name } </h3>
                       </div>
                     );
