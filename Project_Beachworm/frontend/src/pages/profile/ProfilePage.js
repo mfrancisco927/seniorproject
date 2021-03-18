@@ -97,6 +97,9 @@ function ProfilePage(){
 
   const tabItemCreationCallbacks = {
     'Playlists': (playlist) => (
+      // TODO: edit this one to also add a config button on the playlist that allows
+      // the user to change name and visibility settings. maybe add some way to see
+      // that it's public?
       <ImageSquare
         src="https://images-na.ssl-images-amazon.com/images/I/51Ib3jYSStL._AC_SY450_.jpg"
         onClick={() => console.log('Clicked a playlist!')}>
