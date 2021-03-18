@@ -1,0 +1,15 @@
+.profile-header_container {
+    display: inline-flex;
+    align-items: center;
+    width: 100%;
+    padding: 2em;
+}
+
+.profile-header_icon {
+    font-size: 12em !important;
+}
+
+.profile-header_username {
+    margin-left: 1em;
+    font-size: 3em;
+}

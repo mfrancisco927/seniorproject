@@ -93,7 +93,7 @@ function App() {
           <PrivateRoute path='/questionnaire2'>
             <Questionnaire2 />
           </PrivateRoute>
-          <PrivateRoute path='/profile'>
+          <PrivateRoute path={['/profile/:profileId', '/profile']}>
             <ProfilePage />
           </PrivateRoute>
           <PrivateRoute path='/playlist'>

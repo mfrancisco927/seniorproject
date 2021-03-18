@@ -47,8 +47,11 @@ export async function createUser(email, username, password) {
 
 export async function getProfile(userId) {
   const profileEndpoint = profileEndpointUri(userId);
-  const response = await axiosInstance.get(profileEndpoint);
-  return response.data;
+  return await axiosInstance.get(profileEndpoint).then(value => {
+    return Promise.resolve(value.data);
+  }, reason => {
+    return Promise.reject(reason);
+  });
 }
 
 export async function followUser(userId, targetUserId) {
