@@ -18,6 +18,7 @@ import requests
 import json
 from random import randint
 import random
+import queue
 
 env = environ.Env()
 CLIENT_ID = env('CLIENT_ID')
@@ -550,12 +551,21 @@ class ArtistRecommendations(APIView):
         else :
             return Response({'error:', 'artist invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
       
+class SongHistoryAdd(APIView):
+    def post(self, request):
+        HISTORY_MAX = 1
+        user_history = UserSongPlay.objects.filter(user=self.request.user.id).order_by('listened_at')
+        print(list(user_history))
+        #store last 100 songs played
+        if user_history.count() > HISTORY_MAX:
+            #delete oldest song in history
+            for song in user_history[:1]:
+                song.delete()
+        else:
+            print('there are less than n songs')
 
 
 
-
-        
-
-
+        return Response(data=self.request.query_params, status=status.HTTP_200_OK)
         
 

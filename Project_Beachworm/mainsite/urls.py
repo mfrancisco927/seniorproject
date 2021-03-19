@@ -40,6 +40,8 @@ urlpatterns = [
     path('api/recommendation/genre/', GenreRecommendations.as_view(), name='recommendations-genre'),
     path('api/recommendation/artist/', ArtistRecommendations.as_view(), name='recommendations-artist'),
     # This will be a little different TODO add api/recommendations/playlist
+    #songhistory endpoint, pass songID after ending '/'
+    path('api/history/', SongHistoryAdd.as_view(), name='add-to-history'),
     # A testing path
     path('api/hello/', HelloWorldView.as_view(), name='hello_world'),
 ]
