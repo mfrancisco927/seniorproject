@@ -265,19 +265,25 @@ class Search(APIView):
         types = ['artist', 'track', 'album']
         query = self.request.query_params
         results = {}
-        for type in types:
-            results[type + 's'] = sp.search(q=query['q'], type=type, market='US', limit=10)[type + 's']
-            #get track IDs for results and query DB for those songs
-            if type == 'track':
-                # Saves songs to database
-                saveSong(results['tracks'])
+        if query['q'] == '' or query['q'] == ';' or query['q'] == '*' or query['q'] == None:
+            for type in types:
+                results[type + 's'] = {"href" : query['q'], "items" : []}
+            results['playlists'] = {"items" : []}
+            return Response(data=results, status=status.HTTP_200_OK)
+        else:
+            for type in types:
+                results[type + 's'] = sp.search(q=query['q'], type=type, market='US', limit=10)[type + 's']
+                #get track IDs for results and query DB for those songs
+                if type == 'track':
+                    # Saves songs to database
+                    saveSong(results['tracks'])
 
-        #return public playlists whose name contains query
-        playlists = list(Playlist.objects.filter(title__icontains=query['q'], is_public=True).values())
-        results['playlists'] = {}
-        results['playlists']['items'] = playlists
+            #return public playlists whose name contains query
+            playlists = list(Playlist.objects.filter(title__icontains=query['q'], is_public=True).values())
+            results['playlists'] = {}
+            results['playlists']['items'] = playlists
 
-        return Response(data=results, status=status.HTTP_200_OK)
+            return Response(data=results, status=status.HTTP_200_OK)
 
 class GetUser(APIView):
     def get(self, request):
