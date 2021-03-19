@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useAuth } from './../../hooks/authHooks';
 import { useSpotifySdk } from './../../hooks/spotifyHooks';
-// import { getRecommendations } from './../../api/recommendationApi';
+import { getRecommendations } from './../../api/recommendationApi';
 
 import FloatingToolbar from './../playbackControllers/FloatingToolbar';
 
@@ -16,52 +16,31 @@ import './Explore.css';
 
 // wireframe: https://xd.adobe.com/view/8f7d9312-7adc-46a7-bf90-3947da38a70f-da2e/screen/564cc961-1abb-4956-b5a5-ff00ff1be308
 
-const testQueueables = [
-  {
-    name: 'Lions!',
-    song_id: '4OdGWYrATA6GKBCBjXkb2E',
-  },
-  {
-    name: 'Onwards',
-    song_id: '1K4WIx8NrOCdedkJwSCaAQ',
-  },
-  {
-    name: 'New Chapter',
-    song_id: '5Yn7hFF4Ap9tYZJOyyd7Ui',
-  },
-  {
-    name: 'Everything Matters',
-    song_id: '68ihyK7c8TRIkN5dFVnSYY',
-  },
-  {
-    name: 'Ego',
-    song_id: '5NoZA0PvEGP1kFkQv2vJTQ',
-  },
-  {
-    name: 'Enter',
-    song_id: '3VXtkBYkeDqVTECO1OOdXd',
-  },
-];
-
-function Explore(props) {
+function Explore() {
     const auth = useAuth();
     const spotify = useSpotifySdk();
-    const CONTEXT_QUEUE_NAME = 'Explore';
+    const CONTEXT_QUEUE_PREFIX = 'Explore';
 
     // on mount, get the songs we need and add them to the queue.
     useEffect(() => {
       const onMount = async (data) => {
-        // only if we're not already playing from the explore list, add some more
-        if (spotify.getContextPlayQueue().name !== CONTEXT_QUEUE_NAME) {
+        const contextQueue = spotify.getContextPlayQueue();
+        const contextQueueName = contextQueue.name;
+        // only if we're not already playing from an explore list, add some more
+        if (!contextQueue || !contextQueueName || !contextQueueName.startsWith(CONTEXT_QUEUE_PREFIX)) {
+          const getExploreSongs = async () => {
+            return await getRecommendations().then(success => success.items);
+          };
+
           console.log('Populating initial load of Explore songs');
-          // const recommendedSongs = await getRecommendations(auth.id);
-          const recommendedSongs = testQueueables; // REMOVE AFTER ENDPOINT TO GET OWN USER ID IMPLEMENTED INTO AUTH!
-          const songsMapped = recommendedSongs.map(song => ({'id': song.song_id})); // remap "song_id" to "id"
-          spotify.play(songsMapped[0].id);
-          spotify.setContextPlayQueue({
-            name: CONTEXT_QUEUE_NAME,
-            songs: songsMapped.slice(1)
+          getExploreSongs().then(returnedSongs => {
+            spotify.setContextPlayQueue({
+              name: CONTEXT_QUEUE_PREFIX,
+              songs: returnedSongs,
+              getMoreSongs: getExploreSongs,
+            });
           });
+          
         }
       };
 
@@ -77,8 +56,11 @@ function Explore(props) {
     const currState = spotify.getPlayerState();
     const trackWindow = currState && currState.track_window;
     const currentTrack = trackWindow && trackWindow.current_track;
+    // TODO: the small time between when we hit play and the song is actually loaded by
+    // spotify, causes peek to flash the next song ahead of time. fix somehow? maybe store song in state here or in the hook?
+    const songToShow = currentTrack || spotify.peekNextSong(); 
     const position = currState.position;
-    const { paused } = currState || false;
+    const { paused } = currState || true;
 
     const {
       name,
@@ -88,7 +70,7 @@ function Explore(props) {
         name: albumName,
       },
       duration_ms,
-    } = currentTrack ||
+    } = songToShow ||
       { name: undefined, artists: undefined, album: { images: undefined, name: undefined, uri: undefined}, duration_ms: undefined};
   
     const handlePlay = () => {
@@ -133,16 +115,15 @@ function Explore(props) {
               <ArrowDownwardRoundedIcon className="btn-like-dislike_icon" />
             </IconButton>
             {auth.user ? (
-              currentTrack && (
-                <div className="album-image_wrapper" onClick={handlePlay}>
-                  {albumImg}
-                  {paused && (
-                    <IconButton className="play-song-overlay">
-                      <PlayCircleFilledRoundedIcon className="resume_icon" />
-                    </IconButton>
-                  )}
-                </div>
-              )) : (
+              <div className="album-image_wrapper" onClick={handlePlay}>
+                {albumImg}
+                {(paused || !trackWindow) && (
+                  <IconButton className="play-song-overlay">
+                    <PlayCircleFilledRoundedIcon className="resume_icon" />
+                  </IconButton>
+                )}
+              </div>
+            ) : (
                 // todo: replace with song iframe for guest
                 <div className='playing-curr-song playing-curr-song__guest'>
                   {/* iframe here! */}
@@ -155,10 +136,10 @@ function Explore(props) {
               <SkipNextRoundedIcon className="btn-next-previous_icon" />
             </IconButton>
           </div>
-          {auth.user && currentTrack && (
+          {auth.user && (
             <div className="info-row">
-              <h2 style={{textAlign:'center'}}>{name}</h2>
-              <h3 style={{textAlign:'center'}}>{artists.map(artist => artist.name).join(', ')}</h3>  
+              <h2 style={{textAlign:'center'}}>{songToShow ? name : 'Loading song...'}</h2>
+              <h3 style={{textAlign:'center'}}>{songToShow ? artists.map(artist => artist.name).join(', ') : 'Loading artist...'}</h3>  
             </div>
           )}
           </div>
