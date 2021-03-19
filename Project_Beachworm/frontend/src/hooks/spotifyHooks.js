@@ -134,23 +134,27 @@ export function ProvideSpotify({ children }) {
   );
 
   function useProvideSdk() {
-    const [contextPlayQueue, setContextPlayQueue] = useState({ 'name': undefined, 'songs': [] });
+    const [contextPlayQueue, setContextPlayQueue] = useState({ 'name': undefined, 'songs': [], 'getMoreSongs': undefined });
     const [userPlayQueue, setUserPlayQueue] = useState([]);
     const [shuffle, setShuffle] = useState(false);
     const [muted, setMuted] = useState(false);
     const [autoplay, setAutoplay] = useState(true);
 
     useEffect(() => {
-      if (trackEnded) {
-        // TODO: fire 'listened to' endpoint to add to user history
-        console.log('Track ending detected');
-        if (autoplay) {
-          const nextSong = dequeueNextSong(shuffle);
-          if (nextSong) {
-            refreshWrapper(play)(nextSong.id);
+      const playNext = async () => {
+        if (trackEnded) {
+          // TODO: fire 'listened to' endpoint to add to user history
+          console.log('Track ending detected');
+          if (autoplay) {
+            const nextSong = await dequeueNextSong(shuffle);
+            if (nextSong) {
+              refreshWrapper(play)(nextSong.id);
+            }
           }
         }
-      }
+      };
+
+      playNext();
     }, [trackEnded]);
   
     // const onlyIfLoadedWrapper = (callback) => {
@@ -228,7 +232,16 @@ export function ProvideSpotify({ children }) {
   
     const togglePlaying = async () => {
       console.log('Toggling playback status');
-      return playerRef.togglePlay();
+      if (!playerState.track_window || !playerState.track_window.current_track) {
+        console.log('No song playing, dequeuing and playing');
+        const nextSong = await dequeueNextSong();
+        console.log(nextSong);
+        if (nextSong) {
+          return play(nextSong.id);
+        }
+      } else {
+        return playerRef.togglePlay();
+      }
     };
   
     const seek = async (millis) => {
@@ -246,7 +259,8 @@ export function ProvideSpotify({ children }) {
     const addToContextPlayQueue = (songs) => {
       setContextPlayQueue({
         name: contextPlayQueue.name,
-        songs: [...contextPlayQueue.songs, ...songs]
+        songs: [...contextPlayQueue.songs, ...songs],
+        getMoreSongs: contextPlayQueue.getMoreSongs,
       });
     }
   
@@ -266,27 +280,40 @@ export function ProvideSpotify({ children }) {
   
     const clearContextPlayQueue = () => {
       console.log('Clearing context play queue');
-      setContextPlayQueue({ name: undefined, songs: []});
+      setContextPlayQueue({ name: undefined, songs: [], getMoreSongs: undefined });
     }
   
     // TODO: rework shuffle index or rng seed to a state variable so that
     // peek and dequeue return the same song
-    const dequeueNextSong = () => {
+    const dequeueNextSong = async () => {
       // regardless of shuffle status, always try to take the front of the play queue first
       if (userPlayQueue.length) {
         const song = userPlayQueue[0];
         setUserPlayQueue(userPlayQueue.slice(1));
         return song;
-      } else {
-        // if play queue is empty, generate an index and pop it while removing everything else
-        const index = shuffle ? Math.floor(Math.random() * contextPlayQueue.length) : 0;
+      } else if (contextPlayQueue.songs.length) {
+        // if play queue is empty, generate an index in the context queue and pop it while removing everything else
+        const index = shuffle ? Math.floor(Math.random() * contextPlayQueue.songs.length) : 0;
         const contextSongs = contextPlayQueue.songs;
         const removed = contextSongs[index];
+        const songsRemaining = [...contextSongs.slice(0, index), ...contextSongs.slice(index + 1)];
+        // if we run out of songs and we have a way to get more, do that
+        if (songsRemaining.length === 0 && contextPlayQueue.getMoreSongs) {
+          console.log('Ran out of songs. Attempting to retrieve more.');
+          const newSongs = await contextPlayQueue.getMoreSongs().then(
+            songs => Promise.resolve(songs),
+            _reject => Promise.resolve([]),
+          );
+          songsRemaining.push(...newSongs);
+        }
         setContextPlayQueue({
           name: contextPlayQueue.name,
-          songs: [...contextSongs.slice(0, index), ...contextSongs.slice(index + 1)],
+          songs: songsRemaining,
+          getMoreSongs: contextPlayQueue.getMoreSongs,
         });
         return removed;
+      } else {
+        return null;
       }
     }
 
@@ -294,11 +321,12 @@ export function ProvideSpotify({ children }) {
       // regardless of shuffle status, always try to take the front of the play queue first
       if (userPlayQueue.length) {
         return userPlayQueue[0];
+      } else if (contextPlayQueue.songs.length) {
+        // if user play queue is empty, generate an index from the context queue
+        const index = shuffle ? Math.floor(Math.random() * contextPlayQueue.songs.length) : 0;
+        return contextPlayQueue.songs[index];
       } else {
-        // if play queue is empty, generate an index and pop it while removing everything else
-        const index = shuffle ? Math.floor(Math.random() * contextPlayQueue.length) : 0;
-        const peeked = contextPlayQueue.songs[index];
-        return peeked;
+        return null;
       }
     }
   
@@ -319,7 +347,8 @@ export function ProvideSpotify({ children }) {
       console.log('Deleting index ' + index + ' from context queue');
       setContextPlayQueue({
         name: contextPlayQueue.name,
-        songs: [...contextPlayQueue.songs.slice(0, index), ...contextPlayQueue.songs.slice(index + 1)]
+        songs: [...contextPlayQueue.songs.slice(0, index), ...contextPlayQueue.songs.slice(index + 1)],
+        getMoreSongs: contextPlayQueue.getMoreSongs,
       });
     }
   
@@ -329,9 +358,9 @@ export function ProvideSpotify({ children }) {
       return playerRef.setVolume(volume);
     }
 
-    const skip = () => {
+    const skip = async () => {
       const refreshWrappedPlay = refreshWrapper(play);
-      const nextSong = dequeueNextSong();
+      const nextSong = await dequeueNextSong();
       if (nextSong) {
         refreshWrappedPlay(nextSong.id);
       }
@@ -339,7 +368,7 @@ export function ProvideSpotify({ children }) {
   
     return {
       // current song controls
-      resume: refreshWrapper(() => {play()}),
+      resume: refreshWrapper(() => play()),
       pause: refreshWrapper(pause),
       play: refreshWrapper(play),
       togglePlay: refreshWrapper(togglePlaying),

@@ -1,31 +1,63 @@
 import axiosInstance from './axiosApi';
 
-const baseUri = '/recommendations';
-const standardRecommendationUri = (userId) => baseUri + '/user/' + userId + '/';
-const genreRecommendationUri = (genreId) => baseUri + '/genre/' + genreId + '/';
-const artistRecommendationUri = (artistId) => baseUri + '/artist/' + artistId + '/';
-const playlistRecommendationUri = (playlistId) => baseUri + '/playlists/' + playlistId + '/';
+const baseUri = '/recommendation';
+const standardRecommendationUri = baseUri + '/user/';
+const genreRecommendationUri = baseUri + '/genre/';
+const artistRecommendationUri = baseUri + '/artist/';
+const playlistRecommendationUri = baseUri + '/playlist/';
 
-export async function getRecommendations(userId) {
-  const recEndpoint = standardRecommendationUri(userId);
-  const response = await axiosInstance.get(recEndpoint);
-  return response.data;
+export async function getRecommendations() {
+  const recEndpoint = standardRecommendationUri;
+  const response = await axiosInstance.get(recEndpoint).then(x => {
+    return Promise.resolve(x.data)
+  }, error => {;
+    return Promise.reject(error)
+  });
+
+  return response;
 }
 
 export async function getRecommendationsByArtist(artistId) {
-  const artistRecEndpoint = artistRecommendationUri(artistId);
-  const response = await axiosInstance.get(artistRecEndpoint);
-  return response.data;
+  const artistRecEndpoint = artistRecommendationUri;
+  const response = await axiosInstance.get(artistRecEndpoint, {
+    params: {
+      artist: artistId,
+    }
+  }).then(x => {
+    return Promise.resolve(x.data)
+  }, error => {;
+    return Promise.reject(error)
+  });
+
+  return response;
 }
 
 export async function getRecommendationsByGenre(genreId) {
-  const genreRecEndpoint = genreRecommendationUri(genreId);
-  const response = await axiosInstance.get(genreRecEndpoint);
-  return response.data;
+  const genreRecEndpoint = genreRecommendationUri;
+  const response = await axiosInstance.get(genreRecEndpoint, {
+    params: {
+      genre: genreId,
+    }
+  }).then(x => {
+    return Promise.resolve(x.data)
+  }, error => {;
+    return Promise.reject(error)
+  });
+
+  return response;
 }
 
 export async function getRecommendationsByPlaylist(playlistId) {
-  const playlistRecEndpoint = playlistRecommendationUri(playlistId);
-  const response = await axiosInstance.get(playlistRecEndpoint);
-  return response.data;
+  const playlistRecEndpoint = playlistRecommendationUri;
+  const response = await axiosInstance.get(playlistRecEndpoint, {
+    params: {
+      playlist: playlistId,
+    }
+  }).then(x => {
+    return Promise.resolve(x.data)
+  }, error => {;
+    return Promise.reject(error)
+  });
+
+  return response;
 }
