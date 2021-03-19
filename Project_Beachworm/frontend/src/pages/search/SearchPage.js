@@ -1,4 +1,5 @@
 import './SearchPage.css';
+import LoadingImage from '../loading.svg';
 
 function SearchPage(props) {
 
@@ -9,9 +10,11 @@ function SearchPage(props) {
             <h1> Search Results </h1>
             <h2> search for: {searchItem} </h2>
             {
-                Object.keys(searchData).length === 0 
+                searchData && Object.keys(searchData).length === 0 
                 ?
-                    <h1>Loading</h1>
+                    <div className='line-one'>
+                        <img className='loading-image' src={LoadingImage}/>
+                    </div>
                 :
                 <div className='search-results-wrapper'>
                     <div className='line-one'>
