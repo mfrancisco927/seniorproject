@@ -29,7 +29,8 @@ urlpatterns = [
     path('api/spotify/store-credential/', SpotifyStore.as_view(), name='spotify-store-initial'),
     path('api/spotify/refresh-token/', SpotifyRefresh.as_view(), name='spotify-refresh-token'),
     path('api/user/current/', GetUser.as_view(), name='get_current_user'),
-    path('search/', Search.as_view(), name='search'),
+
+    path('api/search/', Search.as_view(), name='search'),
     # Initial user creation recommendation seed endpoints
     path('api/recommendation/obtain-genres/', Genre.as_view(), name='genre-obtain'),
     path('api/user/profile/seed/genres/', GenreSave.as_view(), name='genre-save'),
@@ -40,6 +41,7 @@ urlpatterns = [
     path('api/recommendation/genre/', GenreRecommendations.as_view(), name='recommendations-genre'),
     path('api/recommendation/artist/', ArtistRecommendations.as_view(), name='recommendations-artist'),
     # This will be a little different TODO add api/recommendations/playlist
+
     # A testing path
     path('api/hello/', HelloWorldView.as_view(), name='hello_world'),
 ]

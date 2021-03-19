@@ -13,6 +13,7 @@ import PageNotFound from './pages/pageNotFound/PageNotFound.js';
 import Questionnaire1 from './pages/questionnaire/Questionnaire1.js';
 import Questionnaire2 from './pages/questionnaire/Questionnaire2.js';
 import SpotifyAuth from './pages/spotifyAuth/SpotifyAuth.js';
+import {search} from './api/searchApi';
 
 import { useAuth } from './hooks/authHooks';
 
@@ -24,11 +25,20 @@ function App() {
   const history = useHistory();
 
   const [ searchField , setSearchField ] = useState('')
+  const [ searchData, setSearchData] = useState({})
 
   const submitSearch = (e) => {
     e.preventDefault();
-    console.log(searchField);
-    history.push('/search');
+    setSearchData({});
+    console.log(searchField)
+    if(searchField !== ''){
+      search(searchField).then( (data) => {
+        setSearchData(data)
+      }).then( () => {
+        console.log(searchData)
+      })
+      history.push('/search');
+    }
   }
 
   const changeSong = (song) => {
@@ -93,7 +103,7 @@ function App() {
             <PlaylistPage />
           </PrivateRoute>
           <PrivateRoute path='/search'>
-            <SearchPage searchedItem={searchField} />
+            <SearchPage searchItem={searchField} searchData={searchData} />
           </PrivateRoute>
           <PrivateRoute path='/spotify-auth'>
             <SpotifyAuth />
