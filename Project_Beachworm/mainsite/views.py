@@ -18,6 +18,8 @@ import requests
 import json
 from random import randint
 import random
+import datetime
+from datetime import timezone
 
 env = environ.Env()
 CLIENT_ID = env('CLIENT_ID')
@@ -550,12 +552,43 @@ class ArtistRecommendations(APIView):
         else :
             return Response({'error:', 'artist invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
       
+class SongHistory(APIView):
+    #get a user's song history
+    def get(self, request):
+        user_history = list(UserSongPlay.objects.filter(user=self.request.user.id).order_by('listened_at').values())
+        results = {}
+        results['history'] = user_history
+        return Response(data = user_history , status=status.HTTP_200_OK)
 
-
-
-
+    #add a song to the user's history
+    def post(self, request):
+        HISTORY_MAX = 10 #set to 10 for testing purposes, change to 100 when deployed
+        query = self.request.query_params
+        user_history = UserSongPlay.objects.filter(user=self.request.user.id).order_by('listened_at')
+        profile = Profile.objects.filter(user=self.request.user.id).first()
+        last_song = Song.objects.filter(song_id=query['song_id']).first()
+        #return error if no song or profile found
+        if last_song == None:
+            return Response({'error:', 'song_id invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
+        if profile == None:
+            return Response({'error:', 'profile invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
+        #if at limit, delete oldest song in history, this should never exceed limit, using >= just in case
+        if user_history.count() >= HISTORY_MAX:
+            #in case it somehow gets to be more than the set limit, take off multiple songs to restore it to limit
+            diff = user_history.count() - HISTORY_MAX
+            for song in user_history[:diff+1]:
+                song.delete()
+        song_add = UserSongPlay(
+            user = profile,
+            song = last_song,
+            listened_at = datetime.datetime.now(timezone.utc)
+        )
+        song_add.save()
+        #re-run query to capture changes
+        user_history = list(UserSongPlay.objects.filter(user=self.request.user.id).order_by('listened_at').values())
+        results = {}
+        results['history'] = user_history
         
-
-
+        return Response(data = results , status=status.HTTP_200_OK)
         
 
