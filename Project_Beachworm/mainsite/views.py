@@ -555,7 +555,10 @@ class ArtistRecommendations(APIView):
 class SongHistory(APIView):
     #get a user's song history
     def get(self, request):
-        pass
+        user_history = list(UserSongPlay.objects.filter(user=self.request.user.id).order_by('listened_at').values())
+        results = {}
+        results['history'] = user_history
+        return Response(data = user_history , status=status.HTTP_200_OK)
 
     #add a song to the user's history
     def post(self, request):
