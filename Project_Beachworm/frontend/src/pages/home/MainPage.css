@@ -18,7 +18,8 @@
     height: 300x;
     width: 300px;
   }
-  
+
+
   .song-wrapper img:hover{
     box-shadow: inset 10px 10px 5px rgba(49, 47, 47, 0.712);
     -moz-box-shadow: inset 10px 10px 5px rgba(49, 47, 47, 0.712);

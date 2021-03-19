@@ -2,6 +2,7 @@
     display: flex;
     flex-direction: column;
     margin: 5%;
+    margin-top: 1%;
   }
   
   .search-results-wrapper .line-one, .search-results-wrapper .line-two {
@@ -10,8 +11,57 @@
     flex-direction: row;
     justify-content: space-around;
   }
+
+  .results-group{
+    display: flex;
+    flex-direction: column;
+    width: 600px;
+    margin: 2%;
+    background: rgba(51, 51, 51, 0.308);
+    border-radius: 3%;
+  }
+
+  .results-results{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-around;
+  }
+
+  .result-title{
+    display:flex;
+    justify-content: space-around;
+  }
   
   .result {
     padding: 10%;
-    border: 1px solid black;
+    width: 20%;
+  }
+
+  .result img{
+    width:150px;
+    height:150px;
+  }
+
+  img:hover{
+    box-shadow: inset 10px 10px 5px rgba(49, 47, 47, 0.712);
+    -moz-box-shadow: inset 10px 10px 5px rgba(49, 47, 47, 0.712);
+    -webkit-box-shadow:  10px 10px 5px rgba(49, 47, 47, 0.712);
+  }
+
+  .show-more{
+    text-decoration: underline;
+  }
+
+  
+  .show-more:hover{
+    font-weight: bold;
+  }
+
+  .artist-name{
+    font-size: .8em;
+  }
+
+  h3{
+    font-style: italic;
   }
