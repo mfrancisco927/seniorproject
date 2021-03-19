@@ -553,6 +553,11 @@ class ArtistRecommendations(APIView):
             return Response({'error:', 'artist invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
       
 class SongHistory(APIView):
+    #get a user's song history
+    def get(self, request):
+        pass
+
+    #add a song to the user's history
     def post(self, request):
         HISTORY_MAX = 10 #set to 10 for testing purposes, change to 100 when deployed
         query = self.request.query_params
@@ -577,10 +582,10 @@ class SongHistory(APIView):
         )
         song_add.save()
         #re-run query to capture changes
-        list(profile.liked_songs.values_list('song_id', flat=True))
         user_history = list(UserSongPlay.objects.filter(user=self.request.user.id).order_by('listened_at').values())
         results = {}
         results['history'] = user_history
+        
         return Response(data = results , status=status.HTTP_200_OK)
         
 
