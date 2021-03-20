@@ -586,13 +586,15 @@ class SongHistory(APIView):
         
         return Response(data = results , status=status.HTTP_200_OK)
         
-class Playlist(APIView):
-    def get(self, request):
-        playlist=Playlist.objects.get(self.request.playlist_id)
-        return
-class Playlist(APIView):
 class PlaylistSongs(APIView):
-        playlist=Playlist.objects.get(playlist_id)
+    permission_classes = (permissions.AllowAny,)
+    def get(self, request, playlist_id):
+        playlist=Playlist.objects.get(pk=playlist_id)
+        songs= list(playlist.songs.all().values())
+        result = {}
+        for i in range((len(songs))):
+            result[i]=songs[i] 
+        return Response(data = result , status=status.HTTP_200_OK)
 
 class FollowPlaylist(APIView):
     def post(self, request, user_id, playlist_id):
