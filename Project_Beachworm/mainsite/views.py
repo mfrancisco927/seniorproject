@@ -318,9 +318,7 @@ class GenreSave(APIView):
         except ProfileDoesNotExist :
             return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
-        genre_list = request.POST.get('genres')
-        # print(genre_list)
-        genre_formatted = eval(genre_list)
+        genre_formatted = request.POST.getlist("genres[]")
 
         if genre_formatted:
             for genre in genre_formatted :
@@ -371,9 +369,7 @@ class ArtistSave(APIView):
         except ProfileDoesNotExist :
             return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
-        artist_list = request.POST.get('artists')
-       
-        artist_formatted = eval(artist_list)
+        artist_formatted = request.POST.getlist("artists[]")
 
         if artist_formatted:
             for artist in artist_formatted :
