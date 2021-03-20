@@ -45,4 +45,15 @@ urlpatterns = [
     path('api/history/', SongHistory.as_view(), name='user-song-history'),
     # A testing path
     path('api/hello/', HelloWorldView.as_view(), name='hello_world'),
+
+    #Playlist Endpoints
+    path('api/playlists/<playlist_id>/songs/', PlaylistSongs.as_view(), name='playlist_songs'),
+    path('api/users/<user_id>/followed-playlists/<playlist_id>/', FollowPlaylist.as_view(), name='follow_playlist'),
+    path('api/playlists/<playlist_id>/', ModifyPlaylist.as_view(), name='modify_playlist'),
+    #path('api/playlists/<playlist_id>/<playlist_song_id>/', DeletePlaylistSongs.as_view(), name='edit_playlist_songs'),
+
+    #Song Endpoints
+    path('api/history/<user_id>/likes/<song_id>/', LikeSong.as_view(), name='song_like'),
+    path('api/history/<user_id>/dislikes/<song_id>/', DislikeSong.as_view(), name='song_dislike'),
+    
 ]
