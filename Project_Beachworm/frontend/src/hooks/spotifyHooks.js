@@ -1,6 +1,7 @@
 import { useContext, createContext, useState, useEffect, useRef } from "react";
 import { refreshSpotifyToken }  from './../api/authenticationApi';
 import { playTrack } from './../api/spotifyApi';
+import { listenToSong } from './../api/songAPI';
 import { useAuth } from './../hooks/authHooks';
 import WebPlaybackReact from './WebPlaybackReact';
 
@@ -26,6 +27,9 @@ export function ProvideSpotify({ children }) {
   const [trackEnded, setTrackEnded] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [volume, setVolume] = useState(null);
+  const [songHistory, setSongHistory] = useState([]);
+
+  const [sessionSongHistoryStack, setSessionHistoryStack] = useState([]);
 
   const handleNewState = async (nextState) => {
     // update our pause button
@@ -48,8 +52,9 @@ export function ProvideSpotify({ children }) {
       && nextState.track_window.previous_tracks.find(x => x.id === nextState.track_window.current_track.id)
       && !playerState.paused
       && nextState.paused) {
-        // console.log('Track ended');
         setTrackEnded(true);
+        const prevSongId = nextState.track_window.current_track.id;
+        setSessionHistoryStack([...sessionSongHistoryStack, prevSongId]);
     }
   };
 
@@ -174,50 +179,43 @@ export function ProvideSpotify({ children }) {
         } else {
           return Promise.reject('No access token from endpoint');
         }
-      }, reject => {
+      }, _reject => {
         console.log('Access token failed to refresh')
       });
     };
   
     const refreshAndTry = async (callback, parameters, firstTry) => {
       const attempt = async () => {
-        try {
-          return await new Promise(() => {
-            try {
-              parameters ? callback(parameters) : callback();
-              Promise.resolve();
-            } catch (e) {
-              throw e;
-            }
-          });
-        } catch (e) {
+        return await new Promise(parameters ? () => callback(parameters) : callback)
+        .catch(async e => {
           console.log('Error in refreshable function', e);
           if (firstTry) {
             console.log('Attempting to retrieve new Spotify token');
             await refreshToken();
             return refreshAndTry(callback, parameters, false);
+          } else {
+            return Promise.reject('Too many attempts, giving up');
           }
-        }
+        });
       };
   
       // if spotify endpoint tells us we don't have the auth, refresh token and try again
       if (!spotifyTokenRef.current) {
         console.log(`Called a Spotify auth-required function, but we have no access token. Will try to refresh token then attempt.`);
-        refreshToken().then(result => {
+        return refreshToken().then(result => {
           console.log('Attempt succeeded, received token', result);
-          attempt();
-        }, reject => {
+          return attempt();
+        }, _reject => {
           console.log('Attempt to refresh token failed. Giving up.');
+          return Promise.reject();
         });
       } else {
-        attempt();
+        return attempt();
       }
     }
   
     const refreshWrapper = (callback) => {
-      return (parameters) => {
-        refreshAndTry(callback, parameters, true);
-      }
+      return (parameters) => refreshAndTry(callback, parameters, true);
     };
   
     const pause = async () => {
@@ -226,8 +224,23 @@ export function ProvideSpotify({ children }) {
     };
   
     const play = async (songId) => {
-      console.log(songId ? 'Playing song with id ' + songId : 'Resuming current song');
-      return songId ? playTrack(songId, deviceIdRef.current, spotifyTokenRef.current) : playerRef.resume();
+      if (songId) {
+        return playTrack(songId, deviceIdRef.current, spotifyTokenRef.current).then(async _ => {
+          return await listenToSong(songId).then(history => {
+            console.log('Logged listen to song ' + songId);
+            setSongHistory(history.history);
+            return Promise.resolve(history.history);
+          }, _reject => {
+            console.log('Failed to log song listen for song ' + songId);
+            return Promise.resolve(null); // not a deal-breaker, just resolve anyway
+          });
+        }, reject => {
+          return Promise.reject(reject);
+        });
+      } else {
+        console.log('Resuming current track');
+        return playerRef.resume();
+      }
     };
   
     const togglePlaying = async () => {
@@ -235,7 +248,7 @@ export function ProvideSpotify({ children }) {
       if (!playerState.track_window || !playerState.track_window.current_track) {
         console.log('No song playing, dequeuing and playing');
         const nextSong = await dequeueNextSong();
-        console.log(nextSong);
+        // console.log(nextSong);
         if (nextSong) {
           return play(nextSong.id);
         }
@@ -361,8 +374,30 @@ export function ProvideSpotify({ children }) {
     const skip = async () => {
       const refreshWrappedPlay = refreshWrapper(play);
       const nextSong = await dequeueNextSong();
+      const trackWindow = playerState && playerState.track_window;
+      const currentTrack = trackWindow && trackWindow.current_track;
       if (nextSong) {
-        refreshWrappedPlay(nextSong.id);
+        if (currentTrack) {
+          setSessionHistoryStack([...sessionSongHistoryStack, currentTrack.id]);
+        }
+        await refreshWrappedPlay(nextSong.id);
+      }
+    }
+
+    const playPrevious = async () => {
+      if (sessionSongHistoryStack.length) {
+        const trackWindow = playerState && playerState.track_window;
+        const currentTrack = trackWindow && trackWindow.current_track;
+        const prevSongId = sessionSongHistoryStack[sessionSongHistoryStack.length - 1];
+        // remove last song id from stack
+        setSessionHistoryStack([...sessionSongHistoryStack.slice(0, sessionSongHistoryStack.length - 1)]);
+        // push currently playing to user queue
+        if (currentTrack) {
+          setUserPlayQueue([currentTrack, ...userPlayQueue]);
+        }
+        // play the previous song
+        console.log('Moving to previous track ' + prevSongId);
+        await playTrack(prevSongId, deviceIdRef.current, spotifyTokenRef.current);
       }
     }
   
@@ -374,6 +409,7 @@ export function ProvideSpotify({ children }) {
       togglePlay: refreshWrapper(togglePlaying),
       seek: refreshWrapper(seek),
       skip: skip,
+      playPrevious: playPrevious,
       // general playback/info controls
       isPlaying: () => playing,
       setShuffle: setShuffle,
