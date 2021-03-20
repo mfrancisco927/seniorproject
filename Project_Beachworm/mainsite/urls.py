@@ -43,7 +43,9 @@ urlpatterns = [
     # This will be a little different TODO add api/recommendations/playlist
     #songhistory endpoint, to add song to history pass songID after ending '/' in a post request
     path('api/history/', SongHistory.as_view(), name='user-song-history'),
-    path('api/user/<user_id>/profile/', Getprofile.as_view(), name='profile'),
+    path('api/users/<user_id>/profile/', Getprofile.as_view(), name='profile'),
+    #post request to follow, delete request to unfollow
+    path('api/users/profile/following/<profile>/', FollowToggle.as_view(), name='follow-unfollow'),
     # A testing path
     path('api/hello/', HelloWorldView.as_view(), name='hello_world'),
 ]
