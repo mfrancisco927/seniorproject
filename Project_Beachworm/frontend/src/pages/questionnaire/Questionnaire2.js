@@ -1,76 +1,17 @@
 import React , { Component } from 'react';
 import { Link } from 'react-router-dom';
 import Grid from '@material-ui/core/Grid';
+import '../../api/recommendationApi';
 import './Questionnaire.css';
 
 class Questionarre2 extends Component {
   constructor(props) {
     super(props)
 
-    this.state = {
-      artists: {
-        a: {
-          id: "a",
-          name: "(Sandy) Alex G",
-          image: 'https://i.scdn.co/image/7ddd6fa5cf78aee2f2e8b347616151393022b7d9',
-          selected: false,
-        },
-        b: {
-          id: "b",
-          name: "Phobe Bridgers",
-          image: 'https://i.scdn.co/image/7ddd6fa5cf78aee2f2e8b347616151393022b7d9',
-          selected: false,
-        },
-        c: {
-          id: "c",
-          name: "Jimi Hendrix",
-          image: 'https://i.scdn.co/image/7ddd6fa5cf78aee2f2e8b347616151393022b7d9',
-          selected: false,
-        },
-        d: {
-          id: "d",
-          name: "Pink Floyd",
-          image: 'https://i.scdn.co/image/7ddd6fa5cf78aee2f2e8b347616151393022b7d9',
-          selected: false,
-        },
-        e: {
-          id: "e",
-          name: "Denzel Curry",
-          image: 'https://i.scdn.co/image/7ddd6fa5cf78aee2f2e8b347616151393022b7d9',
-          selected: false,
-        },
-        f: {
-          id: "f",
-          name: "David Bowie",
-          image: 'https://i.scdn.co/image/7ddd6fa5cf78aee2f2e8b347616151393022b7d9',
-          selected: false,
-        },
-        g: {
-          id: "g",
-          name: "CASTLEBEAT",
-          image: 'https://i.scdn.co/image/7ddd6fa5cf78aee2f2e8b347616151393022b7d9',
-          selected: false,
-        },
-        h: {
-          id: "h",
-          name: "Anonymus",
-          image: 'https://i.scdn.co/image/7ddd6fa5cf78aee2f2e8b347616151393022b7d9',
-          selected: false,
-        },
-        i: {
-          id: "i",
-          name: "Father John Misty",
-          image: 'https://i.scdn.co/image/7ddd6fa5cf78aee2f2e8b347616151393022b7d9',
-          selected: false,
-        },
-        j: {
-          id: "j",
-          name: "Car Seat Headrest",
-          image: 'https://i.scdn.co/image/7ddd6fa5cf78aee2f2e8b347616151393022b7d9',
-          selected: false,
-        },
-      }
-    }
+    this.state = obtainArtists();
+    Object.entries(this.state.artists.items).forEach(artistsKV =>
+        artistsKV.selected = false
+      )
   }
   onIconClick(event) {
 
