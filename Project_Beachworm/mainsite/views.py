@@ -197,7 +197,6 @@ def genresFromArtists(artist_info, number_of_genres):
 
     # Select unique IDs, since we are selecting from a duplicate array
     # preference is given to most commonly found genres from artists
-    print(genre_ids_raw)
     genre_ids = []
     
     for genre in genre_ids_raw:
@@ -686,6 +685,7 @@ class HomeRecommendations(APIView):
         # Use songs -> rec artists -> rec genres
         curated_recommendations = curateSongs(profile, recommendations,75)
         curated_artists = artistsFromSongs(curated_recommendations)
+        print(len(curated_artists['artists']))
         curated_genres = genresFromArtists(curated_artists, HOME_RECOMMENDATION_NUMBER)
 
         home_recommendations = {}
@@ -703,9 +703,7 @@ class HomeRecommendations(APIView):
             if len(home_recommendations['artists']) >= RECOMMENDATION_NUMBER:
                 break
             home_recommendations['artists'].append(rec)
-
-        
-        
+ 
         
         return Response(data=home_recommendations, status=status.HTTP_200_OK)
 
