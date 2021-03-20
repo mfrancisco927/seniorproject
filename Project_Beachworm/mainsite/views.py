@@ -638,15 +638,35 @@ class FollowToggle(APIView):
 class UserPlaylists(APIView):
     #get a user's favorite playlists
     def get(self, request, user_id):
-        #can't access this endpoint for another user, if user_id is not the same as the requesting user then return 403
-        if int(self.request.user.id) != int(user_id):
-            print('error')
-            return Response(data={'error' : 'user_id must be the same as requesting user'}, status=status.HTTP_403_FORBIDDEN)
-        
+        #if requesting user is looking at another user, return only public playlists
         profile = Profile.objects.get(user=user_id)
-        favorite_playlists = list(profile.favorite_playlists.values_list('id', flat=True))
-        print(favorite_playlists)
-        results = {'user' : user_id, 'favorite_playlists' : favorite_playlists}
+        if int(self.request.user.id) != int(user_id):
+            favorite_playlists = list(profile.favorite_playlists.filter(is_public=True).values_list('id', flat=True))
+            results = {'user' : user_id, 'favorite_playlists' : favorite_playlists}
+        else:
+            favorite_playlists = list(profile.favorite_playlists.values_list('id', flat=True))
+            results = {'user' : user_id, 'favorite_playlists' : favorite_playlists}
         return Response(data=results, status=status.HTTP_200_OK)
 
- 
+    def post(self, request, user_id):
+        if int(self.request.user.id) != int(user_id):
+            return Response(data={'error' : 'user_id must be the same as requesting user'}, status=status.HTTP_403_FORBIDDEN)
+        profile = Profile.objects.get(user=user_id)
+        favorite_playlists = list(profile.favorite_playlists.values_list('id', flat=True))
+        target_playlist = self.request.query_params['playlist']
+        #quit if already favorited
+        if target_playlist in favorite_playlists:
+            return Response(data={'error' : 'user already favorited that playlist'}, status=status.HTTP_400_BAD_REQUEST)
+"""
+        sending_user = self.request.user.id
+        target_user = User.objects.filter(id=profile).first()
+        sending_user_profile = Profile.objects.get(user=sending_user)
+        following = list(sending_user_profile.following.values_list('user', flat=True))
+        #if sending_user already follows target user, return error
+        if target_user.id in following:
+            msg = 'user ' + str(sending_user) + ' already follows user ' + str(target_user.id)
+            #not sure what status to return here, just using 400 for now
+            return Response({'error:', msg }, status=status.HTTP_400_BAD_REQUEST)
+        sending_user_profile.following.add(target_user.id)
+        sending_user_profile.save
+        """
