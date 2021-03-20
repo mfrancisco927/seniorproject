@@ -587,14 +587,58 @@ class SongHistory(APIView):
         return Response(data = results , status=status.HTTP_200_OK)
         
 class PlaylistSongs(APIView):
-    permission_classes = (permissions.AllowAny,)
     def get(self, request, playlist_id):
-        playlist=Playlist.objects.get(pk=playlist_id)
+        try:
+            playlist= Playlist.objects.get(pk=playlist_id)
+        except:
+           return Response({"playlist_songs" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        
         songs= list(playlist.songs.all().values())
         result = {}
         for i in range((len(songs))):
             result[i]=songs[i] 
         return Response(data = result , status=status.HTTP_200_OK)
+
+    def post(self, request, playlist_id):
+        query = self.request.query_params
+        try:
+            playlist= Playlist.objects.get(pk=playlist_id)
+        except:
+           return Response({"edit_playlist_songs" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if playlist.owner.user.id == self.request.user.id:
+            try:
+                song= Song.objects.get(pk=query['id'])
+            except:
+                return Response({"edit_playlist_songs" : "error: song does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+            playlist.songs.add(song)
+            playlist.save()
+            return Response(status=status.HTTP_200_OK)
+
+        return Response({"edit_playlist_songs" : "error: user does not own this playlist"}, status=status.HTTP_404_NOT_FOUND)
+    
+    def delete(self, request, playlist_id, playlist_song_id):
+        query = self.request.query_params
+        try:
+            playlist= Playlist.objects.get(pk=playlist_id)
+        except:
+           return Response({"edit_playlist_songs" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        
+        songs= list(playlist.songs.all().values())
+    
+        if playlist.owner.user.id == self.request.user.id:
+            try:
+                song= Song.objects.get(pk=songs[query['id']]['song_id'])
+            except:
+                return Response({"edit_playlist_songs" : "error: song does not exist"}, status=status.HTTP_404_NOT_FOUND)
+                
+            playlist.songs.remove(song)
+            playlist.save()
+            return Response(status=status.HTTP_200_OK)
+
+        return Response({"edit_playlist_songs" : "error: user does not own this playlist"}, status=status.HTTP_404_NOT_FOUND)
+   
 
 class FollowPlaylist(APIView):
     def post(self, request, user_id, playlist_id):
