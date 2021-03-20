@@ -46,6 +46,8 @@ urlpatterns = [
     path('api/users/<user_id>/profile/', Getprofile.as_view(), name='profile'),
     #post request to follow, delete request to unfollow
     path('api/users/profile/following/<profile>/', FollowToggle.as_view(), name='follow-unfollow'),
+    #get request to retrieve user's fav playlists, post to add to user's fav playlists
+    path('api/user/<user_id>/playlists/', UserPlaylists.as_view(), name='follow-unfollow'),
     # A testing path
     path('api/hello/', HelloWorldView.as_view(), name='hello_world'),
 ]

@@ -597,8 +597,7 @@ class Getprofile(APIView):
         profile = Profile.objects.get(user=user_id)
         followers = list(Profile.objects.filter(following=user_id).values_list('user', flat=True))
         following = list(profile.following.values_list('user', flat=True))
-        print(followers)
-        favorite_playlists = list(profile.favorite_playlists.values_list('id', flat=True))
+        favorite_playlists = list(profile.favorite_playlists.filter(is_public=True).values_list('id', flat=True))
         results = {'user' : int(user_id), 'following' : following, 'followers' : followers, 'favorite_playlists' : favorite_playlists}
         return Response(data=results, status=status.HTTP_200_OK)
 
@@ -635,3 +634,19 @@ class FollowToggle(APIView):
         msg = 'user ' + str(sending_user) + ' unfollowed user ' + str(target_user.id)
         
         return Response(data={'success' : msg}, status=status.HTTP_200_OK)
+
+class UserPlaylists(APIView):
+    #get a user's favorite playlists
+    def get(self, request, user_id):
+        #can't access this endpoint for another user, if user_id is not the same as the requesting user then return 403
+        if int(self.request.user.id) != int(user_id):
+            print('error')
+            return Response(data={'error' : 'user_id must be the same as requesting user'}, status=status.HTTP_403_FORBIDDEN)
+        
+        profile = Profile.objects.get(user=user_id)
+        favorite_playlists = list(profile.favorite_playlists.values_list('id', flat=True))
+        print(favorite_playlists)
+        results = {'user' : user_id, 'favorite_playlists' : favorite_playlists}
+        return Response(data=results, status=status.HTTP_200_OK)
+
+ 
