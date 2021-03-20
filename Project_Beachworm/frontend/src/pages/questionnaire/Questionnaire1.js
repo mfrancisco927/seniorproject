@@ -8,7 +8,10 @@ import { postGenreSeeds } from '../../api/recommendationApi';
 class Questionarre1 extends Component {
   constructor(props) {
     super(props)
-
+    /*
+     * TO-DO:
+     * Get images for each genre
+     */
     this.state = {
       genres: {
         acoustic: {
