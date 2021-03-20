@@ -850,6 +850,7 @@ class Questionarre1 extends Component {
         genreIds.push(genreKV[1].spotifyid);
       }
     });
+    console.log(genreIds);
     postGenreSeeds(genreIds);
   }
 
