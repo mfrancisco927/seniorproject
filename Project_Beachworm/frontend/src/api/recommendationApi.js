@@ -49,7 +49,7 @@ export async function getRecommendationsByGenre(genreId) {
   return response;
 }
 
-export async function sendGenreSeeds(genreIds) {
+export async function postGenreSeeds(genreIds) {
   const sendGenreSeedsEndpoint = sendGenreSeeds;
   const response = await axiosInstance.post(sendGenreSeedsEndpoint, {
     params: {

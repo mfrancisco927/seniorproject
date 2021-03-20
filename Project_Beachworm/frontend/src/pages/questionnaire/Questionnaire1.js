@@ -852,6 +852,8 @@ class Questionarre1 extends Component {
                   <div className={this.state.genres[icon]['selected'] ? "withBorder" : "noBorder"} >
                     <img
                       src={this.state.genres[icon]['image']}
+                      width="300"
+                      height="300"
                       id={this.state.genres[icon]['id']}
                       alt={this.state.genres[icon]['name']}
                       onClick={(e) => this.onIconClick(e)} />
