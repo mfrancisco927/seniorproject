@@ -1,7 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useAuth } from './../../hooks/authHooks';
 import { useSpotifySdk } from './../../hooks/spotifyHooks';
 import { getRecommendations } from './../../api/recommendationApi';
+import { likeSong, dislikeSong, unlikeSong, undislikeSong } from './../../api/songAPI';
+import { getCurrentUser } from './../../api/userApi';
 
 import FloatingToolbar from './../playbackControllers/FloatingToolbar';
 
@@ -10,7 +12,7 @@ import ArrowDownwardRoundedIcon from '@material-ui/icons/ArrowDownwardRounded';
 import PlayCircleFilledRoundedIcon from '@material-ui/icons/PlayCircleFilledRounded';
 import SkipNextRoundedIcon from '@material-ui/icons/SkipNextRounded';
 import SkipPreviousRoundedIcon from '@material-ui/icons/SkipPreviousRounded';
-import { IconButton } from '@material-ui/core';
+import { Button, IconButton } from '@material-ui/core';
 
 import './Explore.css';
 
@@ -20,30 +22,44 @@ function Explore() {
     const auth = useAuth();
     const spotify = useSpotifySdk();
     const CONTEXT_QUEUE_PREFIX = 'Explore';
+    const likedSongs = useRef(null);
+    const dislikedSongs = useRef(null);
+    const ctxQueue = spotify.getContextPlayQueue();
+    const contextQueueName = ctxQueue && ctxQueue.name;
+
+    const loadLikeDislikes = useCallback(async () => {
+      await getCurrentUser().then(success => {
+        console.log('Refreshing like/dislike history for Explore');
+        likedSongs.current = success.liked_songs;
+        dislikedSongs.current = success.disliked_songs;
+      }).catch(reject => {
+        console.log('Failed to refresh like/dislike history for Explore');
+      })
+    }, []);
+
+    const loadExploreSongs = useCallback(async () => {
+      const getExploreSongs = async () => {
+        return await getRecommendations().then(success => success.items);
+      };
+
+      console.log('Populating initial load of Explore songs');
+      getExploreSongs().then(returnedSongs => {
+        spotify.setContextPlayQueue({
+          name: CONTEXT_QUEUE_PREFIX,
+          songs: returnedSongs,
+          getMoreSongs: getExploreSongs,
+        });
+      });
+    }, []);
 
     // on mount, get the songs we need and add them to the queue.
     useEffect(() => {
-      const onMount = async (data) => {
-        const contextQueue = spotify.getContextPlayQueue();
-        const contextQueueName = contextQueue.name;
+      const onMount = async (_data) => {
         // only if we're not already playing from an explore list, add some more
-        if (!contextQueue || !contextQueueName || !contextQueueName.startsWith(CONTEXT_QUEUE_PREFIX)) {
-          const getExploreSongs = async () => {
-            return await getRecommendations().then(success => success.items);
-          };
-
-          console.log('Populating initial load of Explore songs');
-          getExploreSongs().then(returnedSongs => {
-            spotify.setContextPlayQueue({
-              name: CONTEXT_QUEUE_PREFIX,
-              songs: returnedSongs,
-              getMoreSongs: getExploreSongs,
-            });
-          });
-          
+        if (!contextQueueName || !contextQueueName.startsWith(CONTEXT_QUEUE_PREFIX)) {
+          await loadExploreSongs();
         }
       };
-
       // if the player is already ready, queue up and start.
       // if not (for example, if they load this webpage directly), add an onReady listener
       if (spotify.isPlayerReady()) {
@@ -51,7 +67,10 @@ function Explore() {
       } else {
         spotify.addOnReadyListeners({'Explore': onMount});
       }
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+      // load like and dislike lists
+      loadLikeDislikes();
+    }, [loadLikeDislikes, loadExploreSongs]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const currState = spotify.getPlayerState();
     const trackWindow = currState && currState.track_window;
@@ -63,6 +82,7 @@ function Explore() {
     const { paused } = currState || true;
 
     const {
+      id: currentSongId,
       name,
       artists,
       album: {
@@ -71,27 +91,68 @@ function Explore() {
       },
       duration_ms,
     } = songToShow ||
-      { name: undefined, artists: undefined, album: { images: undefined, name: undefined, uri: undefined}, duration_ms: undefined};
-  
+      { id:undefined, name: undefined, artists: undefined, album: { images: undefined, name: undefined, uri: undefined}, duration_ms: undefined};
+
+    const alreadyLiked = likedSongs.current && likedSongs.current.includes(currentSongId);
+    const alreadyDisliked = dislikedSongs.current && dislikedSongs.current.includes(currentSongId);
+
     const handlePlay = () => {
       spotify.togglePlay();
     }
 
-    // TODO: maybe?
-    const handlePrevious = () => {};
-
-    const handleLike = () => {
-      // hit like endpoint with current song
+    const handlePrevious = async () => {
+      spotify.playPrevious();
     };
 
-    const handleDislike = () => {
-      // hit dislike endpoint, maybe skip?
+    const handleLike = async () => {
+      if (auth.id && currentSongId) {
+        // toggle like status, so if already liked, remove the like
+        if (!alreadyLiked) {
+          await likeSong(auth.id, currentSongId).then(async _x => {
+            console.log('Liked song ' + currentSongId);
+            await loadLikeDislikes();
+          }, _error => {
+            console.log('Failed to like song ' + currentSongId);
+          });
+        } else {
+          await unlikeSong(auth.id, currentSongId).then(async _x => {
+            console.log('Unliked song ' + currentSongId);
+            await loadLikeDislikes();
+          }, _error => {
+            console.log('Failed to unlike song ' + currentSongId);
+          });
+        }
+      }
+    };
+
+    const handleDislike = async () => {
+      if (auth.id && currentSongId) {
+        // toggle dislike status, so if already disliked, remove the dislike
+        if (!alreadyDisliked) {
+          await dislikeSong(auth.id, currentSongId).then(async _x => {
+            console.log('Disliked song ' + currentSongId);
+            await loadLikeDislikes();
+          }, _error => {
+            console.log('Failed to dislike song ' + currentSongId);
+          });
+        } else {
+          await undislikeSong(auth.id, currentSongId).then(async _x => {
+            console.log('Undisliked song ' + currentSongId);
+            await loadLikeDislikes();
+          }, _error => {
+            console.log('Failed to undislike song ' + currentSongId);
+          });
+        }
+      }
       handleSkip();
     };
 
     const handleSkip = () => {
-      // TODO: logic to queue more songs if we're all out
       spotify.skip();
+    };
+
+    const handleReturnExplore = async () => {
+      await loadExploreSongs(); // TODO: clear currently playing before loading, this currently lets current song stop
     };
 
     const albumImg = (
@@ -102,16 +163,22 @@ function Explore() {
       )
     )
 
-    // TODO: hovering bar with just favorite, pause/play, add to playlist
-
     return (
       <div className="explore-wrapper">
         <div className="playing-wrapper">
+          {(contextQueueName && contextQueueName !== CONTEXT_QUEUE_PREFIX) && (
+            <div className="return-explore-wrapper">
+              <Button className="btn-return-explore" onClick={handleReturnExplore}>
+                Return to Standard Explore
+              </Button>
+            </div>
+          )}
           <div className="control-row">
             <IconButton className="btn-control btn-next-previous btn-next-previous__previous" onClick={handlePrevious}>
               <SkipPreviousRoundedIcon className="btn-next-previous_icon" />
             </IconButton>
-            <IconButton className="btn-control btn-like-dislike btn-like-dislike__dislike" onClick={handleDislike}>
+            <IconButton className={"btn-control btn-like-dislike btn-like-dislike__dislike" + (alreadyDisliked ? " btn-like-dislike__already-disliked" : "")}
+            onClick={handleDislike}>
               <ArrowDownwardRoundedIcon className="btn-like-dislike_icon" />
             </IconButton>
             {auth.user ? (
@@ -129,10 +196,12 @@ function Explore() {
                   {/* iframe here! */}
                 </div>
             )}
-            <IconButton className="btn-control btn-like-dislike btn-like-dislike__like" onClick={handleLike}>
+            <IconButton className={"btn-control btn-like-dislike btn-like-dislike__like" + (alreadyLiked ? " btn-like-dislike__already-liked" : "")}
+            onClick={handleLike}>
               <ArrowUpwardRoundedIcon className="btn-like-dislike_icon" />
             </IconButton>
-            <IconButton className="btn-control btn-next-previous btn-next-previous__next" onClick={handleSkip}>
+            <IconButton className="btn-control btn-next-previous btn-next-previous__next"
+            onClick={handleSkip}>
               <SkipNextRoundedIcon className="btn-next-previous_icon" />
             </IconButton>
           </div>
