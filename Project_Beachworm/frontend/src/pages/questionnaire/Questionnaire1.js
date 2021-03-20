@@ -2,7 +2,8 @@ import React , { Component } from 'react';
 import { Link } from 'react-router-dom';
 import Grid from '@material-ui/core/Grid';
 import './Questionnaire.css';
-import { requirePropFactory } from '@material-ui/core';
+import '../../api/recommendationApi';
+import { postGenreSeeds } from '../../api/recommendationApi';
 
 class Questionarre1 extends Component {
   constructor(props) {
@@ -833,14 +834,22 @@ class Questionarre1 extends Component {
     }
   }
   onIconClick(event) {
-
-
     let newState = Object.assign({}, this.state);
 
     newState.genres[event.target.id].selected = !newState.genres[event.target.id].selected;
     this.setState({
       newState,
     })
+  }
+
+  sendGenreSeeds(){
+    let genreIds = [];
+    Object.entries(this.state.genres).forEach(genreKV => {
+      if(genreKV[1].selected){
+        genreIds.push(genreKV[1].spotifyid);
+      }
+    })
+    postGenreSeeds(genreIds);
   }
 
   render() {
@@ -855,7 +864,7 @@ class Questionarre1 extends Component {
                       width="300"
                       height="300"
                       id={this.state.genres[icon]['id']}
-                      alt={this.state.genres[icon]['name']}
+                      alt=""
                       onClick={(e) => this.onIconClick(e)} />
 
                     <p>{this.state.genres[icon]['name']} </p>
@@ -865,7 +874,13 @@ class Questionarre1 extends Component {
 
             </Grid>
             <Link to='/questionnaire2'>
-            <button type="button" className="btn">Submit</button>
+              <button 
+                type="button" 
+                className="btn"
+                onClick="sendGenreSeeds()"
+              >
+                Submit
+              </button>
             </Link>
         </div>
     );
