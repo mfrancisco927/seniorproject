@@ -832,6 +832,7 @@ class Questionarre1 extends Component {
         },
       }
     }
+    this.sendGenreSeeds = this.sendGenreSeeds.bind(this);
   }
   onIconClick(event) {
     let newState = Object.assign({}, this.state);
@@ -848,13 +849,22 @@ class Questionarre1 extends Component {
       if(genreKV[1].selected){
         genreIds.push(genreKV[1].spotifyid);
       }
-    })
+    });
     postGenreSeeds(genreIds);
   }
 
   render() {
     return (
         <div className="questionnaire">
+            <Link to='/questionnaire2'>
+              <button 
+                type="button" 
+                className="btn"
+                onClick={this.sendGenreSeeds}
+              >
+                Submit
+              </button>
+            </Link>
             <Grid container>
               {Object.keys(this.state.genres).map(icon => (
                 <Grid item sm key={this.state.genres[icon]['id']}>
@@ -873,15 +883,6 @@ class Questionarre1 extends Component {
               ))}
 
             </Grid>
-            <Link to='/questionnaire2'>
-              <button 
-                type="button" 
-                className="btn"
-                onClick="sendGenreSeeds()"
-              >
-                Submit
-              </button>
-            </Link>
         </div>
     );
   }

@@ -6,7 +6,7 @@ const genreRecommendationUri = baseUri + '/genre/';
 const artistRecommendationUri = baseUri + '/artist/';
 const playlistRecommendationUri = baseUri + '/playlist/';
 const obtainartistsUri = baseUri + '/obtain-artists/';
-const sendGenreSeeds = '/user/profile/seed/genres/';
+const sendGenreSeedsUri = '/user/profile/seed/genres/';
 
 export async function getRecommendations() {
   const recEndpoint = standardRecommendationUri;
@@ -50,18 +50,11 @@ export async function getRecommendationsByGenre(genreId) {
 }
 
 export async function postGenreSeeds(genreIds) {
-  const sendGenreSeedsEndpoint = sendGenreSeeds;
+  const sendGenreSeedsEndpoint = sendGenreSeedsUri;
   const response = await axiosInstance.post(sendGenreSeedsEndpoint, {
-    params: {
       genres: genreIds,
-    }
-  }).then(x => {
-    return Promise.resolve(x.data)
-  }, error => {;
-    return Promise.reject(error)
   });
-
-  return response;
+  return response.data;
 }
 
 export async function obtainArtists() {
