@@ -565,9 +565,9 @@ class SongHistory(APIView):
         last_song = Song.objects.filter(song_id=query['song_id']).first()
         #return error if no song or profile found
         if last_song == None:
-            return Response({'error:', 'song_id invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error:', 'song_id invalid or missing'}, status=status.HTTP_404_NOT_FOUND)
         if profile == None:
-            return Response({'error:', 'profile invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error:', 'profile invalid or missing'}, status=status.HTTP_404_NOT_FOUND)
         #if at limit, delete oldest song in history, this should never exceed limit, using >= just in case
         if user_history.count() >= HISTORY_MAX:
             #in case it somehow gets to be more than the set limit, take off multiple songs to restore it to limit
@@ -587,4 +587,16 @@ class SongHistory(APIView):
         
         return Response(data = results , status=status.HTTP_200_OK)
         
-
+class Getprofile(APIView):
+    permission_classes = (permissions.AllowAny,)
+    #for viewing profiles of other users
+    def get(self, request, user_id):
+        user = User.objects.filter(id=user_id).first()
+        if user == None:
+            return Response({'error:', 'user not found'}, status=status.HTTP_404_NOT_FOUND)
+        profile = Profile.objects.get(user=user_id)
+        following = list(profile.following.values_list('user', flat=True))
+        favorite_playlists = list(profile.favorite_playlists.values_list('id', flat=True))
+        results = {'user' : int(user_id), 'following' : following, 'favorite_playlists' : favorite_playlists}
+        return Response(data=results, status=status.HTTP_200_OK)
+        

@@ -32,10 +32,10 @@ class Song(BaseModel):
   
 class Profile(BaseModel):
   user = models.OneToOneField(User,primary_key=True, on_delete=models.CASCADE)
-  following = models.ManyToManyField("self", related_name='profile_following', symmetrical=False)
-  liked_songs = models.ManyToManyField(Song, related_name='profile_liked')
-  disliked_songs = models.ManyToManyField(Song, related_name='profile_disliked')
-  favorite_playlists = models.ManyToManyField("Playlist", related_name='profile_favorite_playlists')
+  following = models.ManyToManyField("self", related_name='profile_following', symmetrical=False, blank=True)
+  liked_songs = models.ManyToManyField(Song, related_name='profile_liked', blank=True)
+  disliked_songs = models.ManyToManyField(Song, related_name='profile_disliked', blank=True)
+  favorite_playlists = models.ManyToManyField("Playlist", related_name='profile_favorite_playlists', blank=True)
   refresh_token = models.TextField(default="None")
 
 
