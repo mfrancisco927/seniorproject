@@ -616,22 +616,22 @@ class FollowToggle(APIView):
             return Response({'error:', msg }, status=status.HTTP_400_BAD_REQUEST)
         sending_user_profile.following.add(target_user.id)
         sending_user_profile.save()
-        #print(sending_user_profile.following.values_list('user', flat=True))
         msg = 'user ' + str(sending_user) + ' followed user ' + str(target_user.id)
+
         return Response(data={'success' : msg}, status=status.HTTP_200_OK)
+
     #unfollow another user
     def delete(self, request, profile):
-        pass
-
-"""
-        results = {}
-        user_id = self.request.user.id
-        profile = Profile.objects.get(user=user_id)
-        liked_songs = list(profile.liked_songs.values_list('song_id', flat=True))
-        following = list(profile.following.values_list('user', flat=True))
-        disliked_songs = list(profile.disliked_songs.values_list('song_id', flat=True))
-        favorite_playlists = list(profile.favorite_playlists.values_list('id', flat=True))
-        results= {'id' : user_id, 'username' : self.request.user.username, 'email' : self.request.user.email, 'liked_songs' : liked_songs,
-                'disliked_songs' : disliked_songs, 'following' : following, 'favorite_playlists' : favorite_playlists}
-        return Response(data=results, status=status.HTTP_200_O
-        """
+        sending_user = self.request.user.id
+        target_user = User.objects.filter(id=profile).first()
+        sending_user_profile = Profile.objects.get(user=sending_user)
+        following = list(sending_user_profile.following.values_list('user', flat=True))
+        #if sending_user does not follow target user, return error
+        if target_user.id not in following:
+            msg = 'user ' + str(sending_user) + ' does not follow user ' + str(target_user.id)
+            return Response({'error:', msg }, status=status.HTTP_400_BAD_REQUEST)
+        sending_user_profile.following.remove(target_user.id)
+        sending_user_profile.save()
+        msg = 'user ' + str(sending_user) + ' unfollowed user ' + str(target_user.id)
+        
+        return Response(data={'success' : msg}, status=status.HTTP_200_OK)
