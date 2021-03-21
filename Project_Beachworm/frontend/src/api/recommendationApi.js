@@ -57,6 +57,14 @@ export async function postGenreSeeds(genreIds) {
   return response.data;
 }
 
+export async function postArtistSeeds(genreIds) {
+  const sendGenreSeedsEndpoint = sendGenreSeedsUri;
+  const response = await axiosInstance.post(sendGenreSeedsEndpoint, {
+      'genres[]': genreIds,
+  });
+  return response.data;
+}
+
 export async function obtainArtists() {
   const obtainArtistsEndpoint = obtainartistsUri;
   const response = await axiosInstance.get(obtainArtistsEndpoint, {
