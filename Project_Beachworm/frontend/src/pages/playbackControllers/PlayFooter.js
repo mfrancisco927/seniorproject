@@ -72,8 +72,12 @@ function PlayFooter() {
     decayMillis: 500,
     speed: 45,
   }
+
+  const handlePrevious = () => {
+    spotify.playPrevious();
+  }
   
-  const handleToggle = () => {
+  const handleToggle = async () => {
     if (currentTrack) {
       // toggle and return if there's a currently playing song
       spotify.togglePlay();
@@ -82,7 +86,7 @@ function PlayFooter() {
       // if there's no currently playing song, play the next one
       const nextSong = spotify.dequeueNextSong();
       if (nextSong) {
-        spotify.play(nextSong.id);
+        await spotify.play(nextSong.id).catch(_e => console.log("Can't play yet!"));
       }
     }
   }
@@ -112,7 +116,7 @@ function PlayFooter() {
             <SeekBar duration={duration_ms} position={position} disabled={!currState} />
           </div>
           <div className="player-footer_playback-controls_buttons grid-row">
-            <button className='control-button'><SkipPrevious /></button>
+            <button className='control-button' onClick={handlePrevious}><SkipPrevious /></button>
             <button className='control-button' onClick={handleToggle}>
               {spotify.isPlaying() ? <PauseIcon /> : <PlayArrowIcon />}
             </button>

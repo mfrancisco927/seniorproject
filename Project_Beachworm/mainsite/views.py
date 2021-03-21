@@ -20,6 +20,7 @@ from random import randint
 import random
 import datetime
 from datetime import timezone
+from django.db.models import Q
 
 env = environ.Env()
 CLIENT_ID = env('CLIENT_ID')
@@ -556,7 +557,6 @@ class SongHistory(APIView):
         results['history'] = user_history
         return Response(data = user_history , status=status.HTTP_200_OK)
 
-    #add a song to the user's history
     def post(self, request):
         HISTORY_MAX = 10 #set to 10 for testing purposes, change to 100 when deployed
         query = self.request.query_params
@@ -565,9 +565,9 @@ class SongHistory(APIView):
         last_song = Song.objects.filter(song_id=query['song_id']).first()
         #return error if no song or profile found
         if last_song == None:
-            return Response({'error:', 'song_id invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error:', 'song_id invalid or missing'}, status=status.HTTP_404_NOT_FOUND)
         if profile == None:
-            return Response({'error:', 'profile invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error:', 'profile invalid or missing'}, status=status.HTTP_404_NOT_FOUND)
         #if at limit, delete oldest song in history, this should never exceed limit, using >= just in case
         if user_history.count() >= HISTORY_MAX:
             #in case it somehow gets to be more than the set limit, take off multiple songs to restore it to limit
@@ -587,4 +587,299 @@ class SongHistory(APIView):
         
         return Response(data = results , status=status.HTTP_200_OK)
         
+class PlaylistSongs(APIView):
+    def get(self, request, playlist_id):
+        try:
+            playlist= Playlist.objects.get(pk=playlist_id)
+        except:
+           return Response({"playlist_songs" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        
+        songs= list(playlist.songs.all().values())
+        result = {}
+        for i in range((len(songs))):
+            result[i]=songs[i] 
+        return Response(data = result , status=status.HTTP_200_OK)
 
+    def post(self, request, playlist_id):
+        query = self.request.query_params
+        try:
+            playlist= Playlist.objects.get(pk=playlist_id)
+        except:
+           return Response({"edit_playlist_songs" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if playlist.owner.user.id == self.request.user.id:
+            try:
+                song= Song.objects.get(pk=query['id'])
+            except:
+                return Response({"edit_playlist_songs" : "error: song does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+            playlist.songs.add(song)
+            playlist.save()
+            return Response(status=status.HTTP_200_OK)
+
+        return Response({"edit_playlist_songs" : "error: user does not own this playlist"}, status=status.HTTP_404_NOT_FOUND)
+    
+    def delete(self, request, playlist_id, playlist_song_id):
+        query = self.request.query_params
+        try:
+            playlist= Playlist.objects.get(pk=playlist_id)
+        except:
+           return Response({"edit_playlist_songs" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        
+        songs= list(playlist.songs.all().values())
+    
+        if playlist.owner.user.id == self.request.user.id:
+            try:
+                song= Song.objects.get(pk=songs[query['id']]['song_id'])
+            except:
+                return Response({"edit_playlist_songs" : "error: song does not exist"}, status=status.HTTP_404_NOT_FOUND)
+                
+            playlist.songs.remove(song)
+            playlist.save()
+            return Response(status=status.HTTP_200_OK)
+
+        return Response({"edit_playlist_songs" : "error: user does not own this playlist"}, status=status.HTTP_404_NOT_FOUND)
+   
+
+class FollowPlaylist(APIView):
+    def post(self, request, user_id, playlist_id):
+        try:
+            playlist= Playlist.objects.get(pk=playlist_id)
+        except:
+           return Response({"follow_playlist" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        try: 
+            profile = Profile.objects.get(user=user_id)
+        except Profile.DoesNotExist:
+            return Response({"follow_playlist" : "error: user does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        profile.favorite_playlists.add(playlist)
+        profile.save()
+
+        return Response(status=status.HTTP_200_OK)
+
+    def delete(self, request, user_id, playlist_id):
+        try:
+            playlist= Playlist.objects.get(pk=playlist_id)
+        except:
+            return Response({"follow_playlist" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        try: 
+            profile = Profile.objects.get(user=user_id)
+        except Profile.DoesNotExist:
+            return Response({"follow_playlist" : "error: user does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        profile.favorite_playlists.remove(playlist)
+        profile.save()
+
+        return Response(status=status.HTTP_200_OK)
+
+class ModifyPlaylist(APIView):
+    def put(self, request, playlist_id):
+        data=self.request.data
+        print(data)
+        new_name = data['name']
+        public = bool(data['public'] == 'true')
+
+        try:
+            playlist= Playlist.objects.get(pk=playlist_id)
+        except:
+           return Response({"modify_playlist" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            if new_name is not None:
+                playlist.title = new_name
+            if public is not None:
+                playlist.is_public = public
+        except:
+             return Response({"modify_playlist" : "error: form data incorrect"}, status=status.HTTP_404_NOT_FOUND)
+
+        playlist.save()
+        return Response(status=status.HTTP_200_OK)
+
+    def delete(self, request, playlist_id):
+        try:
+            playlist= Playlist.objects.get(pk=playlist_id)
+        except:
+           return Response({"modify_playlist" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        playlist.delete()
+
+        return Response(status=status.HTTP_200_OK)
+
+class LikeSong(APIView):
+
+    def post(self, request, user_id, song_id):
+        print(user_id, song_id)
+
+        try:
+            song= Song.objects.get(pk=song_id)
+        except:
+            return Response({"like_song" : "error: song does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        try: 
+            profile = Profile.objects.get(user=user_id)
+        except Profile.DoesNotExist:
+            return Response({"like_song" : "error: user does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            profile.disliked_songs.remove(song)
+        except:
+            print("song was not disliked")
+        
+        profile.liked_songs.add(song)
+        profile.save()
+
+        return Response(status=status.HTTP_200_OK)
+
+    def delete(self, request, user_id, song_id):
+        print(user_id, song_id)
+
+        try:
+            song= Song.objects.get(pk=song_id)
+        except:
+            return Response({"like_song" : "error: song does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        try: 
+            profile = Profile.objects.get(user=user_id)
+        except Profile.DoesNotExist:
+            return Response({"like_song" : "error: user does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        
+        profile.liked_songs.remove(song)
+        profile.save()
+
+        return Response(status=status.HTTP_200_OK)
+class DislikeSong(APIView):
+    def post(self, request, user_id, song_id):
+        print(user_id, song_id)
+
+        try:
+            song= Song.objects.get(pk=song_id)
+        except:
+            return Response({"like_song" : "error: song does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        try: 
+            profile = Profile.objects.get(user=user_id)
+        except Profile.DoesNotExist:
+            return Response({"like_song" : "error: user does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            profile.liked_songs.remove(song)
+        except:
+            print("song was not liked")
+        
+        profile.disliked_songs.add(song)
+        profile.save()
+
+        return Response(status=status.HTTP_200_OK)
+
+    def delete(self, request, user_id, song_id):
+        print(user_id, song_id)
+
+        try:
+            song= Song.objects.get(pk=song_id)
+        except:
+            return Response({"dislike_song" : "error: song does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        try: 
+            profile = Profile.objects.get(user=user_id)
+        except Profile.DoesNotExist:
+            return Response({"dislike_song" : "error: user does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        
+        profile.disliked_songs.remove(song)
+        profile.save()
+
+        return Response(status=status.HTTP_200_OK)
+
+class Getprofile(APIView):
+    #permission_classes = (permissions.AllowAny,)
+    #for viewing profiles of other users
+    def get(self, request, user_id):
+        user = User.objects.filter(id=user_id).first()
+        if user == None:
+            return Response({'error:', 'user not found'}, status=status.HTTP_404_NOT_FOUND)
+        username = str(User.objects.get(id=user_id))
+        profile = Profile.objects.get(user=user_id)
+        followers = list(Profile.objects.filter(following=user_id).values())
+        followers = self.clean_profiles(followers)
+        following = list(profile.following.values())
+        following = self.clean_profiles(following)
+        favorite_playlists = list(profile.favorite_playlists.filter(~Q(owner=profile)).values())
+        public_playlists = list(profile.favorite_playlists.filter(owner=profile, is_public=True).values())
+        results = {'user_id' : int(user_id), 'username' : str(username), 'following' : following, 'followers' : followers, 
+                'favorite_playlists' : favorite_playlists, 'public_playlists' : public_playlists}
+        return Response(data=results, status=status.HTTP_200_OK)
+    
+    def clean_profiles(self, profiles):
+        for i in range(0, len(profiles)):
+            #clean unnecessary keys and refresh token
+            del profiles[i]['refresh_token']
+            del profiles[i]['created_at']
+            del profiles[i]['updated_at']
+            id = profiles[i]['user_id']
+            username = str(User.objects.get(id=id))
+            profiles[i]['username'] = username
+
+        return profiles
+
+
+class FollowToggle(APIView):
+    #follow another user
+    def post(self, request, profile):
+        sending_user = self.request.user.id
+        target_user = User.objects.filter(id=profile).first()
+        sending_user_profile = Profile.objects.get(user=sending_user)
+        following = list(sending_user_profile.following.values_list('user', flat=True))
+        #if sending_user already follows target user, return error
+        if target_user.id in following:
+            msg = 'user ' + str(sending_user) + ' already follows user ' + str(target_user.id)
+            #not sure what status to return here, just using 400 for now
+            return Response({'error:', msg }, status=status.HTTP_400_BAD_REQUEST)
+        sending_user_profile.following.add(target_user.id)
+        sending_user_profile.save()
+        msg = 'user ' + str(sending_user) + ' followed user ' + str(target_user.id)
+
+        return Response(data={'success' : msg}, status=status.HTTP_200_OK)
+
+    #unfollow another user
+    def delete(self, request, profile):
+        sending_user = self.request.user.id
+        target_user = User.objects.filter(id=profile).first()
+        sending_user_profile = Profile.objects.get(user=sending_user)
+        following = list(sending_user_profile.following.values_list('user', flat=True))
+        #if sending_user does not follow target user, return error
+        if target_user.id not in following:
+            msg = 'user ' + str(sending_user) + ' does not follow user ' + str(target_user.id)
+            return Response({'error:', msg }, status=status.HTTP_400_BAD_REQUEST)
+        sending_user_profile.following.remove(target_user.id)
+        sending_user_profile.save()
+        msg = 'user ' + str(sending_user) + ' unfollowed user ' + str(target_user.id)
+        
+        return Response(data={'success' : msg}, status=status.HTTP_200_OK)
+
+class UserPlaylists(APIView):
+    #get a user's favorite playlists
+    def get(self, request, user_id):
+        #if requesting user is looking at another user, return only public playlists
+        profile = Profile.objects.get(user=user_id)
+        if int(self.request.user.id) != int(user_id):
+            favorite_playlists = list(profile.favorite_playlists.filter(is_public=True).values_list('id', flat=True))
+            results = {'user' : user_id, 'favorite_playlists' : favorite_playlists}
+        else:
+            favorite_playlists = list(profile.favorite_playlists.values_list('id', flat=True))
+            results = {'user' : user_id, 'favorite_playlists' : favorite_playlists}
+        return Response(data=results, status=status.HTTP_200_OK)
+
+    #create a new playlist
+    def post(self, request, user_id):
+        #requesting user must be same as user id (users cannot make playlists for other users)
+        if int(self.request.user.id) != int(user_id):
+            return Response(data={'error' : 'user_id must be the same as requesting user'}, status=status.HTTP_403_FORBIDDEN)
+        profile = Profile.objects.get(user=user_id)
+        title = self.request.query_params['title']
+        is_public = bool(self.request.query_params['is_public'])
+        new_playlist = Playlist(title=title, is_public=is_public, owner=profile)
+        new_playlist.save()
+        added_playlist = list(Playlist.objects.filter(id=new_playlist.id).values())
+        results={'new_playlist' : added_playlist}
+        return Response(data=results, status=status.HTTP_200_OK)

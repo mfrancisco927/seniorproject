@@ -10,9 +10,9 @@ const getSdkHeader = (accessToken) => {
 export async function playTrack(trackId, deviceId, accessToken) {
   const spotifyUri = trackId ? 'spotify:track:' + trackId : null;
 
-  axiosInstance.put(
+  return axiosInstance.put(
     `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, 
     JSON.stringify((spotifyUri && { uris: [spotifyUri] }) || {}),
     { headers: getSdkHeader(accessToken) }
-  );
+  ).then(x => Promise.resolve(x), reject => Promise.reject(reject));
 }

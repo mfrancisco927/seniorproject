@@ -43,6 +43,22 @@ urlpatterns = [
     # This will be a little different TODO add api/recommendations/playlist
     #songhistory endpoint, to add song to history pass songID after ending '/' in a post request
     path('api/history/', SongHistory.as_view(), name='user-song-history'),
+    path('api/users/<user_id>/profile/', Getprofile.as_view(), name='profile'),
+    #post request to follow, delete request to unfollow
+    path('api/users/profile/following/<profile>/', FollowToggle.as_view(), name='follow-unfollow'),
+    #get request to retrieve user's fav playlists, post to add to user's fav playlists
+    path('api/user/<user_id>/playlists/', UserPlaylists.as_view(), name='follow-unfollow'),
     # A testing path
     path('api/hello/', HelloWorldView.as_view(), name='hello_world'),
+
+    #Playlist Endpoints
+    path('api/playlists/<playlist_id>/songs/', PlaylistSongs.as_view(), name='playlist_songs'),
+    path('api/users/<user_id>/followed-playlists/<playlist_id>/', FollowPlaylist.as_view(), name='follow_playlist'),
+    path('api/playlists/<playlist_id>/', ModifyPlaylist.as_view(), name='modify_playlist'),
+    #path('api/playlists/<playlist_id>/<playlist_song_id>/', DeletePlaylistSongs.as_view(), name='edit_playlist_songs'),
+
+    #Song Endpoints
+    path('api/history/<user_id>/likes/<song_id>/', LikeSong.as_view(), name='song_like'),
+    path('api/history/<user_id>/dislikes/<song_id>/', DislikeSong.as_view(), name='song_dislike'),
+    
 ]
