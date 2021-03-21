@@ -45,6 +45,7 @@ class Questionarre2 extends Component {
         total: 10000
       }
     }}
+    this.sendArtistSeeds = this.sendArtistSeeds.bind(this);
   }
   async getArtists(){
     await obtainArtists().then(data => {
@@ -74,8 +75,8 @@ class Questionarre2 extends Component {
   sendArtistSeeds(){
     let artistIds = [];
     (this.state.artists.artists.items).forEach(artistKV => {
-      if(artistKV[1].selected){
-        artistIds.push(artistKV[1].spotifyid);
+      if(artistKV.selected){
+        artistIds.push(artistKV.spotifyid);
       }
     });
     console.log(artistIds);
