@@ -4,6 +4,7 @@ import Grid from '@material-ui/core/Grid';
 import './Questionnaire.css';
 import '../../api/recommendationApi';
 import { postGenreSeeds } from '../../api/recommendationApi';
+import Placeholder from '../images/genres/placeholder.png';
 
 class Questionarre1 extends Component {
   constructor(props) {
@@ -874,7 +875,7 @@ class Questionarre1 extends Component {
                 <Grid item sm key={this.state.genres[icon]['id']}>
                   <div className={this.state.genres[icon]['selected'] ? "withBorder" : "noBorder"} >
                     <img
-                      src={this.state.genres[icon]['image']}
+                      src={Placeholder}
                       width="300"
                       height="300"
                       id={this.state.genres[icon]['id']}
