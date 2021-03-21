@@ -1,110 +1,117 @@
 import React , { Component } from 'react';
 import { Link } from 'react-router-dom';
 import Grid from '@material-ui/core/Grid';
+import { obtainArtists } from '../../api/recommendationApi';
+import { postArtistSeeds } from '../../api/recommendationApi';
 import './Questionnaire.css';
 
 class Questionarre2 extends Component {
   constructor(props) {
     super(props)
-
-    this.state = {
-      artists: {
-        a: {
-          id: "a",
-          name: "(Sandy) Alex G",
-          image: 'https://i.scdn.co/image/7ddd6fa5cf78aee2f2e8b347616151393022b7d9',
+    this.state = {artists: {
+      artists:{
+        href: '',
+        items: [{
+          external_urls: {spotify: '0'},
+          followers:{href: '0', total: 0},
+          genres: ["0"],
+          href: '0',
+          id: '0',
+          images: [{
+            height: 640,
+            url: "../images/genres/placeholder.png",
+            width: 640
+          },
+          {
+            height: 320,
+            url: "../images/genres/placeholder.png",
+            width: 320,
+          },
+          {
+            height: 160,
+            url: "../images/genres/placeholder.png",
+            width: 160,
+          }],
+          name: '0',
+          popularity: 0,
           selected: false,
-        },
-        b: {
-          id: "b",
-          name: "Phobe Bridgers",
-          image: 'https://i.scdn.co/image/7ddd6fa5cf78aee2f2e8b347616151393022b7d9',
-          selected: false,
-        },
-        c: {
-          id: "c",
-          name: "Jimi Hendrix",
-          image: 'https://i.scdn.co/image/7ddd6fa5cf78aee2f2e8b347616151393022b7d9',
-          selected: false,
-        },
-        d: {
-          id: "d",
-          name: "Pink Floyd",
-          image: 'https://i.scdn.co/image/7ddd6fa5cf78aee2f2e8b347616151393022b7d9',
-          selected: false,
-        },
-        e: {
-          id: "e",
-          name: "Denzel Curry",
-          image: 'https://i.scdn.co/image/7ddd6fa5cf78aee2f2e8b347616151393022b7d9',
-          selected: false,
-        },
-        f: {
-          id: "f",
-          name: "David Bowie",
-          image: 'https://i.scdn.co/image/7ddd6fa5cf78aee2f2e8b347616151393022b7d9',
-          selected: false,
-        },
-        g: {
-          id: "g",
-          name: "CASTLEBEAT",
-          image: 'https://i.scdn.co/image/7ddd6fa5cf78aee2f2e8b347616151393022b7d9',
-          selected: false,
-        },
-        h: {
-          id: "h",
-          name: "Anonymus",
-          image: 'https://i.scdn.co/image/7ddd6fa5cf78aee2f2e8b347616151393022b7d9',
-          selected: false,
-        },
-        i: {
-          id: "i",
-          name: "Father John Misty",
-          image: 'https://i.scdn.co/image/7ddd6fa5cf78aee2f2e8b347616151393022b7d9',
-          selected: false,
-        },
-        j: {
-          id: "j",
-          name: "Car Seat Headrest",
-          image: 'https://i.scdn.co/image/7ddd6fa5cf78aee2f2e8b347616151393022b7d9',
-          selected: false,
-        },
+          type: "artist",
+          uri: '0',
+        }],
+        limit: 20,
+        next: '0',
+        offset: '0',
+        previous: null,
+        total: 10000
       }
-    }
+    }}
+    this.sendArtistSeeds = this.sendArtistSeeds.bind(this);
+  }
+  async getArtists(){
+    await obtainArtists().then(data => {
+      data.artists.items.forEach(artistsKV =>
+        artistsKV.selected = false
+      )
+      this.setState({
+        artists: data
+      })
+      console.log(data)
+    })
+  }
+  async componentDidMount(){
+    await this.getArtists();
+    console.log(this.state);
   }
   onIconClick(event) {
-
-
-    let newState = Object.assign({}, this.state);
-
-    newState.artists[event.target.id].selected = !newState.artists[event.target.id].selected;
+    let newState = this.state;
+    console.log(event.target.id)
+    console.log(newState.artists.artists.items[event.target.id])
+    newState.artists.artists.items[event.target.id].selected = !newState.artists.artists.items[event.target.id].selected;
     this.setState({
       newState,
     })
   }
 
+  sendArtistSeeds(){
+    let artistIds = [];
+    (this.state.artists.artists.items).forEach(artistKV => {
+      if(artistKV.selected){
+        artistIds.push(artistKV.spotifyid);
+      }
+    });
+    console.log(artistIds);
+    postArtistSeeds(artistIds);
+  }
+  
   render() {
+    console.log(this.state)
     return (
       <div className="questionnaire">
+          <Link to='/explore'>
+          <button 
+                type="button" 
+                className="btn"
+                onClick={this.sendArtistSeeds}
+              >
+                Submit
+              </button>
+          </Link>
           <Grid container>
-            {Object.keys(this.state.artists).map(icon => (
-              <Grid item sm key={this.state.artists[icon]['id']}>
-                <div className={this.state.artists[icon]['selected'] ? "withBorder" : "noBorder"} >
+            {this.state.artists.artists.items.map((icon, index) => (
+              <Grid item sm key={index}>
+                <div className={icon.selected ? "withBorder" : "noBorder"} >
                   <img
-                    src={this.state.artists[icon]['image']}
-                    id={this.state.artists[icon]['id']}
-                    alt={this.state.artists[icon]['name']}
+                    src={icon.images[1].url}
+                    width="300"
+                    height="300"
+                    id={index}
+                    alt={index}
                     onClick={(e) => this.onIconClick(e)} />
-
-                  <p>{this.state.artists[icon]['name']} </p>
+                  <p>{icon.name}</p>
                 </div>
               </Grid>
             ))}
-
-          </Grid>
-          <Link to='/'>
-          <button type="button" className="btn">Submit</button>
-          </Link>
+          </Grid>     
       </div>
     );
   }
