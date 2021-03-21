@@ -20,6 +20,7 @@ from random import randint
 import random
 import datetime
 from datetime import timezone
+from django.db.models import Q
 
 env = environ.Env()
 CLIENT_ID = env('CLIENT_ID')
@@ -564,9 +565,9 @@ class SongHistory(APIView):
         last_song = Song.objects.filter(song_id=query['song_id']).first()
         #return error if no song or profile found
         if last_song == None:
-            return Response({'error:', 'song_id invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error:', 'song_id invalid or missing'}, status=status.HTTP_404_NOT_FOUND)
         if profile == None:
-            return Response({'error:', 'profile invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error:', 'profile invalid or missing'}, status=status.HTTP_404_NOT_FOUND)
         #if at limit, delete oldest song in history, this should never exceed limit, using >= just in case
         if user_history.count() >= HISTORY_MAX:
             #in case it somehow gets to be more than the set limit, take off multiple songs to restore it to limit
@@ -790,4 +791,95 @@ class DislikeSong(APIView):
 
         return Response(status=status.HTTP_200_OK)
 
+class Getprofile(APIView):
+    #permission_classes = (permissions.AllowAny,)
+    #for viewing profiles of other users
+    def get(self, request, user_id):
+        user = User.objects.filter(id=user_id).first()
+        if user == None:
+            return Response({'error:', 'user not found'}, status=status.HTTP_404_NOT_FOUND)
+        username = str(User.objects.get(id=user_id))
+        profile = Profile.objects.get(user=user_id)
+        followers = list(Profile.objects.filter(following=user_id).values())
+        followers = self.clean_profiles(followers)
+        following = list(profile.following.values())
+        following = self.clean_profiles(following)
+        favorite_playlists = list(profile.favorite_playlists.filter(~Q(owner=profile)).values())
+        public_playlists = list(profile.favorite_playlists.filter(owner=profile, is_public=True).values())
+        results = {'user_id' : int(user_id), 'username' : str(username), 'following' : following, 'followers' : followers, 
+                'favorite_playlists' : favorite_playlists, 'public_playlists' : public_playlists}
+        return Response(data=results, status=status.HTTP_200_OK)
+    
+    def clean_profiles(self, profiles):
+        for i in range(0, len(profiles)):
+            #clean unnecessary keys and refresh token
+            del profiles[i]['refresh_token']
+            del profiles[i]['created_at']
+            del profiles[i]['updated_at']
+            id = profiles[i]['user_id']
+            username = str(User.objects.get(id=id))
+            profiles[i]['username'] = username
 
+        return profiles
+
+
+class FollowToggle(APIView):
+    #follow another user
+    def post(self, request, profile):
+        sending_user = self.request.user.id
+        target_user = User.objects.filter(id=profile).first()
+        sending_user_profile = Profile.objects.get(user=sending_user)
+        following = list(sending_user_profile.following.values_list('user', flat=True))
+        #if sending_user already follows target user, return error
+        if target_user.id in following:
+            msg = 'user ' + str(sending_user) + ' already follows user ' + str(target_user.id)
+            #not sure what status to return here, just using 400 for now
+            return Response({'error:', msg }, status=status.HTTP_400_BAD_REQUEST)
+        sending_user_profile.following.add(target_user.id)
+        sending_user_profile.save()
+        msg = 'user ' + str(sending_user) + ' followed user ' + str(target_user.id)
+
+        return Response(data={'success' : msg}, status=status.HTTP_200_OK)
+
+    #unfollow another user
+    def delete(self, request, profile):
+        sending_user = self.request.user.id
+        target_user = User.objects.filter(id=profile).first()
+        sending_user_profile = Profile.objects.get(user=sending_user)
+        following = list(sending_user_profile.following.values_list('user', flat=True))
+        #if sending_user does not follow target user, return error
+        if target_user.id not in following:
+            msg = 'user ' + str(sending_user) + ' does not follow user ' + str(target_user.id)
+            return Response({'error:', msg }, status=status.HTTP_400_BAD_REQUEST)
+        sending_user_profile.following.remove(target_user.id)
+        sending_user_profile.save()
+        msg = 'user ' + str(sending_user) + ' unfollowed user ' + str(target_user.id)
+        
+        return Response(data={'success' : msg}, status=status.HTTP_200_OK)
+
+class UserPlaylists(APIView):
+    #get a user's favorite playlists
+    def get(self, request, user_id):
+        #if requesting user is looking at another user, return only public playlists
+        profile = Profile.objects.get(user=user_id)
+        if int(self.request.user.id) != int(user_id):
+            favorite_playlists = list(profile.favorite_playlists.filter(is_public=True).values_list('id', flat=True))
+            results = {'user' : user_id, 'favorite_playlists' : favorite_playlists}
+        else:
+            favorite_playlists = list(profile.favorite_playlists.values_list('id', flat=True))
+            results = {'user' : user_id, 'favorite_playlists' : favorite_playlists}
+        return Response(data=results, status=status.HTTP_200_OK)
+
+    #create a new playlist
+    def post(self, request, user_id):
+        #requesting user must be same as user id (users cannot make playlists for other users)
+        if int(self.request.user.id) != int(user_id):
+            return Response(data={'error' : 'user_id must be the same as requesting user'}, status=status.HTTP_403_FORBIDDEN)
+        profile = Profile.objects.get(user=user_id)
+        title = self.request.query_params['title']
+        is_public = bool(self.request.query_params['is_public'])
+        new_playlist = Playlist(title=title, is_public=is_public, owner=profile)
+        new_playlist.save()
+        added_playlist = list(Playlist.objects.filter(id=new_playlist.id).values())
+        results={'new_playlist' : added_playlist}
+        return Response(data=results, status=status.HTTP_200_OK)
