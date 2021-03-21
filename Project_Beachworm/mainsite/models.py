@@ -49,11 +49,11 @@ def save_user_profile(sender, instance, **kwargs):
   instance.profile.save()
   
 class Playlist(BaseModel):
-  id = models.IntegerField(primary_key=True)
+  id = models.AutoField(primary_key=True)
   title = models.TextField()
   is_public = models.BooleanField(default=True)
   owner = models.ForeignKey(Profile, on_delete=models.CASCADE)
-  songs = models.ManyToManyField(Song)
+  songs = models.ManyToManyField(Song, blank=True)
 
 class Radio(BaseModel):
   name = models.TextField()
