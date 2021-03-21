@@ -87,7 +87,7 @@ class Questionarre2 extends Component {
     console.log(this.state)
     return (
       <div className="questionnaire">
-          <Link to='/'>
+          <Link to='/explore'>
           <button 
                 type="button" 
                 className="btn"
