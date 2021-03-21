@@ -76,7 +76,7 @@ class Questionarre2 extends Component {
     let artistIds = [];
     (this.state.artists.artists.items).forEach(artistKV => {
       if(artistKV.selected){
-        artistIds.push(artistKV.spotifyid);
+        artistIds.push(artistKV.id);
       }
     });
     console.log(artistIds);

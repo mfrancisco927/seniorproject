@@ -51,18 +51,24 @@ export async function getRecommendationsByGenre(genreId) {
 }
 
 export async function postGenreSeeds(genreIds) {
+  const formData = new FormData()
+  for (let x of genreIds) {
+    formData.append('genres[]', x)
+  }
   const sendGenreSeedsEndpoint = sendGenreSeedsUri;
-  const response = await axiosInstance.post(sendGenreSeedsEndpoint, {
-      'genres[]': genreIds,
-  });
+  const response = await axiosInstance.post(sendGenreSeedsEndpoint, formData);
   return response.data;
 }
 
 export async function postArtistSeeds(artistIds) {
+  console.log(artistIds)
+  const formData = new FormData()
+  for (let x of artistIds) {
+    formData.append('artists[]', x)
+  }
+
   const sendArtistSeedsEndpoint = sendArtistSeedsUri;
-  const response = await axiosInstance.post(sendArtistSeedsEndpoint, {
-      'artists[]': artistIds,
-  });
+  const response = await axiosInstance.post(sendArtistSeedsEndpoint, formData);
   return response.data;
 }
 

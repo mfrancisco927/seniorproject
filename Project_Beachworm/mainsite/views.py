@@ -369,7 +369,8 @@ class GenreSave(APIView):
         except ProfileDoesNotExist :
             return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
-        genre_formatted = request.POST.getlist("genres[]")
+        genre_formatted = self.request.POST.getlist('genres[]')
+        print(genre_formatted)
 
         if genre_formatted:
             for genre in genre_formatted :
@@ -396,18 +397,32 @@ class ArtistsFromGenres(APIView):
 
 
         queryGenres = UserGenreSeed.objects.filter(user = profile)
-        queryString = ""
+        print(queryGenres)
+        print(user_id)
+        searchResults = {"artists": {"items" : []}}
+        arrayArtists = []
         if queryGenres:
             for query in queryGenres :
-                queryString += "genre:" + query.genre_id + " OR "
-            # Remove last OR
-            queryString = queryString[:-3]
-            
+            #     queryString += "genre:" + query.genre_id
+                searchq = "genre:" + query.genre_id
+                tempQuery = sp.search(q=searchq, type="artist", limit=20)
+                if len(tempQuery["artists"]['items']) > 0:
+                    for artist in tempQuery["artists"]["items"] :
+                        arrayArtists.append(artist)
+            # # Remove last OR
+            # queryString = queryString[:-3]
+            # print(queryString)
+
         else :
             # If no genres exist for user, use the pop genre
-            queryString = "genre:pop"
-        searchResults = sp.search(q=queryString, type="artist", limit=20)
-        # print(json.dumps(searchResults, indent=4))
+            searchResults = sp.search(q="genre:pop", type="artist", limit=20)
+        random.shuffle(arrayArtists)
+        i = 0
+        while i < min(len(arrayArtists), 20):
+            if arrayArtists[i] not in searchResults["artists"]["items"]:
+                searchResults["artists"]["items"].append(arrayArtists[i])
+                i += 1
+        # searchResults = sp.search(q=queryString, type="artist", limit=20)
 
         return Response(data=searchResults, status=status.HTTP_200_OK)
 
