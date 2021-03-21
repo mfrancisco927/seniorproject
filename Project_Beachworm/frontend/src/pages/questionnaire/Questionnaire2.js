@@ -2,7 +2,7 @@ import React , { Component } from 'react';
 import { Link } from 'react-router-dom';
 import Grid from '@material-ui/core/Grid';
 import { obtainArtists } from '../../api/recommendationApi';
-import { postGenreSeeds } from '../../api/recommendationApi';
+import { postArtistSeeds } from '../../api/recommendationApi';
 import './Questionnaire.css';
 
 class Questionarre2 extends Component {
