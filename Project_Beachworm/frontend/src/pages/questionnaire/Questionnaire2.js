@@ -72,14 +72,14 @@ class Questionarre2 extends Component {
   }
 
   sendArtistSeeds(){
-    let genreIds = [];
-    Object.entries(this.state.genres).forEach(genreKV => {
-      if(genreKV[1].selected){
-        genreIds.push(genreKV[1].spotifyid);
+    let artistIds = [];
+    Object.entries(this.state.artists.artists.items).forEach(artistKV => {
+      if(artistKV[1].selected){
+        artistIds.push(artistKV[1].spotifyid);
       }
     });
-    console.log(genreIds);
-    postGenreSeeds(genreIds);
+    console.log(artistIds);
+    postArtistSeeds(artistIds);
   }
   
   render() {
