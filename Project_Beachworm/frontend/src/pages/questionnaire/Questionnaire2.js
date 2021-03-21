@@ -73,7 +73,7 @@ class Questionarre2 extends Component {
 
   sendArtistSeeds(){
     let artistIds = [];
-    Object.entries(this.state.artists.artists.items).forEach(artistKV => {
+    (this.state.artists.artists.items).forEach(artistKV => {
       if(artistKV[1].selected){
         artistIds.push(artistKV[1].spotifyid);
       }
@@ -87,7 +87,13 @@ class Questionarre2 extends Component {
     return (
       <div className="questionnaire">
           <Link to='/'>
-          <button type="button" className="btn">Submit</button>
+          <button 
+                type="button" 
+                className="btn"
+                onClick={this.sendArtistSeeds}
+              >
+                Submit
+              </button>
           </Link>
           <Grid container>
             {this.state.artists.artists.items.map((icon, index) => (
