@@ -94,7 +94,10 @@ function useProvideAuth() {
     signOut,
     refreshSpotifyAuth,
     spotifyToken,
-    setSpotifyToken,
+    setSpotifyToken: (token) => {
+      setSpotifyToken(token);
+      setHasAuthenticatedSpotify(true);
+    },
     hasAuthenticatedSpotify,
   };
 }
