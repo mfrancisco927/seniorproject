@@ -87,12 +87,12 @@ function App() {
               <Explore />
             </RequireSpotifyAuthForLoggedInOnly>
           </Route>
-          <Route path='/questionnaire1'>
+          <PrivateRoute path='/questionnaire1'>
             <Questionnaire1 />
-          </Route>
-          <Route path='/questionnaire2'>
+          </PrivateRoute>
+          <PrivateRoute path='/questionnaire2'>
             <Questionnaire2 />
-          </Route>
+          </PrivateRoute>
           <PrivateRoute path='/profile'>
             <ProfilePage />
           </PrivateRoute>

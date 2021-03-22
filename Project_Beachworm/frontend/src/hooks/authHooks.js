@@ -38,9 +38,9 @@ function useProvideAuth() {
           console.log('Current user successfully pulled, attempting to get initial Spotify access token.');
           // have successful user, so should also have spotify token
           await refreshSpotifyAuth().then(() => {
-            console.log('Spotify access token successfully pulled.');
+            console.log('Spotify access token successfully retrieved.');
           }, () => {
-            console.log('Failed to retrieve Spotify access token');
+            console.log('Failed to retrieve Spotify access token.');
           });
         });
       }
@@ -64,6 +64,8 @@ function useProvideAuth() {
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('access_token');
     setUser(null);
+    setSpotifyToken(null);
+    setHasAuthenticatedSpotify(false);
     if (cb) {
       cb();
     }
