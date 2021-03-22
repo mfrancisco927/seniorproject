@@ -299,8 +299,10 @@ class GetUser(APIView):
         following = clean_profiles(following)
         liked_songs = list(profile.liked_songs.values('song_id', 'title', 'artists', 'duration_ms'))
         disliked_songs = list(profile.disliked_songs.values_list('song_id', flat=True))
+        #playlists that a user follows but does not own
         favorite_playlists = list(profile.favorite_playlists.filter(~Q(owner=profile)).values())
-        users_playlists = list(profile.favorite_playlists.filter(owner=profile).values())
+        #playlists that a user owns, private and public
+        users_playlists = list(Playlist.objects.filter(Q(owner=profile)).values())
         results = {'user_id' : int(user_id), 'username' : self.request.user.username, 'following' : following, 'followers' : followers, 
                 'favorite_playlists' : favorite_playlists, 'users_playlists' : users_playlists, 'liked_songs' : liked_songs,
                 'disliked_songs' : disliked_songs, }
@@ -821,14 +823,13 @@ class Getprofile(APIView):
         followers = clean_profiles(followers)
         following = list(profile.following.values())
         following = clean_profiles(following)
+        #playlists that a user follows but does not own
         favorite_playlists = list(profile.favorite_playlists.filter(~Q(owner=profile)).values())
-        public_playlists = list(profile.favorite_playlists.filter(owner=profile, is_public=True).values())
+        #public playlists owned by this user
+        public_playlists = list(Playlist.objects.filter(owner=profile, is_public=True).values()) 
         results = {'user_id' : int(user_id), 'username' : str(username), 'following' : following, 'followers' : followers, 
                 'favorite_playlists' : favorite_playlists, 'public_playlists' : public_playlists}
         return Response(data=results, status=status.HTTP_200_OK)
-    
-
-
 
 class FollowToggle(APIView):
     #follow another user
