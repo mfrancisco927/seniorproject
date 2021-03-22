@@ -29,7 +29,7 @@ function Explore() {
 
     const loadLikeDislikes = useCallback(async () => {
       await getCurrentUser().then(success => {
-        console.log('Refreshing like/dislike history for Explore');
+        console.log('Refreshed like/dislike history for Explore');
         likedSongs.current = success.liked_songs;
         dislikedSongs.current = success.disliked_songs;
       }).catch(reject => {
