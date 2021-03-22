@@ -297,12 +297,13 @@ class GetUser(APIView):
         followers = clean_profiles(followers)
         following = list(profile.following.values())
         following = clean_profiles(following)
-        liked_songs = list(profile.liked_songs.values_list('song_id', 'title', 'artists', 'duration_ms'))
+        liked_songs = list(profile.liked_songs.values('song_id', 'title', 'artists', 'duration_ms'))
         disliked_songs = list(profile.disliked_songs.values_list('song_id', flat=True))
         favorite_playlists = list(profile.favorite_playlists.filter(~Q(owner=profile)).values())
         users_playlists = list(profile.favorite_playlists.filter(owner=profile).values())
         results = {'user_id' : int(user_id), 'username' : self.request.user.username, 'following' : following, 'followers' : followers, 
-                'favorite_playlists' : favorite_playlists, 'users_playlists' : users_playlists}
+                'favorite_playlists' : favorite_playlists, 'users_playlists' : users_playlists, 'liked_songs' : liked_songs,
+                'disliked_songs' : disliked_songs, }
         return Response(data=results, status=status.HTTP_200_OK)
 
 class Genre(APIView):
