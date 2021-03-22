@@ -175,7 +175,7 @@ function RequireSpotifyAuthForLoggedInOnly({ children }) {
       {children}
     </RequireSpotifyAuth>
   ) : (
-    {children}
+    children
   );
 }
 
