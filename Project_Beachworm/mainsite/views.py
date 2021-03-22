@@ -825,8 +825,8 @@ class Getprofile(APIView):
         following = clean_profiles(following)
         #playlists that a user follows but does not own
         favorite_playlists = list(profile.favorite_playlists.filter(~Q(owner=profile)).values())
-        #public playlists that a user owns
-        public_playlists = list(Playlist.objects.filter(owner=profile, is_public=True)) 
+        #public playlists owned by this user
+        public_playlists = list(Playlist.objects.filter(owner=profile, is_public=True).values()) 
         results = {'user_id' : int(user_id), 'username' : str(username), 'following' : following, 'followers' : followers, 
                 'favorite_playlists' : favorite_playlists, 'public_playlists' : public_playlists}
         return Response(data=results, status=status.HTTP_200_OK)
