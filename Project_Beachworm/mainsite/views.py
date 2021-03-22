@@ -297,7 +297,7 @@ class GetUser(APIView):
         followers = clean_profiles(followers)
         following = list(profile.following.values())
         following = clean_profiles(following)
-        liked_songs = list(profile.liked_songs.values_list('song_id', flat=True)) #.values_list('song_id', 'title', 'artists', 'duration_ms'))
+        liked_songs = list(profile.liked_songs.values('song_id', 'title', 'artists', 'duration_ms'))
         disliked_songs = list(profile.disliked_songs.values_list('song_id', flat=True))
         favorite_playlists = list(profile.favorite_playlists.filter(~Q(owner=profile)).values())
         users_playlists = list(profile.favorite_playlists.filter(owner=profile).values())
