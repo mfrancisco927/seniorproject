@@ -397,8 +397,6 @@ class ArtistsFromGenres(APIView):
 
 
         queryGenres = UserGenreSeed.objects.filter(user = profile)
-        print(queryGenres)
-        print(user_id)
         searchResults = {"artists": {"items" : []}}
         arrayArtists = []
         if queryGenres:
@@ -409,13 +407,11 @@ class ArtistsFromGenres(APIView):
                 if len(tempQuery["artists"]['items']) > 0:
                     for artist in tempQuery["artists"]["items"] :
                         arrayArtists.append(artist)
-            # # Remove last OR
-            # queryString = queryString[:-3]
-            # print(queryString)
 
         else :
             # If no genres exist for user, use the pop genre
             searchResults = sp.search(q="genre:pop", type="artist", limit=20)
+
         random.shuffle(arrayArtists)
         i = 0
         while i < min(len(arrayArtists), 20):
@@ -493,7 +489,7 @@ class UserRecommendations(APIView):
             # must turn tracks into items to make dict same as search dict
             recommendations['items'] = recommendations.pop('tracks')
 
-            curated_recommendations = curateSongs(profile, recommendations)
+            curated_recommendations = curateSongs(profile, recommendations, RECOMMENDATION_NUMBER)
             
             return Response(data=curated_recommendations, status=status.HTTP_200_OK)
 
