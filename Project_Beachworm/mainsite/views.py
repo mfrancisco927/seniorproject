@@ -403,7 +403,7 @@ class ArtistsFromGenres(APIView):
             for query in queryGenres :
             #     queryString += "genre:" + query.genre_id
                 searchq = "genre:" + query.genre_id
-                tempQuery = sp.search(q=searchq, type="artist", limit=20)
+                tempQuery = sp.search(q=searchq, type="artist", limit=25)
                 if len(tempQuery["artists"]['items']) > 0:
                     for artist in tempQuery["artists"]["items"] :
                         arrayArtists.append(artist)
@@ -414,9 +414,12 @@ class ArtistsFromGenres(APIView):
 
         random.shuffle(arrayArtists)
         i = 0
+
+        searchResultsID = []
         while i < min(len(arrayArtists), 20):
-            if arrayArtists[i] not in searchResults["artists"]["items"]:
+            if arrayArtists[i]['id'] not in searchResultsID:
                 searchResults["artists"]["items"].append(arrayArtists[i])
+                searchResultsID.append(arrayArtists[i]['id'])
                 i += 1
         # searchResults = sp.search(q=queryString, type="artist", limit=20)
 
