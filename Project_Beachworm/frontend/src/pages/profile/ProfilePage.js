@@ -1,6 +1,7 @@
 import { useHistory, useParams } from 'react-router-dom';
+import { useCallback } from 'react';
 import { useAuth } from './../../hooks/authHooks';
-import { getProfile, getCurrentUser, followUser, unfollowUser } from './../../api/userApi';
+import { getProfile, getCurrentUser, followUser, unfollowUser, createPlaylist } from './../../api/userApi';
 import { Button } from '@material-ui/core';
 import PersonIcon from '@material-ui/icons/Person';
 import ClearIcon from '@material-ui/icons/Clear';
@@ -17,76 +18,45 @@ function ProfilePage(){
   const [dataLoaded, setDataLoaded] = useState(false);
   const [errorLoadingProfile, setErrorLoadingProfile] = useState(false);
   const [following, setFollowing] = useState(false);
-  let { profileId } = useParams();
+  const profileId = useParams().profileId || auth.id;
+  const viewingSelf = Number(profileId) === auth.id;
 
-  if (!profileId) {
-    profileId = auth.id;
-  }
+  const updateTargetData = useCallback(async () => {
+    if (!auth.id) {
+      return; // can't run this until we are authorized
+    }
 
-  const viewingSelf = profileId === auth.id;
+    const loadProfileCallback = viewingSelf ? getCurrentUser : () => getProfile(profileId);
+    let tempProfile = {'playlists': [], 'following': [], 'followers': []};
+    
+    // first load profile data
+    await loadProfileCallback().then(async (profileData) => {
+      // if successful, request playlist data
+      tempProfile = { ...profileData, 
+        playlists: viewingSelf ? profileData.users_playlists : profileData.public_playlists,
+      };
+      setFollowing(tempProfile.followers.map(user => user.user_id).includes(auth.id));
+      return Promise.resolve(profileData);
+    }, reject => {
+      // failed to get initial profile data
+      if (reject.response.status === 404) {
+        console.error('404 on target profile request.');
+      }
+      return Promise.reject(reject);
+    })
+    .catch(() => {
+      setErrorLoadingProfile(true);
+    }).finally(() => {
+      setProfileData(tempProfile);
+      setDataLoaded(true);
+    });
+    // console.log('Profile output', tempProfile);
+  }, [auth.id, profileId, viewingSelf]);
 
-  // when the profile viewing changes, call the API and update the data
+  // when the profile being viewed changes, call the API and update the data
   useEffect(() => {
-    const updateProfileData = async () => {
-      const getUserDataCallback = viewingSelf ? getCurrentUser : () => getProfile(profileId);
-      let tempProfile = {'playlists': [], 'following': [], 'followers': []};
-      
-      // first load profile data
-      await getUserDataCallback().then(async (profileData) => {
-        // if successful, request playlist data
-        tempProfile = { ...profileData, 
-          playlists: viewingSelf ? profileData.users_playlists : profileData.public_playlists,
-        };
-        setFollowing(tempProfile.followers.includes(auth.id));
-        return Promise.resolve(profileData);
-      }, reject => {
-        // failed to get initial profile data
-        if (reject.response.status === 404) {
-          console.error('404 on initial profile request.');
-        }
-        return Promise.reject(reject);
-      })
-      // .then(playlistData => {
-      //   // successful in both profile and playlist data. yay!
-      //   tempProfile.playlists = playlistData;
-      //   setErrorLoadingProfile(false);
-      // }, reject => {
-      //   // failed to get playlist data
-      //   if (reject.response.status === 404) {
-      //     console.error('404 on playlist request.');
-      //   }
-      //   return Promise.reject(reject);
-      // })
-      .catch(() => {
-        setErrorLoadingProfile(true);
-      }).finally(() => {
-        
-        // add in some fake playlist data for testing
-        // const tempPlaylist = {
-        //   'name': 'Playlist Name!',
-        //   'user_id': '23',
-        // };
-        // tempProfile.playlists = new Array(10).fill(tempPlaylist);
-        // add in fake following and follower data for testing
-        // const tempFollower = {
-        //   'user_id': 12,
-        //   'username': 'Johnny Depp',
-        // };
-        // tempProfile.followers = new Array(12).fill(tempFollower);
-        // const tempFollowee = {
-        //   'user_id': 15,
-        //   'username': 'xX_quik_$c0pez_Xx',
-        // };
-        // tempProfile.following = new Array(13).fill(tempFollowee);
-        // tempProfile.username = tempProfile.username || "epic_hax0r1337";
-        setProfileData(tempProfile);
-        setDataLoaded(true);
-      });
-      console.log('Profile output', tempProfile);
-    };
-
-    updateProfileData();
-  }, [profileId, viewingSelf, auth.id]);
+    updateTargetData();
+  }, [updateTargetData]);
 
   const ImageSquare = (props) => {
     const { children, onClick, ...restProps } = props;
@@ -102,6 +72,41 @@ function ProfilePage(){
     );
   }
 
+  const loadLikedSongsPlaylist = () => {
+    // TODO: when playlist page is done, load up the liked songs within it here
+  };
+
+  const handlePlaylistClick = (playlistId) => {
+    console.log('Clicked playlist', playlistId);
+  }
+
+  const handleCreateNewPlaylist = async () => {
+    const numPlaylists = profileData.playlists.length;
+    const playlistName = prompt('Enter the playlist title.', 'Playlist' + numPlaylists);
+    await createPlaylist(auth.id, playlistName, true).then(success => {
+      console.log('Created new playlist', success.new_playlist);
+      updateTargetData();
+    }, reject => {
+      console.log('Failed to create new playlist');
+    });
+  }
+
+  const likedSongsElement = (
+    <ImageSquare
+    src="https://images-na.ssl-images-amazon.com/images/I/51Ib3jYSStL._AC_SY450_.jpg"
+    onClick={loadLikedSongsPlaylist}>
+      {'Liked songs'}
+    </ImageSquare>
+  );
+
+  const createNewPlaylistElement = (
+    <ImageSquare
+    src="https://images-na.ssl-images-amazon.com/images/I/51Ib3jYSStL._AC_SY450_.jpg"
+    onClick={handleCreateNewPlaylist}>
+      {'New playlist'}
+    </ImageSquare>
+  );
+
   const tabDetails = {
     'playlists': {
       text: 'Playlists',
@@ -111,11 +116,14 @@ function ProfilePage(){
         // that it's public?
         <ImageSquare
           src="https://images-na.ssl-images-amazon.com/images/I/51Ib3jYSStL._AC_SY450_.jpg"
-          onClick={() => console.log('Clicked playlist with id ' + playlist.id)}>
+          onClick={() => handlePlaylistClick(playlist.id)}>
           {playlist.title}
         </ImageSquare>
       ),
       emptyTabText: !viewingSelf && 'No playlists available for this user!',
+      prependItems: viewingSelf && (
+        [likedSongsElement, createNewPlaylistElement]
+      )
     },
     'following': {
       text: 'Following',
@@ -143,12 +151,12 @@ function ProfilePage(){
 
   const toggleFollow = async () => {
     if (following) {
-      await unfollowUser(auth.id, profileId).then(success => {
+      await unfollowUser(profileId).then(success => {
         console.log('Unfollowed user ' + profileId);
         setFollowing(false);
       }, reject => (console.log('Failed to unfollow user ' + profileId)));
     } else {
-      await followUser(auth.id, profileId).then(success => {
+      await followUser(profileId).then(success => {
         console.log('Followed user ' + profileId);
         setFollowing(true);
       }, reject => (console.log('Failed to follow user ' + profileId)));

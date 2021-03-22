@@ -27,10 +27,14 @@ export async function getPlaylists(userId) {
   return response.data;
 }
 
-export async function createPlaylist(userId, songIds) {
+export async function createPlaylist(userId, title, isPublic=true) {
   const playlistEndpoint = playlistEndpointUri(userId);
-  const response = await axiosInstance.post(playlistEndpoint, {
-    songIds: songIds,
+  // config is THIRD argument in post, so pass in empty object for data
+  const response = await axiosInstance.post(playlistEndpoint, {}, {
+    params: {
+      title: title,
+      is_public: isPublic,
+    }
   });
   return response.data;
 }
@@ -53,14 +57,14 @@ export async function getProfile(userId) {
   });
 }
 
-export async function followUser(userId, targetUserId) {
-  const profileEndpoint = followingEndpointUri(userId, targetUserId);
+export async function followUser(targetUserId) {
+  const profileEndpoint = followingEndpointUri(targetUserId);
   const response = await axiosInstance.post(profileEndpoint);
   return response.data;
 }
 
-export async function unfollowUser(userId, targetUserId) {
-  const profileEndpoint = followingEndpointUri(userId, targetUserId);
+export async function unfollowUser(targetUserId) {
+  const profileEndpoint = followingEndpointUri(targetUserId);
   const response = await axiosInstance.delete(profileEndpoint);
   return response.data;
 }

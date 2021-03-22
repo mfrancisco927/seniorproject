@@ -20,15 +20,26 @@ function TabbedGallery(props) {
   }
 
   const createGallery = (tabKey, items) => {
-    const creationCallback = tabDetails[tabKey].tabItemCreationCallback;
+    const { tabItemCreationCallback: creationCallback, prependItems } = tabDetails[tabKey];
+
+    const prependItemsWrapped = prependItems ? prependItems.map((item, index) => (
+      <div className="gallery_row-item" key={'prepend' + index}>
+        {item}
+      </div>
+    )) : [];
+
+    const mainItemsWrapped = items.length ? items.map((item, index) => (
+      <div className="gallery_row-item" key={'main' + index}>
+        {creationCallback(item)}
+      </div>
+    )) : [];
+
+    const allItems = [...prependItemsWrapped, ...mainItemsWrapped];
+
     return (
       <div className="gallery_row-wrapper">
-        {items.length ? (
-          items.map((item, index) => (
-            <div className="gallery_row-item" key={index}>
-              {creationCallback(item)}
-            </div>
-          ))
+        {allItems.length ? (
+          allItems
         ) : (
           <span className="gallery_empty-row-text">
             <em>
