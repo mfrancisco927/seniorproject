@@ -25,6 +25,7 @@ function useProvideAuth() {
   const [user, setUser] = useState(localStorage.getItem('access_token'));
   const [id, setId] = useState(null);
   const [spotifyToken, setSpotifyToken] = useState(null);
+  const [hasAuthenticatedSpotify, setHasAuthenticatedSpotify] = useState(null);
 
   useEffect(() => {
     const updateUser = async () => {
@@ -72,11 +73,14 @@ function useProvideAuth() {
     return refreshSpotifyToken().then(result => {
       if (result) {
         setSpotifyToken(result);
+        setHasAuthenticatedSpotify(true);
         return Promise.resolve(result);
       } else {
+        setHasAuthenticatedSpotify(false);
         return Promise.reject('No access token from endpoint');
       }
     }, _reject => {
+      setHasAuthenticatedSpotify(false);
       console.log('Access token failed to refresh')
     });
   };
@@ -89,5 +93,6 @@ function useProvideAuth() {
     refreshSpotifyAuth,
     spotifyToken,
     setSpotifyToken,
+    hasAuthenticatedSpotify,
   };
 }

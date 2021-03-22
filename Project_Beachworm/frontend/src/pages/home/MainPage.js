@@ -37,28 +37,11 @@ function MainPage(props) {
 
   const spotify = useSpotifySdk();
 
-  const {changeSong} = props;
   const [data, setData] = useState(testingItems);
 
-  const fetchSongs = async () => {
-    console.log('fetching...')
-
-        try {
-          let url = 'http://127.0.0.1:8000/api/get-songs/'
-          const response = await fetch(url);
-          const tempdata = await response.json();
-
-          console.log('New song data received', tempdata)
-          // setData(tempdata)
-    
-        } catch(error) {
-          console.log(error)
-        }
-    }
-
-    useEffect( () =>{
-      fetchSongs();
-    }, [])
+  useEffect( () =>{
+    // TODO for Isaac: load songs and set data
+  }, [])
 
   return (
     <div>

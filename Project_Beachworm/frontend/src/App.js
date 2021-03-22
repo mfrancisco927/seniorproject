@@ -1,5 +1,5 @@
 import './App.css';
-import { useState, Fragment } from 'react';
+import { useState, Fragment, useRef } from 'react';
 import { Switch, Route, useHistory, Redirect, useLocation } from "react-router-dom";
 import MainPage from './pages/home/MainPage.js';
 import Navbar from './pages/nav/Navbar.js';
@@ -39,11 +39,6 @@ function App() {
       })
       history.push('/search');
     }
-  }
-
-  const changeSong = (song) => {
-    history.push('/playlist');
-    console.log('Changing song to ' + song);
   }
 
   // which pages to carry over the footer to
@@ -88,7 +83,9 @@ function App() {
             <Landing />
           </Route>
           <Route path='/explore'>
-            <Explore />
+            <RequireSpotifyAuthForLoggedInOnly>
+              <Explore />
+            </RequireSpotifyAuthForLoggedInOnly>
           </Route>
           <Route path='/questionnaire1'>
             <Questionnaire1 />
@@ -109,7 +106,9 @@ function App() {
             <SpotifyAuth />
           </PrivateRoute>
           <Route path='/' exact>
-            <MainPage changeSong={changeSong} />
+            <RequireSpotifyAuthForLoggedInOnly>
+              <MainPage />
+            </RequireSpotifyAuthForLoggedInOnly>
           </Route>
           <Route path='*'>
             <PageNotFound />
@@ -142,6 +141,41 @@ function PrivateRoute({ children, ...rest }) {
         )
       }
     />
+  );
+}
+
+/* wrapper component to require spotify authentication for a page,
+ * redirects to spotify auth if not authenticated (which will redirect
+ * back on successful authentication) */
+function RequireSpotifyAuth({ children }) {
+  const authRef = useRef(useAuth());
+  const locRef = useRef(useLocation());
+  const auth = authRef.current;
+  const location = locRef.current;
+
+  return (
+    auth.hasAuthenticatedSpotify ? (
+      children
+    ) : (
+      <Redirect to={{
+        pathname: '/spotify-auth',
+        state: { redirect: location.pathname }
+      }} />
+    )
+  )
+}
+
+/* wrapper component that only requires a logged in user to be Spotify authenticated,
+* but signed out users (i.e. guests) can see the page. useful for when we have different
+* behaviors but same link for a route based on sign-in status, e.g. the explore page */
+function RequireSpotifyAuthForLoggedInOnly({ children }) {
+  const auth = useAuth();
+  return auth.id ? (
+    <RequireSpotifyAuth>
+      {children}
+    </RequireSpotifyAuth>
+  ) : (
+    {children}
   );
 }
 
