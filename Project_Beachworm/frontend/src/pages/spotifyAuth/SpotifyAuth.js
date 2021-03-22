@@ -1,14 +1,13 @@
-// import { useAuth } from './../../hooks/authHooks';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import { storeSpotifyAuth, refreshSpotifyToken } from './../../api/authenticationApi';
 import { useLocation } from 'react-router-dom';
+import { useAuth } from './../../hooks/authHooks';
 
 const SpotifyAuth = () => {
+  const auth = useAuth();
   const location = useLocation();
   const history = useHistory();
-
-  const [spotifyToken, setSpotifyToken] = useState(localStorage.getItem('spotify_access_token'));
 
   const spotifyEndpoint = 'https://accounts.spotify.com/authorize';
   const clientId = 'e60a380058324c33bb56c0067ca0a325';
@@ -29,8 +28,7 @@ const SpotifyAuth = () => {
 
     if (code && state === localAccessToken) {
       storeSpotifyAuth(code, state).then(result => {
-        localStorage.setItem('spotify_access_token', result.access_token);
-        setSpotifyToken(result.access_token);
+        auth.setSpotifyToken(result.access_token);
         history.push('/');
       }, reject => {
         // do nothing on reject
@@ -39,17 +37,11 @@ const SpotifyAuth = () => {
   }, []);
 
   const refresh = () => {
-    refreshSpotifyToken().then(result => {
-      localStorage.setItem('spotify_access_token', result.access_token);
-      setSpotifyToken(result.access_token);
+    refreshSpotifyToken().then(async result => {
+      await auth.refreshSpotifyAuth();
     }, reject => {
       // do nothing on reject
     });
-  }
-
-  const clear = () => {
-    localStorage.removeItem('spotify_access_token');
-    setSpotifyToken(localStorage.getItem('spotify_access_token'))
   }
 
   return (
@@ -59,13 +51,12 @@ const SpotifyAuth = () => {
           Authorize
         </button>
       </a>
-      {spotifyToken && (
+      {auth.spotifyToken && (
         <div>
           <h2>Spotify Authorization</h2>
           <p>You might already have a token!</p>
-          <p>Found token: {spotifyToken}</p>
+          <p>Found token: {auth.spotifyToken}</p>
           <button onClick={refresh}>Refresh token</button>
-          <button onClick={clear}>Clear token</button>
         </div>
       )}
     </div>

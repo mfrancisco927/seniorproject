@@ -1,6 +1,6 @@
 import { useContext, createContext, useState, useEffect } from "react";
-import { signIn as apiSignIn }  from '../api/authenticationApi';
-import { getCurrentUser }  from '../api/userApi';
+import { signIn as apiSignIn, refreshSpotifyToken }  from './../api/authenticationApi';
+import { getCurrentUser }  from './../api/userApi';
 
 /* This code is largely adapted from https://reactrouter.com/web/example/auth-workflow
 * `authContext`, `ProvideAuth`, `useAuth` and `useProvideAuth`
@@ -24,14 +24,27 @@ export function useAuth() {
 function useProvideAuth() {
   const [user, setUser] = useState(localStorage.getItem('access_token'));
   const [id, setId] = useState(null);
+  const [spotifyToken, setSpotifyToken] = useState(null);
 
   useEffect(() => {
     const updateUser = async () => {
-      console.log('New auth detected. Fetching current user details');
-      await getCurrentUser().then(value => {
-        setId(_prev => value.id);
-      });
+      if (user) {
+        console.log('New auth detected. Fetching current user details');
+        await getCurrentUser().then(value => {
+          setId(value.user_id);
+          return Promise.resolve(value);
+        }).then(async _value => {
+          console.log('Current user successfully pulled, attempting to get initial Spotify access token.');
+          // have successful user, so should also have spotify token
+          await refreshSpotifyAuth().then(() => {
+            console.log('Spotify access token successfully pulled.');
+          }, () => {
+            console.log('Failed to retrieve Spotify access token');
+          });
+        });
+      }
     };
+
     updateUser();
   }, [user]);
 
@@ -55,10 +68,26 @@ function useProvideAuth() {
     }
   };
 
+  const refreshSpotifyAuth = () => {
+    return refreshSpotifyToken().then(result => {
+      if (result) {
+        setSpotifyToken(result);
+        return Promise.resolve(result);
+      } else {
+        return Promise.reject('No access token from endpoint');
+      }
+    }, _reject => {
+      console.log('Access token failed to refresh')
+    });
+  };
+
   return {
     user,
     id,
     signIn,
-    signOut
+    signOut,
+    refreshSpotifyAuth,
+    spotifyToken,
+    setSpotifyToken,
   };
 }

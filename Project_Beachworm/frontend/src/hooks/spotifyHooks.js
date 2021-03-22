@@ -1,5 +1,4 @@
 import { useContext, createContext, useState, useEffect, useRef } from "react";
-import { refreshSpotifyToken }  from './../api/authenticationApi';
 import { playTrack } from './../api/spotifyApi';
 import { listenToSong } from './../api/songAPI';
 import { useAuth } from './../hooks/authHooks';
@@ -13,7 +12,6 @@ export function useSpotifySdk() {
 
 export function ProvideSpotify({ children }) {
   const auth = useAuth();
-  const spotifyTokenRef = useRef(null);
   const deviceIdRef = useRef(null);
   const [playerLoaded, setPlayerLoaded] = useState(false);
   const [playerSelected, setPlayerSelected] = useState(false);
@@ -89,19 +87,13 @@ export function ProvideSpotify({ children }) {
     playerRefreshRateMs: 100,
     playerAutoConnect: true,
     onPlayerRequestAccessToken: (async () => {
-      if (!spotifyTokenRef.current) {
-        if (auth.user) {
-          const newToken = await refreshSpotifyToken().then(result => {
-            spotifyTokenRef.current = result;
-            localStorage.setItem('spotify_access_token', result)
-          }, reject => {
-            return null;
-          });
-          return newToken;
-        }
+      if (auth.spotifyToken) {
+        return auth.spotifyToken;
+      } else if (auth.user) {
+        return await auth.refreshSpotifyAuth();
+      } else {
         return null;
       }
-      return spotifyTokenRef.current;
     }),
     onPlayerLoading: (() => setPlayerLoaded(true)),
     onPlayerWaitingForDevice: (data => {
@@ -170,20 +162,6 @@ export function ProvideSpotify({ children }) {
     //   }
     // }
   
-    const refreshToken = async () => {
-      return refreshSpotifyToken().then(result => {
-        if (result) {
-          spotifyTokenRef.current = result.access_token;
-          localStorage.setItem('spotify_access_token', result.access_token);
-          return Promise.resolve(result);
-        } else {
-          return Promise.reject('No access token from endpoint');
-        }
-      }, _reject => {
-        console.log('Access token failed to refresh')
-      });
-    };
-  
     const refreshAndTry = async (callback, parameters, firstTry) => {
       const attempt = async () => {
         return await new Promise(parameters ? () => callback(parameters) : callback)
@@ -191,7 +169,7 @@ export function ProvideSpotify({ children }) {
           console.log('Error in refreshable function', e);
           if (firstTry) {
             console.log('Attempting to retrieve new Spotify token');
-            await refreshToken();
+            await auth.refreshSpotifyAuth();
             return refreshAndTry(callback, parameters, false);
           } else {
             return Promise.reject('Too many attempts, giving up');
@@ -200,9 +178,9 @@ export function ProvideSpotify({ children }) {
       };
   
       // if spotify endpoint tells us we don't have the auth, refresh token and try again
-      if (!spotifyTokenRef.current) {
+      if (!auth.spotifyToken) {
         console.log(`Called a Spotify auth-required function, but we have no access token. Will try to refresh token then attempt.`);
-        return refreshToken().then(result => {
+        return auth.refreshSpotifyAuth().then(result => {
           console.log('Attempt succeeded, received token', result);
           return attempt();
         }, _reject => {
@@ -225,7 +203,7 @@ export function ProvideSpotify({ children }) {
   
     const play = async (songId) => {
       if (songId) {
-        return playTrack(songId, deviceIdRef.current, spotifyTokenRef.current).then(async _ => {
+        return playTrack(songId, deviceIdRef.current, auth.spotifyToken).then(async _ => {
           return await listenToSong(songId).then(history => {
             console.log('Logged listen to song ' + songId);
             setSongHistory(history.history);
@@ -397,7 +375,7 @@ export function ProvideSpotify({ children }) {
         }
         // play the previous song
         console.log('Moving to previous track ' + prevSongId);
-        await playTrack(prevSongId, deviceIdRef.current, spotifyTokenRef.current);
+        await playTrack(prevSongId, deviceIdRef.current, auth.spotifyToken);
       }
     }
   
