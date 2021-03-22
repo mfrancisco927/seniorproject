@@ -3,33 +3,39 @@ import { Button } from '@material-ui/core';
 import './TabbedGallery.css';
 
 function TabbedGallery(props) {
-  const { children: tabContent, tabItemCreationCallbacks } = props;
+  const { children: tabContent, tabDetails } = props;
   const [ selectedTabIndex, setSelectedTabIndex ] = useState(0);
-  const tabNames = Object.keys(tabItemCreationCallbacks);
+  const tabKeys = Object.keys(tabDetails);
 
-  const createTab = (name, index) => {
+  const createTab = (key, index) => {
     return (
       <Button
       className={'tab-button' + (index === selectedTabIndex ? ' tab-button_selected' : '')}
       key={index}
       onClick={() => setSelectedTabIndex(index)}
       disableFocusRipple>
-        {name}
+        {tabDetails[key].text}
       </Button>
     );
   }
 
-  const createGallery = (tabName, items) => {
-    const creationCallback = tabItemCreationCallbacks[tabName];
+  const createGallery = (tabKey, items) => {
+    const creationCallback = tabDetails[tabKey].tabItemCreationCallback;
     return (
       <div className="gallery_row-wrapper">
-        {
+        {items.length ? (
           items.map((item, index) => (
             <div className="gallery_row-item" key={index}>
               {creationCallback(item)}
             </div>
           ))
-        }
+        ) : (
+          <span className="gallery_empty-row-text">
+            <em>
+              {tabDetails[tabKey].emptyTabText}
+            </em>
+          </span>
+        )}
       </div>  
     );
   };
@@ -37,9 +43,9 @@ function TabbedGallery(props) {
   return (
     <div className="gallery_container">
       <span className="gallery_tabs">
-        {tabNames.map((name, index) => createTab(name, index))}
+        {tabKeys.map((key, index) => createTab(key, index))}
       </span>
-      {createGallery(tabNames[selectedTabIndex], tabContent[selectedTabIndex])}
+      {createGallery(tabKeys[selectedTabIndex], tabContent[selectedTabIndex])}
     </div>
   );
 }

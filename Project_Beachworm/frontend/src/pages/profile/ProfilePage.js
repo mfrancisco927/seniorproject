@@ -1,6 +1,6 @@
 import { useHistory, useParams } from 'react-router-dom';
 import { useAuth } from './../../hooks/authHooks';
-import { getProfile, getCurrentUser, getPlaylists } from './../../api/userApi';
+import { getProfile, getCurrentUser, followUser, unfollowUser } from './../../api/userApi';
 import { Button } from '@material-ui/core';
 import PersonIcon from '@material-ui/icons/Person';
 import ClearIcon from '@material-ui/icons/Clear';
@@ -28,58 +28,61 @@ function ProfilePage(){
   // when the profile viewing changes, call the API and update the data
   useEffect(() => {
     const updateProfileData = async () => {
-      const apiCallback = viewingSelf ? getCurrentUser : () => getProfile(profileId);
+      const getUserDataCallback = viewingSelf ? getCurrentUser : () => getProfile(profileId);
       let tempProfile = {'playlists': [], 'following': [], 'followers': []};
       
       // first load profile data
-      await apiCallback().then(async (profileData) => {
+      await getUserDataCallback().then(async (profileData) => {
         // if successful, request playlist data
-        tempProfile = profileData;
-        return await getPlaylists(profileId);
+        tempProfile = { ...profileData, 
+          playlists: viewingSelf ? profileData.users_playlists : profileData.public_playlists,
+        };
+        setFollowing(tempProfile.followers.includes(auth.id));
+        return Promise.resolve(profileData);
       }, reject => {
         // failed to get initial profile data
         if (reject.response.status === 404) {
           console.error('404 on initial profile request.');
         }
         return Promise.reject(reject);
-      }).then(playlistData => {
-        // successful in both profile and playlist data. yay!
-        tempProfile.playlists = playlistData;
-        setErrorLoadingProfile(false);
-      }, reject => {
-        // failed to get playlist data
-        if (reject.response.status === 404) {
-          console.error('404 on playlist request.');
-        }
-        return Promise.reject(reject);
-      }).catch(() => {
-        // setErrorLoadingProfile(true); // uncomment once endpoint is added
+      })
+      // .then(playlistData => {
+      //   // successful in both profile and playlist data. yay!
+      //   tempProfile.playlists = playlistData;
+      //   setErrorLoadingProfile(false);
+      // }, reject => {
+      //   // failed to get playlist data
+      //   if (reject.response.status === 404) {
+      //     console.error('404 on playlist request.');
+      //   }
+      //   return Promise.reject(reject);
+      // })
+      .catch(() => {
+        setErrorLoadingProfile(true);
       }).finally(() => {
         
         // add in some fake playlist data for testing
-        const tempPlaylist = {
-          'name': 'Playlist Name!',
-          'id': '23',
-        };
-        tempProfile.playlists = new Array(10).fill(tempPlaylist);
-
+        // const tempPlaylist = {
+        //   'name': 'Playlist Name!',
+        //   'user_id': '23',
+        // };
+        // tempProfile.playlists = new Array(10).fill(tempPlaylist);
         // add in fake following and follower data for testing
-        const tempFollower = {
-          'id': 12,
-          'username': 'Johnny Depp',
-        };
-        tempProfile.followers = new Array(12).fill(tempFollower);
-        const tempFollowee = {
-          'id': 15,
-          'username': 'xX_quik_$c0pez_Xx',
-        };
-        tempProfile.following = new Array(13).fill(tempFollowee);
-        tempProfile.username = tempProfile.username || "epic_hax0r1337";
-        setFollowing(tempProfile.followers.includes(auth.id)); // TODO: move this into the final 'then' above, check to see if we need to map objects to id
+        // const tempFollower = {
+        //   'user_id': 12,
+        //   'username': 'Johnny Depp',
+        // };
+        // tempProfile.followers = new Array(12).fill(tempFollower);
+        // const tempFollowee = {
+        //   'user_id': 15,
+        //   'username': 'xX_quik_$c0pez_Xx',
+        // };
+        // tempProfile.following = new Array(13).fill(tempFollowee);
+        // tempProfile.username = tempProfile.username || "epic_hax0r1337";
         setProfileData(tempProfile);
         setDataLoaded(true);
       });
-      // console.log('Profile output', tempProfile);
+      console.log('Profile output', tempProfile);
     };
 
     updateProfileData();
@@ -99,39 +102,56 @@ function ProfilePage(){
     );
   }
 
-  const tabItemCreationCallbacks = {
-    'Playlists': (playlist) => (
-      // TODO: edit this one to also add a config button on the playlist that allows
-      // the user to change name and visibility settings. maybe add some way to see
-      // that it's public?
-      <ImageSquare
+  const tabDetails = {
+    'playlists': {
+      text: 'Playlists',
+      tabItemCreationCallback: (playlist) => (
+        // TODO: edit this one to also add a config button on the playlist that allows
+        // the user to change name and visibility settings. maybe add some way to see
+        // that it's public?
+        <ImageSquare
+          src="https://images-na.ssl-images-amazon.com/images/I/51Ib3jYSStL._AC_SY450_.jpg"
+          onClick={() => console.log('Clicked playlist with id ' + playlist.id)}>
+          {playlist.title}
+        </ImageSquare>
+      ),
+      emptyTabText: !viewingSelf && 'No playlists available for this user!',
+    },
+    'following': {
+      text: 'Following',
+      tabItemCreationCallback: (followedUser) => (
+        <ImageSquare
         src="https://images-na.ssl-images-amazon.com/images/I/51Ib3jYSStL._AC_SY450_.jpg"
-        onClick={() => console.log('Clicked a playlist!')}>
-        {playlist.name}
-      </ImageSquare>
-    ),
-    'Following': (followedUser) => (
-      <ImageSquare
-      src="https://images-na.ssl-images-amazon.com/images/I/51Ib3jYSStL._AC_SY450_.jpg"
-      onClick={() => history.push(`/profile/${followedUser.id}`)}>
-        {followedUser.username}
-      </ImageSquare>
-    ),
-    'Followers': (follower) => (
-      <ImageSquare
-      src="https://images-na.ssl-images-amazon.com/images/I/51Ib3jYSStL._AC_SY450_.jpg"
-      onClick={() => history.push(`/profile/${follower.id}`)}>
-        {follower.username}
-      </ImageSquare>
-    ),
-  };
+        onClick={() => history.push(`/profile/${followedUser.user_id}`)}>
+          {followedUser.username}
+        </ImageSquare>
+      ),
+      emptyTabText: (viewingSelf ? "You don't" : "This user doesn't") + ' follow anyone!',
+    },
+    'followers': {
+      text: 'Followers',
+      tabItemCreationCallback: (follower) => (
+        <ImageSquare
+        src="https://images-na.ssl-images-amazon.com/images/I/51Ib3jYSStL._AC_SY450_.jpg"
+        onClick={() => history.push(`/profile/${follower.user_id}`)}>
+          {follower.username}
+        </ImageSquare>
+      ),
+      emptyTabText: (viewingSelf ? "You don't" : "This user doesn't") + ' have any followers!',
+    },
+  }
 
-  const toggleFollow = () => {
-    // TODO: API calls to follow, unfollow
+  const toggleFollow = async () => {
     if (following) {
-      setFollowing(false);
+      await unfollowUser(auth.id, profileId).then(success => {
+        console.log('Unfollowed user ' + profileId);
+        setFollowing(false);
+      }, reject => (console.log('Failed to unfollow user ' + profileId)));
     } else {
-      setFollowing(true);
+      await followUser(auth.id, profileId).then(success => {
+        console.log('Followed user ' + profileId);
+        setFollowing(true);
+      }, reject => (console.log('Failed to follow user ' + profileId)));
     }
   };
 
@@ -153,19 +173,23 @@ function ProfilePage(){
                 disableFocusRipple>
                   {following ? (
                     <Fragment>
-                      <ClearIcon className="follow-button_x-icon" /> Unfollow
+                      <ClearIcon className="follow-button_x-icon" />
+                      <span className="follow-button_text">
+                        Unfollow
+                      </span>
                     </Fragment>
                   ) : (
-                    <Fragment>
+                    <span className="follow-button_text">
                       Follow
-                    </Fragment>
+                    </span>
                   )}
                 </Button>
               </div>
             )}
             
           </div>
-          <TabbedGallery tabItemCreationCallbacks={tabItemCreationCallbacks}>
+          <TabbedGallery
+          tabDetails={tabDetails}>
             {[profileData.playlists, profileData.following, profileData.followers]}
           </TabbedGallery>
         </Fragment>

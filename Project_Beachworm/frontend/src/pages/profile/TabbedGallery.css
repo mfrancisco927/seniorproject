@@ -48,3 +48,8 @@
     padding-right: 2em;
     margin-right: 0;
 }
+
+.gallery_empty-row-text {
+    margin: 0 auto;
+    font-size: 1.5em;
+}

@@ -72,8 +72,8 @@
     margin-top: 0.5em !important;
 }
 
-.MuiButton-label {
-    height: 1em;
+.follow-button_text {
+    line-height: 1;
 }
 
 .follow-button_x-icon {
