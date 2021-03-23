@@ -81,6 +81,8 @@ function ProfilePage(){
   }
 
   const handleCreateNewPlaylist = async () => {
+    // TODO: show pop-up similar to queue visualizer that allows for name entry.
+    // alternatively, a modal.
     const numPlaylists = profileData.playlists.length;
     const playlistName = prompt('Enter the playlist title.', 'Playlist' + numPlaylists);
     await createPlaylist(auth.id, playlistName, true).then(success => {
