@@ -38,12 +38,12 @@
     width: 20%;
   }
 
-  .result img{
+  .result > img {
     width:150px;
     height:150px;
   }
 
-  img:hover{
+  .result > img:hover{
     box-shadow: inset 10px 10px 5px rgba(49, 47, 47, 0.712);
     -moz-box-shadow: inset 10px 10px 5px rgba(49, 47, 47, 0.712);
     -webkit-box-shadow:  10px 10px 5px rgba(49, 47, 47, 0.712);
