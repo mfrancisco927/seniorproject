@@ -103,9 +103,9 @@ function App() {
           <PrivateRoute path='/playlist'>
             <PlaylistPage />
           </PrivateRoute>
-          <PrivateRoute path='/search'>
+          <Route path='/search'>
             <SearchPage searchItem={searchField} searchData={searchData} />
-          </PrivateRoute>
+          </Route>
           <PrivateRoute path='/spotify-auth'>
             <SpotifyAuth />
           </PrivateRoute>
