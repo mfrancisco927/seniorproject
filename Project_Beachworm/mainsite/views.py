@@ -399,14 +399,17 @@ class ArtistsFromGenres(APIView):
         queryGenres = UserGenreSeed.objects.filter(user = profile)
         searchResults = {"artists": {"items" : []}}
         arrayArtists = []
+        counter = 0
         if queryGenres:
             for query in queryGenres :
-            #     queryString += "genre:" + query.genre_id
-                searchq = "genre:" + query.genre_id
-                tempQuery = sp.search(q=searchq, type="artist", limit=25)
-                if len(tempQuery["artists"]['items']) > 0:
-                    for artist in tempQuery["artists"]["items"] :
-                        arrayArtists.append(artist)
+                if counter <= 4 :
+                    searchq = "genre:" + query.genre_id
+                    tempQuery = sp.search(q=searchq, type="artist", limit=25)
+                    if len(tempQuery["artists"]['items']) > 0:
+                        for artist in tempQuery["artists"]["items"] :
+                            arrayArtists.append(artist)
+                else: 
+                    break
 
         else :
             # If no genres exist for user, use the pop genre
