@@ -471,7 +471,7 @@ class UserRecommendations(APIView):
             # Generate random number to determine how many genres to put in (at least 1)
             # Check to make sure there are genre seeds
             if genre_seeds_total:
-                num_genres = randint(1, len(genre_seeds_total))
+                num_genres = randint(1, min(4,len(genre_seeds_total)))
                 for i in range(num_genres) :
                     seed_genres.append(genre_seeds_total[i])
             if artist_seeds_total:
