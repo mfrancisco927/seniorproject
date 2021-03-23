@@ -343,12 +343,19 @@ class GetUser(APIView):
         results = {}
         user_id = self.request.user.id
         profile = Profile.objects.get(user=user_id)
-        liked_songs = list(profile.liked_songs.values_list('song_id', flat=True))
-        following = list(profile.following.values_list('user', flat=True))
+        followers = list(Profile.objects.filter(following=user_id).values())
+        followers = clean_profiles(followers)
+        following = list(profile.following.values())
+        following = clean_profiles(following)
+        liked_songs = list(profile.liked_songs.values('song_id', 'title', 'artists', 'duration_ms'))
         disliked_songs = list(profile.disliked_songs.values_list('song_id', flat=True))
-        favorite_playlists = list(profile.favorite_playlists.values_list('id', flat=True))
-        results= {'id' : user_id, 'username' : self.request.user.username, 'email' : self.request.user.email, 'liked_songs' : liked_songs,
-                'disliked_songs' : disliked_songs, 'following' : following, 'favorite_playlists' : favorite_playlists}
+        #playlists that a user follows but does not own
+        favorite_playlists = list(profile.favorite_playlists.filter(~Q(owner=profile)).values())
+        #playlists that a user owns, private and public
+        users_playlists = list(Playlist.objects.filter(Q(owner=profile)).values())
+        results = {'user_id' : int(user_id), 'username' : self.request.user.username, 'following' : following, 'followers' : followers, 
+                'favorite_playlists' : favorite_playlists, 'users_playlists' : users_playlists, 'liked_songs' : liked_songs,
+                'disliked_songs' : disliked_songs, }
         return Response(data=results, status=status.HTTP_200_OK)
 
 class Genre(APIView):
@@ -856,6 +863,18 @@ class DislikeSong(APIView):
 
         return Response(status=status.HTTP_200_OK)
 
+def clean_profiles(profiles):
+    for i in range(0, len(profiles)):
+        #clean unnecessary keys and refresh token
+        del profiles[i]['refresh_token']
+        del profiles[i]['created_at']
+        del profiles[i]['updated_at']
+        id = profiles[i]['user_id']
+        username = str(User.objects.get(id=id))
+        profiles[i]['username'] = username
+
+    return profiles
+
 class Getprofile(APIView):
     #permission_classes = (permissions.AllowAny,)
     #for viewing profiles of other users
@@ -866,27 +885,16 @@ class Getprofile(APIView):
         username = str(User.objects.get(id=user_id))
         profile = Profile.objects.get(user=user_id)
         followers = list(Profile.objects.filter(following=user_id).values())
-        followers = self.clean_profiles(followers)
+        followers = clean_profiles(followers)
         following = list(profile.following.values())
-        following = self.clean_profiles(following)
+        following = clean_profiles(following)
+        #playlists that a user follows but does not own
         favorite_playlists = list(profile.favorite_playlists.filter(~Q(owner=profile)).values())
-        public_playlists = list(profile.favorite_playlists.filter(owner=profile, is_public=True).values())
+        #public playlists owned by this user
+        public_playlists = list(Playlist.objects.filter(owner=profile, is_public=True).values()) 
         results = {'user_id' : int(user_id), 'username' : str(username), 'following' : following, 'followers' : followers, 
                 'favorite_playlists' : favorite_playlists, 'public_playlists' : public_playlists}
         return Response(data=results, status=status.HTTP_200_OK)
-    
-    def clean_profiles(self, profiles):
-        for i in range(0, len(profiles)):
-            #clean unnecessary keys and refresh token
-            del profiles[i]['refresh_token']
-            del profiles[i]['created_at']
-            del profiles[i]['updated_at']
-            id = profiles[i]['user_id']
-            username = str(User.objects.get(id=id))
-            profiles[i]['username'] = username
-
-        return profiles
-
 
 class FollowToggle(APIView):
     #follow another user
