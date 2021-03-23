@@ -405,26 +405,31 @@ class ArtistsFromGenres(APIView):
                 if counter <= 4 :
                     searchq = "genre:" + query.genre_id
                     tempQuery = sp.search(q=searchq, type="artist", limit=25)
-                    if len(tempQuery["artists"]['items']) > 0:
+                    if len(tempQuery["artists"]['items']) > 1:
                         for artist in tempQuery["artists"]["items"] :
                             arrayArtists.append(artist)
+                    print("Search completed")
+                    counter += 1
                 else: 
                     break
 
         else :
             # If no genres exist for user, use the pop genre
             searchResults = sp.search(q="genre:pop", type="artist", limit=20)
-
+        print("gets past search")
         random.shuffle(arrayArtists)
         i = 0
-
+        print('gets past shuffle)')
         searchResultsID = []
+        print("Length of artists: " + str(len(arrayArtists)))
         while i < min(len(arrayArtists), 20):
             if arrayArtists[i]['id'] not in searchResultsID:
                 searchResults["artists"]["items"].append(arrayArtists[i])
+                print("search results appended")
                 searchResultsID.append(arrayArtists[i]['id'])
-                i += 1
+                print("adding stuff " + str(i))
         # searchResults = sp.search(q=queryString, type="artist", limit=20)
+            i += 1
 
         return Response(data=searchResults, status=status.HTTP_200_OK)
 

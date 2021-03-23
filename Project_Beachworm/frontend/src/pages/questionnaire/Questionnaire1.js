@@ -1,21 +1,21 @@
 import React , { Component } from 'react';
-import { Link } from 'react-router-dom';
 import Grid from '@material-ui/core/Grid';
 import './Questionnaire.css';
 import '../../api/recommendationApi';
 import { postGenreSeeds } from '../../api/recommendationApi';
 import Placeholder from '../images/genres/placeholder.png';
-import { Redirect } from 'react-router-dom';
+import { withRouter } from 'react-router';
 
 class Questionarre1 extends Component {
+ 
   constructor(props) {
+    
     super(props)
     /*
      * TO-DO:
      * Get images for each genre
      */
     this.state = {
-      submitted: false,
       genres: {
         acoustic: {
           id: "acoustic",
@@ -858,16 +858,13 @@ class Questionarre1 extends Component {
     });
     console.log(genreIds);
     postGenreSeeds(genreIds).then((response) => {
-      this.setState({submitted: true})});
+        this.props.history.push('/Questionnaire2')
+      });
   }
 
   render() {
-    if(this.state.submitted === true) {
-      return <Redirect to="/questionnaire2"/>
-    }
     return (   
         <div className="questionnaire">
-            {/* <Link to='/questionnaire2'> */}
               <button 
                 type="button" 
                 className="btn"
@@ -875,7 +872,6 @@ class Questionarre1 extends Component {
               >
                 Submit
               </button>
-            {/* </Link> */}
             <Grid container>
               {Object.keys(this.state.genres).map(icon => (
                 <Grid item sm key={this.state.genres[icon]['id']}>
@@ -899,4 +895,4 @@ class Questionarre1 extends Component {
   }
 }
 
-export default Questionarre1;
+export default withRouter(Questionarre1);
