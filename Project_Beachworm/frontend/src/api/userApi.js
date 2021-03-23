@@ -1,14 +1,13 @@
 import axiosInstance from './axiosApi';
 
 const baseUri = '/user/';
+const baseUri2 = '/users/';
 const currentUserEndpointUri = baseUri + 'current/';
 const userEndpointUri = (userId) => baseUri + userId + '/';
 const playlistEndpointUri = (userId) => baseUri + userId + '/playlists/';
 const registerEndpointUri = baseUri + 'create/';
-const profileEndpointUri = (userId) => baseUri + userId + '/profile/';
-const followingEndpointUri = (userId, targetUid) => profileEndpointUri(userId) + '/following/' + targetUid + '/';
-const genreSeedEndpointUri = (userId) => profileEndpointUri(userId) + '/seeds/genres/';
-const artistSeedEndpointUri = (userId) => profileEndpointUri(userId) + '/seeds/artists/';
+const profileEndpointUri = (userId) => baseUri2 + userId + '/profile/';
+const followingEndpointUri = (targetUid) => baseUri2 + 'profile/following/' + targetUid + '/';
 
 export async function getCurrentUser() {
   const currentUserEndpoint = currentUserEndpointUri;
@@ -28,10 +27,14 @@ export async function getPlaylists(userId) {
   return response.data;
 }
 
-export async function createPlaylist(userId, songIds) {
+export async function createPlaylist(userId, title, isPublic=true) {
   const playlistEndpoint = playlistEndpointUri(userId);
-  const response = await axiosInstance.post(playlistEndpoint, {
-    songIds: songIds,
+  // config is THIRD argument in post, so pass in empty object for data
+  const response = await axiosInstance.post(playlistEndpoint, {}, {
+    params: {
+      title: title,
+      is_public: isPublic,
+    }
   });
   return response.data;
 }
@@ -47,34 +50,21 @@ export async function createUser(email, username, password) {
 
 export async function getProfile(userId) {
   const profileEndpoint = profileEndpointUri(userId);
-  const response = await axiosInstance.get(profileEndpoint);
+  return await axiosInstance.get(profileEndpoint).then(value => {
+    return Promise.resolve(value.data);
+  }, reason => {
+    return Promise.reject(reason);
+  });
+}
+
+export async function followUser(targetUserId) {
+  const profileEndpoint = followingEndpointUri(targetUserId);
+  const response = await axiosInstance.post(profileEndpoint);
   return response.data;
 }
 
-export async function followUser(userId, targetUserId) {
-  const profileEndpoint = followingEndpointUri(userId, targetUserId);
-  const response = await axiosInstance.get(profileEndpoint);
-  return response.data;
-}
-
-export async function unfollowUser(userId, targetUserId) {
-  const profileEndpoint = followingEndpointUri(userId, targetUserId);
+export async function unfollowUser(targetUserId) {
+  const profileEndpoint = followingEndpointUri(targetUserId);
   const response = await axiosInstance.delete(profileEndpoint);
-  return response.data;
-}
-
-export async function addGenreSeeds(userId, genreIds) {
-  const genreSeedEndpoint = genreSeedEndpointUri(userId);
-  const response = await axiosInstance.post(genreSeedEndpoint, {
-    ids: genreIds,
-  });
-  return response.data;
-}
-
-export async function addArtistSeeds(userId, artistIds) {
-  const artistSeedEndpoint = artistSeedEndpointUri(userId);
-  const response = await axiosInstance.post(artistSeedEndpoint, {
-    ids: artistIds,
-  });
   return response.data;
 }

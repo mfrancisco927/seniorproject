@@ -41,14 +41,18 @@ function App() {
     }
   }
 
-  // which pages to carry over the footer to
-  const footerPages = ['/landing', '/', '/profile', '/search'];
+  // which pages to carry over the footer, regex matched
+  const footerPages = ['^/$',
+  '^/landing([/\\?#].*)?$',
+  '^/profile([/\\?#].*)?$',
+  '^/search([/\\?#].*)?$',
+  '^/playlist([/\\?#].*)?$'];
   const [showFooter, setShowFooter] = useState(false);
 
   // wrapper that dynamically sets the show footer status for each page
   const WithFooter = (props) => {
     const path = useLocation().pathname;
-    setShowFooter(footerPages.includes(path) && !!auth.user);
+    setShowFooter(footerPages.some(page => path.match(page)) && auth.user !== null);
     return (
       <Fragment>
         {props.children}
@@ -93,7 +97,7 @@ function App() {
           <PrivateRoute path='/questionnaire2'>
             <Questionnaire2 />
           </PrivateRoute>
-          <PrivateRoute path='/profile'>
+          <PrivateRoute path={['/profile/:profileId', '/profile']}>
             <ProfilePage />
           </PrivateRoute>
           <PrivateRoute path='/playlist'>
