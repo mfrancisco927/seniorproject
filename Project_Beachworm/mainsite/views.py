@@ -987,7 +987,7 @@ class HomeRecommendations(APIView):
 
         # If no seeds exist, seed with genre pop only
         if (not seed_artists) and (not seed_tracks) and (not seed_genres):
-            seed_genres = 'pop'
+            seed_genres = ['pop']
 
         recommendations = sp.recommendations(
                                             seed_tracks=seed_tracks, 
