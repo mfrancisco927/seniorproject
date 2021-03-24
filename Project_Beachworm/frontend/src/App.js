@@ -24,19 +24,17 @@ function App() {
   const auth = useAuth();
   const history = useHistory();
 
-  const [ searchField , setSearchField ] = useState('')
-  const [ searchData, setSearchData] = useState({})
+  const [ searchField , setSearchField ] = useState('');
+  const [ searchedTerm, setSearchedTerm ] = useState(null);
+  const [ searchData, setSearchData] = useState(null);
 
   const submitSearch = (e) => {
     e.preventDefault();
-    setSearchData({});
-    console.log(searchField)
     if(searchField !== ''){
-      search(searchField).then( (data) => {
+      setSearchData({});
+      search(searchField).then((data) => {
         setSearchData(data)
-      }).then( () => {
-        console.log(searchData)
-      })
+      });
       history.push('/search');
     }
   }
@@ -76,7 +74,10 @@ function App() {
         '/profile': 'Profile',
         '/playlist': 'Playlist [TEMP]',
         '/spotify-auth': 'Spotify Auth [TEMP]',
-      }} searchField={searchField} setSearchField={setSearchField} submitSearch={submitSearch}
+      }} searchField={searchField}
+      setSearchField={setSearchField}
+      searchTermSelected={() => setSearchedTerm(searchField)}
+      submitSearch={submitSearch}
       />
       <WithFooter>
         <AuthorizedOrHidden>
@@ -104,7 +105,7 @@ function App() {
             <PlaylistPage />
           </PrivateRoute>
           <Route path='/search'>
-            <SearchPage searchItem={searchField} searchData={searchData} />
+            <SearchPage searchItem={searchedTerm} searchData={searchData} />
           </Route>
           <PrivateRoute path='/spotify-auth'>
             <SpotifyAuth />
@@ -152,10 +153,8 @@ function PrivateRoute({ children, ...rest }) {
  * redirects to spotify auth if not authenticated (which will redirect
  * back on successful authentication) */
 function RequireSpotifyAuth({ children }) {
-  const authRef = useRef(useAuth());
-  const locRef = useRef(useLocation());
-  const auth = authRef.current;
-  const location = locRef.current;
+  const auth = useAuth();
+  const location = useLocation();
 
   return (
     auth.hasAuthenticatedSpotify ? (
@@ -174,6 +173,7 @@ function RequireSpotifyAuth({ children }) {
 * behaviors but same link for a route based on sign-in status, e.g. the explore page */
 function RequireSpotifyAuthForLoggedInOnly({ children }) {
   const auth = useAuth();
+  
   return auth.id ? (
     <RequireSpotifyAuth>
       {children}

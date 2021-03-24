@@ -5,11 +5,8 @@
   overflow-y: auto;
 }
 
-/*
- * overwrite the page height to make the scroll bar not cover up the music toolbar
- */
- .page-wrapper__footer {
-  height: calc(100% - 5rem); 
+.page-wrapper__footer {
+  height: 100%;
 }
 
 /* creates an invisible pseudelement to make sure we don't 

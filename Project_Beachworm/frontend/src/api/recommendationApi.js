@@ -5,6 +5,8 @@ const standardRecommendationUri = baseUri + '/user/';
 const genreRecommendationUri = baseUri + '/genre/';
 const artistRecommendationUri = baseUri + '/artist/';
 const playlistRecommendationUri = baseUri + '/playlist/';
+const songRecommendationUri = baseUri + '/song/';
+const albumRecommendationUri = baseUri + '/album/';
 const obtainartistsUri = baseUri + '/obtain-artists/';
 const sendGenreSeedsUri = '/user/profile/seed/genres/';
 const sendArtistSeedsUri = '/user/profile/seed/artists/';
@@ -40,6 +42,34 @@ export async function getRecommendationsByGenre(genreId) {
   const response = await axiosInstance.get(genreRecEndpoint, {
     params: {
       genre: genreId,
+    }
+  }).then(x => {
+    return Promise.resolve(x.data)
+  }, error => {;
+    return Promise.reject(error)
+  });
+
+  return response;
+}
+
+export async function getRecommendationsBySong(songId) {
+  const response = await axiosInstance.get(songRecommendationUri, {
+    params: {
+      song: songId,
+    }
+  }).then(x => {
+    return Promise.resolve(x.data)
+  }, error => {;
+    return Promise.reject(error)
+  });
+
+  return response;
+}
+
+export async function getRecommendationsByAlbum(albumId) {
+  const response = await axiosInstance.get(albumRecommendationUri, {
+    params: {
+      album: albumId,
     }
   }).then(x => {
     return Promise.resolve(x.data)

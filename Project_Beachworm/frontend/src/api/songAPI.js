@@ -36,7 +36,7 @@ export async function dislikeSong(userId, songId) {
 }
 
 export async function undislikeSong(userId, songId) {
-  const recEndpoint = songListened(userId, songId)
+  const recEndpoint = songDisliked(userId, songId)
   const response = await axiosInstance.delete(recEndpoint);
   return response.data;
 }

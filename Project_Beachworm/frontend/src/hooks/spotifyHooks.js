@@ -181,8 +181,12 @@ export function ProvideSpotify({ children }) {
       if (!auth.spotifyToken) {
         console.log(`Called a Spotify auth-required function, but we have no access token. Will try to refresh token then attempt.`);
         return auth.refreshSpotifyAuth().then(result => {
-          console.log('Attempt succeeded, received token', result);
-          return attempt();
+          if (result) {
+            console.log('Attempt succeeded, received token', result);
+            return attempt();
+          } else {
+            return Promise.reject();
+          }
         }, _reject => {
           console.log('Attempt to refresh token failed. Giving up.');
           return Promise.reject();
@@ -193,15 +197,28 @@ export function ProvideSpotify({ children }) {
     }
   
     const refreshWrapper = (callback) => {
-      return (parameters) => refreshAndTry(callback, parameters, true);
+      return (parameters) => refreshAndTry(callback, parameters, true).then(value => {
+        return Promise.resolve(value);
+      }, reject => {
+        console.error('Ignoring error');
+        return Promise.resolve(null);
+      });
     };
   
     const pause = async () => {
+      if (!playerRef) {
+        return;
+      }
+      
       console.log('Pausing current song');
       return playerRef.pause();
     };
   
     const play = async (songId) => {
+      if (!playerRef) {
+        return;
+      }
+      
       if (songId) {
         return playTrack(songId, deviceIdRef.current, auth.spotifyToken).then(async _ => {
           return await listenToSong(songId).then(history => {
@@ -222,6 +239,10 @@ export function ProvideSpotify({ children }) {
     };
   
     const togglePlaying = async () => {
+      if (!playerRef) {
+        return;
+      }
+      
       console.log('Toggling playback status');
       if (!playerState.track_window || !playerState.track_window.current_track) {
         console.log('No song playing, dequeuing and playing');
@@ -344,6 +365,10 @@ export function ProvideSpotify({ children }) {
     }
   
     const setVolume = (volume) => {
+      if (!playerRef) {
+        return;
+      }
+      
       const roundedVol = Math.round(volume * 100000) / 1000;
       console.log('Setting volume to ' + volume + ' (' + roundedVol + '%)');
       return playerRef.setVolume(volume);
@@ -387,7 +412,7 @@ export function ProvideSpotify({ children }) {
       togglePlay: refreshWrapper(togglePlaying),
       seek: refreshWrapper(seek),
       skip: skip,
-      playPrevious: playPrevious,
+      playPrevious: refreshWrapper(playPrevious),
       // general playback/info controls
       isPlaying: () => playing,
       setShuffle: setShuffle,

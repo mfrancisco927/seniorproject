@@ -1,6 +1,7 @@
 import { useContext, createContext, useState, useEffect } from "react";
 import { signIn as apiSignIn, refreshSpotifyToken }  from './../api/authenticationApi';
 import { getCurrentUser }  from './../api/userApi';
+import axiosInstance from './../api/axiosApi';
 
 /* This code is largely adapted from https://reactrouter.com/web/example/auth-workflow
 * `authContext`, `ProvideAuth`, `useAuth` and `useProvideAuth`
@@ -50,8 +51,9 @@ function useProvideAuth() {
   }, [user]);
 
   const signIn = (user, pass, cb) => {
-    console.log('attempting sign in');
-    return apiSignIn(user, pass).then(result => {
+    console.log('Attempting sign in for user ' + user);
+    return apiSignIn(user, pass).then(_result => {
+      console.log('Sign in successful');
       setUser(user);
       if (cb) {
         cb();
@@ -61,13 +63,18 @@ function useProvideAuth() {
   };
 
   const signOut = cb => {
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('access_token');
-    setUser(null);
-    setSpotifyToken(null);
-    setHasAuthenticatedSpotify(false);
-    if (cb) {
-      cb();
+    if (id) {
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('access_token');
+      setUser(null);
+      setId(null);
+      setSpotifyToken(null);
+      setHasAuthenticatedSpotify(false);
+      axiosInstance.defaults.headers['Authorization'] = null;
+      if (cb) {
+        cb();
+      }
+      console.log('Signed out of user number ' + id);
     }
   };
 

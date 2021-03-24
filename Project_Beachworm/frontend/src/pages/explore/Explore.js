@@ -54,6 +54,10 @@ function Explore() {
 
     // on mount, get the songs we need and add them to the queue.
     useEffect(() => {
+      if (!auth.id) {
+        return;
+      }
+      
       const onMount = async (_data) => {
         // only if we're not already playing from an explore list, add some more
         if (!contextQueueName || !contextQueueName.startsWith(CONTEXT_QUEUE_PREFIX)) {
@@ -135,6 +139,7 @@ function Explore() {
           }, _error => {
             console.log('Failed to dislike song ' + currentSongId);
           });
+          handleSkip();
         } else {
           await undislikeSong(auth.id, currentSongId).then(async _x => {
             console.log('Undisliked song ' + currentSongId);
@@ -144,7 +149,6 @@ function Explore() {
           });
         }
       }
-      handleSkip();
     };
 
     const handleSkip = () => {

@@ -1,151 +1,122 @@
-import './SearchPage.css';
+import { Fragment } from 'react';
 import LoadingImage from '../loading.svg';
+import useRadioLoaders from '../../hooks/radioLoaders';
+
+import './SearchPage.css';
 
 function SearchPage(props) {
+    const { searchItem, searchData } = props;
+    const radioLoaders = useRadioLoaders();
+    const DEFAULT_IMAGE_URL = 'https://images-na.ssl-images-amazon.com/images/I/51Ib3jYSStL._AC_SY450_.jpg';
 
-    let { searchItem, searchData } = props;
+    const handlePlaylistClick = (playlist) => {
+        console.log('Clicked playlist', playlist);
+        // just load the playlist! history.push(/playlist)... and somehow pass in state
+    };
+
+    let element;
+    if (searchData) {
+        const loaded = Object.keys(searchData).length !== 0;
+        element = 
+            <Fragment>
+                <h2 className="search-page_results-header">Search results for: {searchItem}</h2>
+                    <div className='search-results-wrapper'>
+                        <Results name="Songs"
+                            getItems={() => searchData.tracks.items}
+                            getImageCallback={
+                                item => (item.album.images.length ? item.album.images[1].url : DEFAULT_IMAGE_URL)
+                            }
+                            getTitle={item => item.name}
+                            getSubtitle={item => item.artists.map(artist => artist.name).join(', ')}
+                            onItemClick={song => radioLoaders.loadSongRadio(song)}
+                            loading={!loaded}
+                            defaultText="No songs meet this search result!"/>
+                        <Results name="Artists"
+                            getItems={() => searchData.artists.items}
+                            getImageCallback={
+                                item => (item.images.length ? item.images[1].url: DEFAULT_IMAGE_URL)
+                            }
+                            getTitle={item => item.name}
+                            onItemClick={artist => radioLoaders.loadArtistRadio(artist)}
+                            loading={!loaded}
+                            defaultText="No artists meet this search result!"/>
+                        <Results name="Albums"
+                            getItems={() => searchData.albums.items}
+                            getImageCallback={
+                                item => (item.images.length ? item.images[1].url : DEFAULT_IMAGE_URL)
+                            }
+                            getTitle={item => item.name}
+                            getSubtitle={item => item.artists.map(artist => artist.name).join(', ')}
+                            onItemClick={album => radioLoaders.loadAlbumRadio(album)}
+                            loading={!loaded}
+                            defaultText="No albums meet this search result!"/>
+                        <Results name="Playlists"
+                            getItems={() => searchData.playlists.items}
+                            getImageCallback={_item => DEFAULT_IMAGE_URL} // temporary
+                            getTitle={item => item.title}
+                            getSubtitle={item => ('User ' + item.owner_id)}
+                            onItemClick={item => handlePlaylistClick(item)}
+                            loading={!loaded}
+                            defaultText="No playlists meet this search result!"/>
+                    </div>
+            </Fragment>
+    } else {
+        element = <h2 className="search-page_results-header">Search something up above!</h2>
+    }
 
     return (
         <div className='search-page-wrapper'>
-            <h1> Search Results </h1>
-            <h2> search for: {searchItem} </h2>
-            {
-                searchData && Object.keys(searchData).length === 0 
-                ?
-                    <div className='line-one'>
-                        <img className='loading-image' src={LoadingImage}/>
-                    </div>
-                :
-                <div className='search-results-wrapper'>
-                    <div className='line-one'>
-                        <SongResults name='Songs' items={searchData.tracks.items}/>
-                        <ArtistResults name='Artists'items={searchData.artists.items}/>
-                    </div>
-                    <div className='line-two'>
-                        <AlbumResults name='Albums' items={searchData.albums.items}/>
-                        <PlaylistResults name='Playlists' items={searchData.playlists.items}/>
-                    </div>
-                </div>
-            }
+            {element}
         </div>
     )
 
 }
 
-function SongResults(props){
-
-    let {name, items} = props;
-
-    return (
-        <div>
-            <div className='results-group'>
-                <div className='result-title'>
-                    <h2>{name}</h2>
-                    <p className='show-more'>Show More</p>
-                </div>
-                    <div className='results-results'> 
-                        { 
-                            items.slice(0,4).map((item) => {
-                                let artistArray = item.artists.map((artist) => {
-                                    return artist.name;
-                                })
-                                let artistString = artistArray.join(', ')
-                                return(
-                                    <div className='result'>
-                                        <img src={item.album.images[1].url} />
-                                        <h3>{item.name}</h3>
-                                        <p className='artist-name'>{artistString}</p>
-                                    </div>
-                                )
-                            })
-                        }
-                </div>
-            </div>
-        </div>
-    )
-}
-
-function AlbumResults(props){
-
-    let {name, items} = props;
-
-    return (
-        <div className='results-group'>
-            <div className='result-title'>
-            <h2>{name}</h2>
-            <p className='show-more'>Show More</p>
-                </div>
-                <div className='results-results'> 
-                { 
-                    items.slice(0,4).map((item) => {
-                        let artistArray = item.artists.map((artist) => {
-                            return artist.name;
-                        })
-                        let artistString = artistArray.join(', ')
-                        return(
+function Results(props) {
+    const {name, getItems, getImageCallback, getTitle, getSubtitle, defaultText, loading, onItemClick } = props;
+    const MAX_ITEMS_SHOWN = 4;
+    const items = !loading && getItems();
+    
+    // if still loading, show loading icon. otherwise, show empty results.
+    const body = (
+        <Fragment>
+            {!loading ? (
+                <div className='results_items-wrapper'> 
+                    {items.length ? (
+                        items.slice(0, Math.min(items.length, MAX_ITEMS_SHOWN)).map((item) => (
                             <div className='result'>
-                                <img src={item.images[1].url} />
-                                <h3>{item.name}</h3>
-                                <p className='artist-name'>{artistString}</p>
+                                <div className="result_image-wrapper" onClick={() => onItemClick(item)}>
+                                    <img className="result_image"
+                                        src={getImageCallback(item)}
+                                        alt={getTitle(item)}/>
+                                </div>
+                                <h3 className="result_title">{getTitle(item)}</h3>
+                                {getSubtitle && (
+                                    <p className='result_subtitle'>{getSubtitle(item)}</p>
+                                )}
                             </div>
-                        )
-                    })
-                }
-            </div>
-        </div>
-    )
-}
-
-function ArtistResults(props){
-
-    let {name, items} = props;
+                        ))
+                    ) : (
+                        <h3 className="results_default-text">
+                            {defaultText}
+                        </h3>
+                    )}
+                </div>
+            ) : (
+                <img className='loading-image' src={LoadingImage} alt="Loading"/>
+            )}
+            {items && (items.length > MAX_ITEMS_SHOWN) && (
+                <button className='result_show-more'>
+                    Show More
+                </button>
+            )}
+        </Fragment>
+    );
 
     return (
-        <div className='results-group'>
-            <div className='result-title'>
-            <h2>{name}</h2>
-            <p className='show-more'>Show More</p>
-                </div>
-                <div className='results-results'> 
-                { 
-                    items.slice(0,4).map((item) => {
-                        return(
-                            <div className='result'>
-                                <img src={item.images[1].url} />
-                                <h3>{item.name}</h3>
-                            </div>
-                        )
-                    })
-                }
-            </div>
-        </div>
-    )
-}
-
-function PlaylistResults(props){
-
-    let {name, items} = props;
-
-    return (
-        <div>
-            <div className='results-group'>
-                <div className='result-title'>
-                    <h2>{name}</h2>
-                    <p className='show-more'>Show More</p>
-                </div>
-                    <div className='results-results'> 
-                        { 
-                            items.slice(0,4).map((item) => {
-                                return(
-                                    <div className='result'>
-                                        <img src={item.album.images[1].url} />
-                                        <h3>{item.name}</h3>
-                                    </div>
-                                )
-                            })
-                        }
-                </div>
-            </div>
+        <div className='results_wrapper'>
+        <h2 className='results_title'>{name}</h2>
+            {body}
         </div>
     )
 }

@@ -30,7 +30,7 @@ function useWindowDimensions() {
 
 function Navbar(props) {
   const { width } = useWindowDimensions();
-  const { menuList, setSearchField, submitSearch } = props;
+  const { menuList, setSearchField, submitSearch, searchTermSelected } = props;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isMobile = width <= 960;
 
@@ -72,7 +72,7 @@ function Navbar(props) {
             name="search"
             placeholder="Search"
             onChange={(e) => setSearchField(e.target.value)} />
-            <IconButton className="nav-bar-search-button" type="submit">
+            <IconButton className="nav-bar-search-button" type="submit" onClick={searchTermSelected}>
               <SearchIcon />
             </IconButton>
           </form>
