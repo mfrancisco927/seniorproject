@@ -26,9 +26,13 @@ env = environ.Env()
 CLIENT_ID = env('CLIENT_ID')
 SECRET = env('SECRET')
 
+
 auth_manager = SpotifyClientCredentials(client_id=CLIENT_ID, client_secret=SECRET)
 sp = spotipy.Spotify(auth_manager=auth_manager)
 
+# Number of recommendations that the default recommendation endpoints return
+RECOMMENDATION_NUMBER = 20
+HOME_RECOMMENDATION_NUMBER = 7
 
 class ObtainTokenPairWithAdditionalInfo(TokenObtainPairView):
         permission_classes = (permissions.AllowAny,)
@@ -105,11 +109,11 @@ def saveSong(results):
                         
                         trackEntry.save()
 
-def curateSongs(profile, recommendations) :
+def curateSongs(profile, recommendations, recommendation_number) :
     # Curated_recommendations will be sent back to requestor
     curated_recommendations = {}
     curated_recommendations['items'] = []
-    number_of_recommendations = 20
+    number_of_recommendations = recommendation_number
 
     # Go througuh recommendations removing any from user's disliked song list
     counter = 0
@@ -159,6 +163,52 @@ def songSeedsShuffled(profile) :
         # randomize
         random.shuffle(song_seeds_total)
     return song_seeds_total
+
+
+def artistsFromSongs(spotifyRecs):
+    artist_ids = []
+    for i in range(len(spotifyRecs['items'])):
+        for artist in spotifyRecs['items'][i]['artists']:
+            if artist['id'] not in artist_ids:
+                artist_ids.append(artist['id'])
+                # Artists cannot exceed 50
+                if len(artist_ids) > 48:
+                    break
+            if len(artist_ids) > 48:
+                break
+        if len(artist_ids) > 48:
+            break
+    
+    random.shuffle(artist_ids)
+    artist_info = sp.artists(artist_ids)
+    
+    return artist_info
+
+def genresFromArtists(artist_info, number_of_genres):
+    genre_ids_raw = []
+    sp_genre_json = sp.recommendation_genre_seeds()
+    acceptable_genres = sp_genre_json['genres']
+    # Add ALL genres listed in artist_info (including duplicates)
+    for i in range(len(artist_info['artists'])):
+        for genre in artist_info['artists'][i]['genres']:
+            # Not all genres listed for an artist are seeds able to be used
+            # in recommendations
+            if genre in acceptable_genres:
+                genre_ids_raw.append(genre)
+
+    # Select unique IDs, since we are selecting from a duplicate array
+    # preference is given to most commonly found genres from artists
+    genre_ids = []
+    
+    for genre in genre_ids_raw:
+        if genre not in genre_ids:
+            genre_ids.append(genre)
+        if len(genre_ids) >= 10:
+            break
+
+    return genre_ids
+
+
 
 class HelloWorldView(APIView):
     def get(self, request):
@@ -326,7 +376,7 @@ class GenreSave(APIView):
         except ProfileDoesNotExist :
             return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
-        genre_formatted = request.POST.getlist("genres[]")
+        genre_formatted = self.request.POST.getlist('genres[]')
 
         if genre_formatted:
             for genre in genre_formatted :
@@ -353,18 +403,33 @@ class ArtistsFromGenres(APIView):
 
 
         queryGenres = UserGenreSeed.objects.filter(user = profile)
-        queryString = ""
+        searchResults = {"artists": {"items" : []}}
+        arrayArtists = []
+        counter = 0
         if queryGenres:
             for query in queryGenres :
-                queryString += "genre:" + query.genre_id + " OR "
-            # Remove last OR
-            queryString = queryString[:-3]
-            
+                if counter <= 4 :
+                    searchq = "genre:" + query.genre_id
+                    tempQuery = sp.search(q=searchq, type="artist", limit=25)
+                    if len(tempQuery["artists"]['items']) > 1:
+                        for artist in tempQuery["artists"]["items"] :
+                            arrayArtists.append(artist)
+                    counter += 1
+                else: 
+                    break
+
         else :
             # If no genres exist for user, use the pop genre
-            queryString = "genre:pop"
-        searchResults = sp.search(q=queryString, type="artist", limit=20)
-        # print(json.dumps(searchResults, indent=4))
+            searchResults = sp.search(q="genre:pop", type="artist", limit=20)
+        random.shuffle(arrayArtists)
+        i = 0
+        searchResultsID = []
+        while i < min(len(arrayArtists), 20):
+            if arrayArtists[i]['id'] not in searchResultsID:
+                searchResults["artists"]["items"].append(arrayArtists[i])
+                searchResultsID.append(arrayArtists[i]['id'])
+        # searchResults = sp.search(q=queryString, type="artist", limit=20)
+            i += 1
 
         return Response(data=searchResults, status=status.HTTP_200_OK)
 
@@ -413,7 +478,7 @@ class UserRecommendations(APIView):
             # Generate random number to determine how many genres to put in (at least 1)
             # Check to make sure there are genre seeds
             if genre_seeds_total:
-                num_genres = randint(1, len(genre_seeds_total))
+                num_genres = randint(1, min(4,len(genre_seeds_total)))
                 for i in range(num_genres) :
                     seed_genres.append(genre_seeds_total[i])
             if artist_seeds_total:
@@ -435,7 +500,7 @@ class UserRecommendations(APIView):
             # must turn tracks into items to make dict same as search dict
             recommendations['items'] = recommendations.pop('tracks')
 
-            curated_recommendations = curateSongs(profile, recommendations)
+            curated_recommendations = curateSongs(profile, recommendations, RECOMMENDATION_NUMBER)
             
             return Response(data=curated_recommendations, status=status.HTTP_200_OK)
 
@@ -467,7 +532,7 @@ class UserRecommendations(APIView):
             # must turn tracks into items to make dict same as search dict
             recommendations['items'] = recommendations.pop('tracks')
 
-            curated_recommendations = curateSongs(profile, recommendations)
+            curated_recommendations = curateSongs(profile, recommendations, RECOMMENDATION_NUMBER)
             
             return Response(data=curated_recommendations, status=status.HTTP_200_OK)
 
@@ -488,7 +553,7 @@ class UserRecommendations(APIView):
             # must turn tracks into items to make dict same as search dict
             recommendations['items'] = recommendations.pop('tracks')
 
-            curated_recommendations = curateSongs(profile, recommendations)
+            curated_recommendations = curateSongs(profile, recommendations, RECOMMENDATION_NUMBER)
             
             return Response(data=curated_recommendations, status=status.HTTP_200_OK)
 
@@ -877,8 +942,8 @@ class UserPlaylists(APIView):
             favorite_playlists = list(profile.favorite_playlists.values_list('id', flat=True))
             results = {'user' : user_id, 'favorite_playlists' : favorite_playlists}
         return Response(data=results, status=status.HTTP_200_OK)
-
-    #create a new playlist
+    
+        #create a new playlist
     def post(self, request, user_id):
         #requesting user must be same as user id (users cannot make playlists for other users)
         if int(self.request.user.id) != int(user_id):
@@ -891,3 +956,72 @@ class UserPlaylists(APIView):
         added_playlist = list(Playlist.objects.filter(id=new_playlist.id).values())
         results={'new_playlist' : added_playlist}
         return Response(data=results, status=status.HTTP_200_OK)
+
+class HomeRecommendations(APIView):
+    # Home Recommendations come from 1 genre seed, 1 artist seed, and 3 song seeds if they exist
+    def get(self, request):
+        user_id = self.request.user.id
+        try : 
+            profile = Profile.objects.get(user=user_id)
+        except ProfileDoesNotExist :
+            return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # These will be passed into recommender function
+        seed_tracks = []
+        seed_artists = []
+        seed_genres = []
+
+        genre_seeds_total = genreSeedsShuffled(profile)
+        artist_seeds_total = artistSeedsShuffled(profile)
+        
+        # Add 1 artist seed, if they exist
+        if genre_seeds_total :
+            seed_genres.append(genre_seeds_total[0])
+        if artist_seeds_total :
+            seed_artists.append(artist_seeds_total[0])
+
+        song_seed_total = songSeedsShuffled(profile)
+
+        for i in range(min(len(song_seed_total), 5 - len(seed_genres) - len(seed_artists))):
+            seed_tracks.append(song_seed_total[i])
+
+        # If no seeds exist, seed with genre pop only
+        if (not seed_artists) and (not seed_tracks) and (not seed_genres):
+            seed_genres = 'pop'
+
+        recommendations = sp.recommendations(
+                                            seed_tracks=seed_tracks, 
+                                            seed_artists=seed_artists, 
+                                            seed_genres=seed_genres,
+                                            country='US',
+                                            limit=100
+                                            )
+        
+        # must turn tracks into items to make dict same as search dict
+        recommendations['items'] = recommendations.pop('tracks')
+
+        
+        # Use songs -> rec artists -> rec genres
+        curated_recommendations = curateSongs(profile, recommendations,75)
+        curated_artists = artistsFromSongs(curated_recommendations)
+        print(len(curated_artists['artists']))
+        curated_genres = genresFromArtists(curated_artists, HOME_RECOMMENDATION_NUMBER)
+
+        home_recommendations = {}
+        home_recommendations['tracks'] = []
+        home_recommendations['artists'] = []
+        # Genres number limit already enforced
+        home_recommendations['genres'] = curated_genres
+
+        for rec in curated_recommendations['items']:
+            if len(home_recommendations['tracks']) >= RECOMMENDATION_NUMBER:
+                break
+            home_recommendations['tracks'].append(rec)
+            
+        for rec in curated_artists['artists']:
+            if len(home_recommendations['artists']) >= RECOMMENDATION_NUMBER:
+                break
+            home_recommendations['artists'].append(rec)
+ 
+        
+        return Response(data=home_recommendations, status=status.HTTP_200_OK)
