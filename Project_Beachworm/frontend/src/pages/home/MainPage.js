@@ -61,70 +61,31 @@ function MainPage(props) {
           <div>
           <SongRow title='Recommended Tracks' 
             getItems={ () => data.tracks}
-            spotify={spotify}
             onItemClick={song => loader.loadSongRadio(song)}
-            getImageCallback={ (item) => {
-              return item.album.images[0].url;
-            }
-            }
-            getTitle={ (item) => {
-              return (
-                <h2>{item.name}</h2>
-              )
-            }
-            }            
-            getSubtitle={ (item) => {
-              return (
-                <h3>{item.artists.map(artist => artist.name).join(', ')}</h3>
-              )
-            }
-            }
+            getImageCallback={ (item) => item.album.images[0].url}
+            getTitle={ (item) => { return (<h2>{item.name}</h2>)}}            
+            getSubtitle={ (item) => {return (<h3>{item.artists.map(artist => artist.name).join(', ')}</h3>) }}
             />
           <SongRow title='Recommended Artists' 
             getItems={ () => data.artists}
             spotify={spotify}
-            onItemClick={artist => {
-              console.log(artist)
-              loader.loadArtistRadio(artist)
-            }}
-            getImageCallback={ (item) => {
-               return item.images[0].url;
-              }
-            }
-            getTitle={ (item) => {
-                return (
-                  <h3>{item.name}</h3>
-                )
-              }
-            }
-            getSubtitle={ (item) => {
-              return 
-              }
-            }
+            onItemClick={artist => loader.loadArtistRadio(artist)}
+            getImageCallback={ (item) => item.images[0].url}
+            getTitle={ (item) => { return <h3>{item.name}</h3> }}
+            getSubtitle={ (item) => ''}
             />
           <SongRow title='Recommended Genres' 
             getItems={ () => data.genres}
             spotify={spotify}
             onItemClick={item => {
-              console.log(item)
               loader.loadGenreRadio({
                 id: item
               })
             }}
-            getImageCallback={ (item) => {
-              return 'https://media.pitchfork.com/photos/5a71df0d85ed77242d8f1252/1:1/w_320/jpegmafiaveteran.jpg';
-              } 
+            getImageCallback={ item => 'https://media.pitchfork.com/photos/5a71df0d85ed77242d8f1252/1:1/w_320/jpegmafiaveteran.jpg'
             }
-            getTitle={ (item) => {
-              return (
-                <h2>{item}</h2>
-              )
-              }
-              }
-            getSubtitle={ (item) => {
-              return 
-              }
-              }
+            getTitle={ (item) => {return (<h2>{item}</h2>)}}
+            getSubtitle={ item => ''}
               />
                   
           </div>
