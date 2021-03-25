@@ -1025,3 +1025,34 @@ class HomeRecommendations(APIView):
  
         
         return Response(data=home_recommendations, status=status.HTTP_200_OK)
+
+class SongRecommendations(APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self,request):
+        query = self.request.query_params
+       
+        if query['song'] :
+            seed_song = []
+            
+            query_cleaned = query['song'].replace('\'','')
+            query_cleaned = query_cleaned.replace('\"','')
+            seed_song.append(query_cleaned)
+            recommendations = sp.recommendations(
+                                                seed_tracks=seed_song, 
+                                                country='US',
+                                                limit=20
+                                                )
+            
+            # must turn tracks into items to make dict same as search dict
+            recommendations['items'] = recommendations.pop('tracks')
+            recommendations.pop('seeds')
+
+            saveSong(recommendations)
+        
+            return Response(data=recommendations, status=status.HTTP_200_OK)
+        
+        else :
+            return Response({'error:', 'song invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
+        
+
