@@ -105,7 +105,12 @@ function MainPage(props) {
           <SongRow title='Recommended Genres' 
             getItems={ () => data.genres}
             spotify={spotify}
-            onItemClick={item => loader.loadSongRadio(item)}
+            onItemClick={item => {
+              console.log(item)
+              loader.loadGenreRadio({
+                id: item
+              })
+            }}
             getImageCallback={ (item) => {
               return 'https://media.pitchfork.com/photos/5a71df0d85ed77242d8f1252/1:1/w_320/jpegmafiaveteran.jpg';
               } 
