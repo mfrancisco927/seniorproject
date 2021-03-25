@@ -1,10 +1,11 @@
-import React , { Component, useState, useEffect, useHistory } from 'react';
+import React , { Component, useState, useEffect, useHistory, Fragment, useRef } from 'react';
 import './MainPage.css';
 import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
 import ArrowForwardIosIcon from '@material-ui/icons/ArrowForwardIos';
 import { useAuth } from './../../hooks/authHooks';
 import { useSpotifySdk } from './../../hooks/spotifyHooks';
 import { getRecommendations } from './../../api/recommendationApi';
+import LoadingImage from '../loading.svg';
 
 const testingItems = [
   {
@@ -38,59 +39,115 @@ function MainPage(props) {
 
   const spotify = useSpotifySdk();
   const auth = useAuth();
-
   const [data, setData] = useState(testingItems);
+  const [loaded, setLoaded] = useState(false)
 
   useEffect( () =>{
     getRecommendations().then( (data) => {
-          console.log(data)
+          console.log(data);
+          setData(data);
+          setLoaded(true);
         }
       );
-    console.log(auth.id);
-  }, [])
+  }, [auth.id])
 
   return (
-    <div>
-      <SongRow spotify={spotify} title='Recommended Albums' items={data} />
-      <SongRow spotify={spotify} title='Recommended Genres' items={data} />
-      <SongRow spotify={spotify} title='Playlists by your Followed' items={data} />
-    </div>
-  );
+    <Fragment>
+      { !loaded ? 
+        (<img src={LoadingImage} alt='Loading'/> ):
+        (
+          <div>
+          <SongRow title='Recommended Tracks' 
+            getItems={ () => data.tracks}
+            spotify={spotify}
+            //onItemClick={() =>  }
+            getImageCallback={ (item) => {
+              return item.album.images[0].url;
+            }
+            }
+            getTitle={ (item) => {
+              return (
+                <h2>{item.name}</h2>
+              )
+            }
+            }            
+            getSubtitle={ (item) => {
+              return (
+                <h3>{item.artists.map(artist => artist.name).join(', ')}</h3>
+              )
+            }
+            }
+            />
+          <SongRow title='Recommended Artists' 
+            getItems={ () => data.artists}
+            spotify={spotify}
+            //onItemClick={() =>  }
+            getImageCallback={ (item) => {
+               return item.images[0].url;
+              }
+            }
+            getTitle={ (item) => {
+                return (
+                  <h2>test</h2>
+                )
+              }
+            }
+            getSubtitle={ (item) => {
+              return (
+                <h2></h2>
+              )
+              }
+            }
+            />
+          <SongRow title='Recommended Genres' 
+            getItems={ () => data.genres}
+            spotify={spotify}
+            //onItemClick={() =>  }
+            getImageCallback={ (item) => {
+              return 'https://media.pitchfork.com/photos/5a71df0d85ed77242d8f1252/1:1/w_320/jpegmafiaveteran.jpg';
+              } 
+            }
+            getTitle={ (item) => {
+              return (
+                <h2>{item}</h2>
+              )
+              }
+              }
+            getSubtitle={ (item) => {
+              return 
+              }
+              }
+              />    
+          </div>
+        )
+      }
+      </Fragment>
+    
+    );
 }
 
-class SongRow extends Component {
+function SongRow(props){
 
-  constructor(props){
-    super(props);
-    this.state = {
-      title: props.title,
-      hasOverflow: false,
-      items: props.items,
-      spotify: props.spotify,
-    }
-    this.moveRow = this.moveRow.bind(this);
-    this.songBoxRef = React.createRef();
-    this.changeSong = this.changeSong.bind(this);
-  }
 
-  componentDidMount(){
-  }
-
-  moveRow(direction){
+  const {title, getImageCallback, getItems, spotify, getTitle, getSubtitle} = props;
+  const songBoxRef = useRef({});
+  const MAX_ITEMS_SHOWN = 10;
+  
+  const moveRow = (direction) => {
     if(direction === 'left'){
-      this.songBoxRef.current.scrollLeft -= 200;
+      songBoxRef.current.scrollLeft -= 200;
     }else if(direction === 'right'){        
-      this.songBoxRef.current.scrollLeft += 200;
+      songBoxRef.current.scrollLeft += 200;
     }
   }
 
-  changeSong(items){
+  const changeSong = (items) => {
     
     let songsMapped = items.map((item) => ( {id: item.song_id, name: item.name} ))
     console.log(songsMapped)
-    this.state.spotify.clearContextPlayQueue();
-    this.state.spotify.play(songsMapped[0].id);
-    this.state.spotify.setContextPlayQueue(
+    spotify.clearContextPlayQueue();
+    spotify.play(songsMapped[0].id);
+    spotify.setContextPlayQueue(
             {   
                 name: 'Explore_Blank',
                 songs: songsMapped.slice(1)  
@@ -99,31 +156,30 @@ class SongRow extends Component {
     //TODO: get useHistory to work, need to change back to functional
   }
 
-  render() {
     return (
       <div className='group-wrapper' >
-          <div className='group-header'><h2>{this.state.title}</h2></div>
+          <div className='group-header'><h2>{title}</h2></div>
               <div className='songs-buttons-wrapper'>
-                  <ArrowBackIosIcon fontSize='large' className='pan pan-left' onClick={() => this.moveRow('left')} />
-                <div className='songs-wrapper' ref={this.songBoxRef}>
+                  <ArrowBackIosIcon fontSize='large' className='pan pan-left' onClick={() => moveRow('left')} />
+                <div className='songs-wrapper' ref={songBoxRef}>
                 { 
-                  this.state.items.map((item) => {
+                  getItems().slice(0,Math.min(MAX_ITEMS_SHOWN, getItems().length)).map((item) => {
                     return (
                       <div className='song-wrapper'>
-                          <img src={item.img} alt='hello!' onClick={ () => this.changeSong(testingItems)} /> 
-                          <h3> {item.name } </h3>
+                          <img className='song-img' src={getImageCallback(item)} alt='hello!' onClick={ () => changeSong(testingItems)} /> 
+                          { getTitle(item) }
+                          { getSubtitle(item) }
                       </div>
                     );
                   })
                 }
                 </div>
-                <ArrowForwardIosIcon fontSize='large' className='pan pan-right' onClick={() => this.moveRow('right')}/>
+                <ArrowForwardIosIcon fontSize='large' className='pan pan-right' onClick={() => moveRow('right')}/>
 
               
             </div>
         </div>
     );
-  }
 
 }
 
