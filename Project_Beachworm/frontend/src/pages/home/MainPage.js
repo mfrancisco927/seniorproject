@@ -4,6 +4,7 @@ import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
 import ArrowForwardIosIcon from '@material-ui/icons/ArrowForwardIos';
 import { useAuth } from './../../hooks/authHooks';
 import { useSpotifySdk } from './../../hooks/spotifyHooks';
+import { getRecommendations } from './../../api/recommendationApi';
 
 const testingItems = [
   {
@@ -36,11 +37,16 @@ const testingItems = [
 function MainPage(props) {
 
   const spotify = useSpotifySdk();
+  const auth = useAuth();
 
   const [data, setData] = useState(testingItems);
 
   useEffect( () =>{
-    // TODO for Isaac: load songs and set data
+    getRecommendations().then( (data) => {
+          console.log(data)
+        }
+      );
+    console.log(auth.id);
   }, [])
 
   return (

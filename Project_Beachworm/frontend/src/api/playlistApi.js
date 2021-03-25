@@ -13,42 +13,70 @@ const playlistUnfollowPlaylist = (playlistId, userId) => '/users' + '/' + userId
 
 export async function getPlaylistSongs(playlistId) {
   const recEndpoint = playlistSongs(playlistId);
-  const response = await axiosInstance.get(recEndpoint);
+  const response = await axiosInstance.get(recEndpoint).then( (resp) => {
+    return Promise.resolve(resp.data);
+  }, (error) =>{
+    return Promise.reject(error)
+  })
   return response.data;
 }
 
 export async function addSongToPlaylist(playlistId, songId) {
   const recEndpoint = playlistPostSong(playlistId, songId);
-  const response = await axiosInstance.post(recEndpoint);
+  const response = await axiosInstance.post(recEndpoint).then( (resp) => {
+    return Promise.resolve(resp.data);
+  }, (error) =>{
+    return Promise.reject(error)
+  })
   return response.data;
 }
 
 export async function deleteSongFromPlaylist(playlistId, songId) {
   const recEndpoint = playlistDeleteSong(playlistId, songId)
-  const response = await axiosInstance.delete(recEndpoint);
+  const response = await axiosInstance.delete(recEndpoint).then( (resp) => {
+    return Promise.resolve(resp.data);
+  }, (error) =>{
+    return Promise.reject(error)
+  })
   return response.data;
 }
   
 export async function updatePlaylistSettings(playlistId) {
   const recEndpoint = playlistPutSettings(playlistId)
-  const response = await axiosInstance.put(recEndpoint);
+  const response = await axiosInstance.put(recEndpoint).then( (resp) => {
+    return Promise.resolve(resp.data);
+  }, (error) =>{
+    return Promise.reject(error)
+  })
   return response.data;
 }
 
 export async function deletePlaylist(playlistId) {
   const recEndpoint = playlistDeletePlaylist(playlistId)
-  const response = await axiosInstance.delete(recEndpoint);
+  const response = await axiosInstance.delete(recEndpoint).then( (resp) => {
+    return Promise.resolve(resp.data);
+  }, (error) =>{
+    return Promise.reject(error)
+  })
   return response.data;
 }
 
 export async function followPlaylist(playlistId, userId) {
     const recEndpoint = playlistFollowPlaylist(playlistId, userId)
-    const response = await axiosInstance.post(recEndpoint);
+    const response = await axiosInstance.post(recEndpoint).then( (resp) => {
+      return Promise.resolve(resp.data);
+    }, (error) =>{
+      return Promise.reject(error)
+    })
     return response.data;
 }
 
 export async function unfollowPlaylist(playlistId, userId) {
     const recEndpoint = playlistUnfollowPlaylist(playlistId, userId);
-    const response = await axiosInstance.put(recEndpoint);
+    const response = await axiosInstance.put(recEndpoint).then( (resp) => {
+      return Promise.resolve(resp.data);
+    }, (error) =>{
+      return Promise.reject(error)
+    })
     return response.data;
 }

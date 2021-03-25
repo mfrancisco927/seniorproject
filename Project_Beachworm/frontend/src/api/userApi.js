@@ -11,19 +11,32 @@ const followingEndpointUri = (targetUid) => baseUri2 + 'profile/following/' + ta
 
 export async function getCurrentUser() {
   const currentUserEndpoint = currentUserEndpointUri;
-  const response = await axiosInstance.get(currentUserEndpoint);
-  return response.data;
+  const response = await axiosInstance.get(currentUserEndpoint).then(value => {
+     return Promise.resolve(value.data);
+  }, reason => {
+    return Promise.reject(reason);
+  });
+
+  return response;
 }
 
 export async function getUser(userId) {
   const userEndpoint = userEndpointUri(userId);
-  const response = await axiosInstance.get(userEndpoint);
+  const response = await axiosInstance.get(userEndpoint).then( (resp) => {
+    return Promise.resolve(resp.data);
+  }, (error) =>{
+    return Promise.reject(error)
+  })
   return response.data;
 }
 
 export async function getPlaylists(userId) {
   const playlistEndpoint = playlistEndpointUri(userId);
-  const response = await axiosInstance.get(playlistEndpoint);
+  const response = await axiosInstance.get(playlistEndpoint).then( (resp) => {
+    return Promise.resolve(resp.data);
+  }, (error) =>{
+    return Promise.reject(error)
+  })
   return response.data;
 }
 
@@ -35,7 +48,11 @@ export async function createPlaylist(userId, title, isPublic=true) {
       title: title,
       is_public: isPublic,
     }
-  });
+  }).then( (resp) => {
+    return Promise.resolve(resp.data);
+  }, (error) =>{
+    return Promise.reject(error)
+  })
   return response.data;
 }
 
@@ -44,7 +61,11 @@ export async function createUser(email, username, password) {
     email: email,
     username: username,
     password: password,
-  });
+  }).then( (resp) => {
+    return Promise.resolve(resp.data);
+  }, (error) =>{
+    return Promise.reject(error)
+  })
   return response.data;
 }
 
@@ -59,12 +80,20 @@ export async function getProfile(userId) {
 
 export async function followUser(targetUserId) {
   const profileEndpoint = followingEndpointUri(targetUserId);
-  const response = await axiosInstance.post(profileEndpoint);
+  const response = await axiosInstance.post(profileEndpoint).then( (resp) => {
+    return Promise.resolve(resp.data);
+  }, (error) =>{
+    return Promise.reject(error)
+  })
   return response.data;
 }
 
 export async function unfollowUser(targetUserId) {
   const profileEndpoint = followingEndpointUri(targetUserId);
-  const response = await axiosInstance.delete(profileEndpoint);
+  const response = await axiosInstance.delete(profileEndpoint).then( (resp) => {
+    return Promise.resolve(resp.data);
+  }, (error) =>{
+    return Promise.reject(error)
+  })
   return response.data;
 }

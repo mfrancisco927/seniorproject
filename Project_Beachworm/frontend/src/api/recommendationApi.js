@@ -1,7 +1,7 @@
 import axiosInstance from './axiosApi';
 
 const baseUri = '/recommendation';
-const standardRecommendationUri = baseUri + '/user/';
+const standardRecommendationUri = baseUri + '/home/';
 const genreRecommendationUri = baseUri + '/genre/';
 const artistRecommendationUri = baseUri + '/artist/';
 const playlistRecommendationUri = baseUri + '/playlist/';

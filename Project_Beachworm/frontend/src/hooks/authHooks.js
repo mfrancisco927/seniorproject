@@ -35,7 +35,10 @@ function useProvideAuth() {
         await getCurrentUser().then(value => {
           setId(value.user_id);
           return Promise.resolve(value);
-        }).then(async _value => {
+        }, (reject) =>{
+          console.log('Couldn\'t find curr user');
+        }
+        ).then(async _value => {
           console.log('Current user successfully pulled, attempting to get initial Spotify access token.');
           // have successful user, so should also have spotify token
           await refreshSpotifyAuth().then(() => {
