@@ -6,6 +6,7 @@ import { useAuth } from './../../hooks/authHooks';
 import { useSpotifySdk } from './../../hooks/spotifyHooks';
 import { getRecommendations } from './../../api/recommendationApi';
 import LoadingImage from '../loading.svg';
+import useRadioLoaders from '../../hooks/radioLoaders';
 
 const testingItems = [
   {
@@ -39,6 +40,7 @@ function MainPage(props) {
 
   const spotify = useSpotifySdk();
   const auth = useAuth();
+  const loader = useRadioLoaders();
   const [data, setData] = useState(testingItems);
   const [loaded, setLoaded] = useState(false)
 
@@ -60,7 +62,7 @@ function MainPage(props) {
           <SongRow title='Recommended Tracks' 
             getItems={ () => data.tracks}
             spotify={spotify}
-            //onItemClick={() =>  }
+            onItemClick={item => loader.loadSongRadio(item)}
             getImageCallback={ (item) => {
               return item.album.images[0].url;
             }
@@ -81,28 +83,26 @@ function MainPage(props) {
           <SongRow title='Recommended Artists' 
             getItems={ () => data.artists}
             spotify={spotify}
-            //onItemClick={() =>  }
+            onItemClick={item => loader.loadArtistRadio(item)}
             getImageCallback={ (item) => {
                return item.images[0].url;
               }
             }
             getTitle={ (item) => {
                 return (
-                  <h2>test</h2>
+                  <h3>{item.name}</h3>
                 )
               }
             }
             getSubtitle={ (item) => {
-              return (
-                <h2></h2>
-              )
+              return 
               }
             }
             />
           <SongRow title='Recommended Genres' 
             getItems={ () => data.genres}
             spotify={spotify}
-            //onItemClick={() =>  }
+            onItemClick={item => loader.loadSongRadio(item)}
             getImageCallback={ (item) => {
               return 'https://media.pitchfork.com/photos/5a71df0d85ed77242d8f1252/1:1/w_320/jpegmafiaveteran.jpg';
               } 
@@ -117,7 +117,8 @@ function MainPage(props) {
               return 
               }
               }
-              />    
+              />
+                  
           </div>
         )
       }
@@ -129,7 +130,7 @@ function MainPage(props) {
 function SongRow(props){
 
 
-  const {title, getImageCallback, getItems, spotify, getTitle, getSubtitle} = props;
+  const {title, getImageCallback, getItems, spotify, getTitle, getSubtitle, onItemClick} = props;
   const songBoxRef = useRef({});
   const MAX_ITEMS_SHOWN = 10;
   
@@ -166,7 +167,7 @@ function SongRow(props){
                   getItems().slice(0,Math.min(MAX_ITEMS_SHOWN, getItems().length)).map((item) => {
                     return (
                       <div className='song-wrapper'>
-                          <img className='song-img' src={getImageCallback(item)} alt='hello!' onClick={ () => changeSong(testingItems)} /> 
+                          <img className='song-img' src={getImageCallback(item)} alt='hello!' onClick={ (item) => onItemClick(item)} /> 
                           { getTitle(item) }
                           { getSubtitle(item) }
                       </div>
