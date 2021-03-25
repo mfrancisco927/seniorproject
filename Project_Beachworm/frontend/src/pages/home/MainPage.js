@@ -62,7 +62,7 @@ function MainPage(props) {
           <SongRow title='Recommended Tracks' 
             getItems={ () => data.tracks}
             spotify={spotify}
-            onItemClick={item => loader.loadSongRadio(item)}
+            onItemClick={song => loader.loadSongRadio(song)}
             getImageCallback={ (item) => {
               return item.album.images[0].url;
             }
@@ -83,7 +83,10 @@ function MainPage(props) {
           <SongRow title='Recommended Artists' 
             getItems={ () => data.artists}
             spotify={spotify}
-            onItemClick={item => loader.loadArtistRadio(item)}
+            onItemClick={artist => {
+              console.log(artist)
+              loader.loadArtistRadio(artist)
+            }}
             getImageCallback={ (item) => {
                return item.images[0].url;
               }
@@ -130,7 +133,7 @@ function MainPage(props) {
 function SongRow(props){
 
 
-  const {title, getImageCallback, getItems, spotify, getTitle, getSubtitle, onItemClick} = props;
+  const {title, getImageCallback, getItems, getTitle, getSubtitle, onItemClick} = props;
   const songBoxRef = useRef({});
   const MAX_ITEMS_SHOWN = 10;
   
@@ -142,21 +145,6 @@ function SongRow(props){
     }
   }
 
-  const changeSong = (items) => {
-    
-    let songsMapped = items.map((item) => ( {id: item.song_id, name: item.name} ))
-    console.log(songsMapped)
-    spotify.clearContextPlayQueue();
-    spotify.play(songsMapped[0].id);
-    spotify.setContextPlayQueue(
-            {   
-                name: 'Explore_Blank',
-                songs: songsMapped.slice(1)  
-            })
-    //TODO: pass in callback function here ^^^ for getMoreSongs
-    //TODO: get useHistory to work, need to change back to functional
-  }
-
     return (
       <div className='group-wrapper' >
           <div className='group-header'><h2>{title}</h2></div>
@@ -166,8 +154,8 @@ function SongRow(props){
                 { 
                   getItems().slice(0,Math.min(MAX_ITEMS_SHOWN, getItems().length)).map((item) => {
                     return (
-                      <div className='song-wrapper'>
-                          <img className='song-img' src={getImageCallback(item)} alt='hello!' onClick={ (item) => onItemClick(item)} /> 
+                      <div className='song-wrapper'  onClick={ () => onItemClick(item)}>
+                          <img className='song-img' src={getImageCallback(item)} alt='hello!'/> 
                           { getTitle(item) }
                           { getSubtitle(item) }
                       </div>

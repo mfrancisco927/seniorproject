@@ -16,6 +16,7 @@ function SearchPage(props) {
 
     let element;
     if (searchData) {
+        console.log(searchData);
         const loaded = Object.keys(searchData).length !== 0;
         element = 
             <Fragment>
@@ -37,7 +38,11 @@ function SearchPage(props) {
                                 item => (item.images.length ? item.images[1].url: DEFAULT_IMAGE_URL)
                             }
                             getTitle={item => item.name}
-                            onItemClick={artist => radioLoaders.loadArtistRadio(artist)}
+                            onItemClick={artist => {
+                                radioLoaders.loadArtistRadio(artist)
+                                console.log(artist)
+                            }
+                            }
                             loading={!loaded}
                             defaultText="No artists meet this search result!"/>
                         <Results name="Albums"
