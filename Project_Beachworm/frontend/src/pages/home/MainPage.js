@@ -4,48 +4,19 @@ import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
 import ArrowForwardIosIcon from '@material-ui/icons/ArrowForwardIos';
 import { useAuth } from './../../hooks/authHooks';
 import { useSpotifySdk } from './../../hooks/spotifyHooks';
-import { getRecommendations } from './../../api/recommendationApi';
+import { getHomeRecommendations } from './../../api/recommendationApi';
 import LoadingImage from '../loading.svg';
 import useRadioLoaders from '../../hooks/radioLoaders';
 
-const testingItems = [
-  {
-  'img':'https://upload.wikimedia.org/wikipedia/en/c/c4/Floral_Green.jpg',
-  'name': 'TEST 1! RUN SERVER FOR LIVE DATA',
-  song_id: '7BJny7nQN5bY4EeGVU3kj6',
-  },
-  {
-    'img':'https://media.pitchfork.com/photos/5a71df0d85ed77242d8f1252/1:1/w_320/jpegmafiaveteran.jpg',
-    'name': 'TEST 2! RUN SERVER FOR LIVE DATA',
-    song_id: '03n2zDv0TXbH2q9XpzYpqY',
-  },
-  {
-    'img':'https://i.pinimg.com/originals/78/6e/a3/786ea3d49748ab17966e4301f0f73bb6.jpg',
-    'name': 'TEST 3! RUN SERVER FOR LIVE DATA',
-    song_id: '5imSIRUGtX4aeRRA81UakE',
-  },    
-  {
-    'img':'https://i.pinimg.com/originals/78/6e/a3/786ea3d49748ab17966e4301f0f73bb6.jpg',
-    'name': 'TEST 3! RUN SERVER FOR LIVE DATA',
-    song_id: '3VXtkBYkeDqVTECO1OOdXd',
-  },    
-  {
-    'img':'https://i.pinimg.com/originals/78/6e/a3/786ea3d49748ab17966e4301f0f73bb6.jpg',
-    'name': 'TEST 3! RUN SERVER FOR LIVE DATA',
-    song_id: '3VXtkBYkeDqVTECO1OOdXd',
-  }
-];
-
 function MainPage(props) {
-
   const spotify = useSpotifySdk();
   const auth = useAuth();
   const loader = useRadioLoaders();
-  const [data, setData] = useState(testingItems);
+  const [data, setData] = useState([]);
   const [loaded, setLoaded] = useState(false)
 
   useEffect( () =>{
-    getRecommendations().then( (data) => {
+    getHomeRecommendations().then( (data) => {
           console.log(data);
           setData(data);
           setLoaded(true);
