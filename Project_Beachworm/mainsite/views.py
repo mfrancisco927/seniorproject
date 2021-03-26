@@ -590,7 +590,7 @@ class GenreRecommendations(APIView):
             return Response(data=recommendations, status=status.HTTP_200_OK)
         
         else :
-            return Response({'error:', 'genre invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error:': 'genre invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
 
 class ArtistRecommendations(APIView):
     permission_classes = (permissions.AllowAny,)
@@ -619,7 +619,7 @@ class ArtistRecommendations(APIView):
             return Response(data=recommendations, status=status.HTTP_200_OK)
         
         else :
-            return Response({'error:', 'artist invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error:': 'artist invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
       
 class SongHistory(APIView):
     #get a user's song history
@@ -1004,7 +1004,6 @@ class HomeRecommendations(APIView):
         # Use songs -> rec artists -> rec genres
         curated_recommendations = curateSongs(profile, recommendations,75)
         curated_artists = artistsFromSongs(curated_recommendations)
-        print(len(curated_artists['artists']))
         curated_genres = genresFromArtists(curated_artists, HOME_RECOMMENDATION_NUMBER)
 
         home_recommendations = {}
@@ -1025,3 +1024,158 @@ class HomeRecommendations(APIView):
  
         
         return Response(data=home_recommendations, status=status.HTTP_200_OK)
+
+class SongRecommendations(APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self,request):
+        query = self.request.query_params
+       
+        if query['song'] :
+            seed_song = []
+            
+            query_cleaned = query['song'].replace('\'','')
+            query_cleaned = query_cleaned.replace('\"','')
+            seed_song.append(query_cleaned)
+            recommendations = sp.recommendations(
+                                                seed_tracks=seed_song, 
+                                                country='US',
+                                                limit=20
+                                                )
+            
+            # must turn tracks into items to make dict same as search dict
+            recommendations['items'] = recommendations.pop('tracks')
+            recommendations.pop('seeds')
+
+            saveSong(recommendations)
+        
+            return Response(data=recommendations, status=status.HTTP_200_OK)
+        
+        else :
+            return Response({'error:': 'song invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
+
+class AlbumRecommendations(APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self,request):
+        query = self.request.query_params
+
+        if query['album'] :
+            query_cleaned = query['album'].replace('\'','')
+            query_cleaned = query_cleaned.replace('\"','')
+            album_id = query_cleaned
+            
+            response_recs = { 'items': [] }
+
+            # Album_tracks are in the format of spotify album tracks, which are NOT
+            # the same as for what is returned with other songs, must then
+            # use Spotify id to get the standard track format
+            album_tracks_filtered = []
+            album_search = sp.album_tracks(album_id, limit=10, market='US')
+            for song in album_search['items']:
+                # Make sure the songs we're returning are playable on Spotify
+                if song['is_playable'] == True:
+                    album_tracks_filtered.append(song['id'])
+            album_tracks = sp.tracks(album_tracks_filtered, market='US')['tracks']
+
+            random.shuffle(album_tracks)
+
+            # Pull out some song_ids from album to put in recommender
+            song_ids = []
+            for i in range(min(4, len(album_tracks))):
+                song_ids.append(album_tracks[i]['id'])
+            if song_ids:
+                recommendations = sp.recommendations(
+                                                    seed_tracks=song_ids, 
+                                                    country='US',
+                                                    limit=30
+                                                    )
+            # Ensures that all elements are in an ['items'] array
+            recommendations['items'] = recommendations.pop('tracks')
+            
+            # Key of ids will make it easy to make sure no duplicates are added
+            response_ids = []
+            # Add three random album_tracks to response_recs
+            for i in range(min(3, len(album_tracks))):
+                next_track = album_tracks.pop()
+                response_recs['items'].append(next_track)
+                response_ids.append(next_track['id'])
+
+            for i in range(20-len(response_recs['items'])):
+                # Do a 1-to-1 intersperse of recommendations an albums
+                if i%2 == 0:
+                    # Try to add a recommendation song, if there are more left
+                    if recommendations['items']:
+                        if recommendations['items'][0]['id'] not in response_ids:
+                            next_track = recommendations['items'].pop()
+                            response_recs['items'].append(next_track)
+                            response_ids.append(next_track['id'])
+                        else:
+                            recommendations['items'].pop()
+                else:
+                    # Try to add an album song, if there are more left
+                    if album_tracks:
+                        if album_tracks[0]['id'] not in response_ids:
+                            next_track = album_tracks.pop()
+                            response_recs['items'].append(next_track)
+                            response_ids.append(next_track['id'])
+                        else:
+                            album_tracks.pop()
+            
+            # Save the recommended songs to the database
+            saveSong(response_recs)
+
+            # Will show you artist and track being returned - DEBUGGING purposes
+            # for rec in response_recs['items']:
+            #     print(str(rec['artists'][0]['name']) + " -- " + str(rec['name'])) 
+
+            return Response(data=response_recs, status=status.HTTP_200_OK)
+
+        else :
+            return Response({'error:': 'album invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
+
+class GetUserSeeds(APIView):
+    def get(self, request):
+        user_id = self.request.user.id
+        try : 
+            profile = Profile.objects.get(user=user_id)
+        except ProfileDoesNotExist :
+            return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Get the genre seeds from database then make an array with just the ids
+        genre_seeds_query = UserGenreSeed.objects.filter(user = profile)
+        genre_seeds = []
+
+        if genre_seeds_query:
+            for genre in genre_seeds_query:
+                genre_seeds.append(genre.genre_id)
+
+        # Get the artist seeds from database then make an arrray with just the ids
+        artist_seeds_query = UserArtistSeed.objects.filter(user = profile)
+        artist_seeds = []
+
+        if artist_seeds_query:
+            for artist in artist_seeds_query:
+                artist_seeds.append(artist.artist_id)
+
+        # Get the song ids from the profile and then make an array with just the ids        
+        try:
+            song_seeds_query = profile.liked_songs.all()
+        except:
+            song_seeds_query = []
+        song_seeds = []
+
+        if song_seeds_query:
+            for song in song_seeds_query:
+                song_seeds.append(song.song_id)
+        
+        response_json = {   
+                        'genres': genre_seeds,
+                        'artists': artist_seeds,
+                        'songs' : song_seeds,    
+                        }
+    
+        return Response(data=response_json, status=status.HTTP_200_OK)
+        
+
+        
