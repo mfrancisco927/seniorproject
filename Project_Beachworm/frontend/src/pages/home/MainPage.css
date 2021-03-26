@@ -5,6 +5,11 @@
     margin-right: 0;
     padding: 15px;
     flex-direction: column;
+    align-self: flex-start;
+  }
+
+  .artist-title, .artist-subtitle{
+    overflow-wrap: break-word;
   }
   
   .song-wrapper {
@@ -19,17 +24,23 @@
     width: 300px;
   }
 
+  .loading-img{
+    height: 50%;
+  }
 
   .song-img:hover{
     box-shadow: inset 10px 10px 5px rgba(49, 47, 47, 0.712);
     -moz-box-shadow: inset 10px 10px 5px rgba(49, 47, 47, 0.712);
     -webkit-box-shadow:  10px 10px 5px rgba(49, 47, 47, 0.712);
   }
-  
-  .song-page-wrapper{
-    background-color: #f2f2f2;
 
+  .loading-img-wrapper{
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
+
+
   .songs-buttons-wrapper{
     display: flex;
     flex-direction: row;
@@ -41,7 +52,6 @@
     flex-direction: row;
     width: 80%;
     overflow: auto;
-    white-space: nowrap;
   }
 
   .songs-wrapper::-webkit-scrollbar-track

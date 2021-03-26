@@ -41,7 +41,7 @@ function SearchPage(props) {
                             onItemClick={artist => {
                                 radioLoaders.loadArtistRadio(artist)
                                 console.log(artist)
-                            }
+                                }
                             }
                             loading={!loaded}
                             defaultText="No artists meet this search result!"/>
