@@ -1004,7 +1004,6 @@ class HomeRecommendations(APIView):
         # Use songs -> rec artists -> rec genres
         curated_recommendations = curateSongs(profile, recommendations,75)
         curated_artists = artistsFromSongs(curated_recommendations)
-        print(len(curated_artists['artists']))
         curated_genres = genresFromArtists(curated_artists, HOME_RECOMMENDATION_NUMBER)
 
         home_recommendations = {}
@@ -1143,6 +1142,7 @@ class GetUserSeeds(APIView):
         except ProfileDoesNotExist :
             return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Get the genre seeds from database then make an array with just the ids
         genre_seeds_query = UserGenreSeed.objects.filter(user = profile)
         genre_seeds = []
 
@@ -1150,7 +1150,7 @@ class GetUserSeeds(APIView):
             for genre in genre_seeds_query:
                 genre_seeds.append(genre.genre_id)
 
-
+        # Get the artist seeds from database then make an arrray with just the ids
         artist_seeds_query = UserArtistSeed.objects.filter(user = profile)
         artist_seeds = []
 
@@ -1158,6 +1158,7 @@ class GetUserSeeds(APIView):
             for artist in artist_seeds_query:
                 artist_seeds.append(artist.artist_id)
 
+        # Get the song ids from the profile and then make an array with just the ids        
         try:
             song_seeds_query = profile.liked_songs.all()
         except:
