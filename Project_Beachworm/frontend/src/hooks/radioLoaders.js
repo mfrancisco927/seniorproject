@@ -8,7 +8,7 @@ export default function useRadioLoaders() {
   const spotify = useSpotifySdk();
   const history = useHistory();
 
-  const loadRadioAndRedirect = (queueName, songs, loadMoreCallback) => {
+  const loadRadioAndRedirect = (queueName, songs, loadMoreCallback, redirect) => {
     // if we have any songs, queue them up and move to the explore page
     if (songs.length) {
       spotify.play(songs[0].id)
@@ -17,7 +17,9 @@ export default function useRadioLoaders() {
         songs: songs.slice(1),
         getMoreSongs: loadMoreCallback,
       });
-      history.push('/explore');
+      if (redirect) {
+        history.push('/explore');
+      }
     }
   }
 
@@ -27,53 +29,53 @@ export default function useRadioLoaders() {
     return [];
   }
 
-  const loadSongRadio = (song) => {
+  const loadSongRadio = (song, redirect=true) => {
     const getSongBasedSongs = async () => await getRecommendationsBySong(song.id).then(result => {
       return result.items;
     }, standardReject);
 
     getSongBasedSongs().then(songs => {
-      loadRadioAndRedirect('Explore_SongRadio_' + song.name, songs, getSongBasedSongs);
+      loadRadioAndRedirect('Explore_SongRadio_' + song.name, songs, getSongBasedSongs, redirect);
     });  
   }
 
-  const loadGenreRadio = (genre) => {
+  const loadGenreRadio = (genre, redirect=true) => {
     const getGenreRadioSongs = async () => await getRecommendationsByGenre(genre.id).then(result => {
       return result.items;
     }, standardReject);
 
     getGenreRadioSongs().then(songs => {
-      loadRadioAndRedirect('Explore_GenreRadio_' + genre.name, songs, getGenreRadioSongs);
+      loadRadioAndRedirect('Explore_GenreRadio_' + genre.name, songs, getGenreRadioSongs, redirect);
     });  
   }
 
-  const loadAlbumRadio = (album) => {
+  const loadAlbumRadio = (album, redirect=true) => {
     const getAlbumSongs = async () => await getRecommendationsByAlbum(album.id).then(result => {
       return result.items;
     }, standardReject);
   
     getAlbumSongs().then(songs => {
-      loadRadioAndRedirect('Explore_AlbumRadio_' + album.name, songs, getAlbumSongs);
+      loadRadioAndRedirect('Explore_AlbumRadio_' + album.name, songs, getAlbumSongs, redirect);
     });  
   }
     
-  const loadArtistRadio = (artist) => {
+  const loadArtistRadio = (artist, redirect=true) => {
     const getArtistSongs = async () => await getRecommendationsByArtist(artist.id).then(result => {
       return result.items;
     }, standardReject);
 
     getArtistSongs().then(songs => {
-      loadRadioAndRedirect('Explore_ArtistRadio_' + artist.name, songs, getArtistSongs);
+      loadRadioAndRedirect('Explore_ArtistRadio_' + artist.name, songs, getArtistSongs, redirect);
     }); 
   }
     
-  const loadPlaylistRadio = (playlist) => {
+  const loadPlaylistRadio = (playlist, redirect=true) => {
     const getPlaylistSongs = async () => await getRecommendationsByPlaylist(playlist.id).then(result => {
       return result.items;
     }, standardReject);
 
     getPlaylistSongs().then(songs => {
-      loadRadioAndRedirect('Explore_PlaylistRadio_' + playlist.title, songs, getPlaylistSongs);
+      loadRadioAndRedirect('Explore_PlaylistRadio_' + playlist.title, songs, getPlaylistSongs, redirect);
     }); 
   }
 

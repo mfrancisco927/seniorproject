@@ -32,7 +32,7 @@ function Explore() {
         console.log('Refreshed like/dislike history for Explore');
         likedSongs.current = success.liked_songs.map(song => song.song_id);
         dislikedSongs.current = success.disliked_songs;
-      }).catch(reject => {
+      }).catch(_reject => {
         console.log('Failed to refresh like/dislike history for Explore');
       })
     }, []);
