@@ -16,7 +16,7 @@ function SearchPage(props) {
 
     let element;
     if (searchData) {
-        console.log(searchData);
+        // console.log(searchData);
         const loaded = Object.keys(searchData).length !== 0;
         element = 
             <Fragment>
@@ -41,7 +41,7 @@ function SearchPage(props) {
                             onItemClick={artist => {
                                 radioLoaders.loadArtistRadio(artist)
                                 console.log(artist)
-                            }
+                                }
                             }
                             loading={!loaded}
                             defaultText="No artists meet this search result!"/>

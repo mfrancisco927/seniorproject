@@ -1,7 +1,9 @@
+import { AssignmentReturnedOutlined, AssignmentReturnedRounded, KeyboardReturnRounded, KeyboardReturnTwoTone } from '@material-ui/icons';
 import axiosInstance from './axiosApi';
 
 const baseUri = '/recommendation';
-const standardRecommendationUri = baseUri + '/home/';
+const standardRecommendationUri = baseUri + '/user/';
+const homeRecommendationUri = baseUri + '/home/';
 const genreRecommendationUri = baseUri + '/genre/';
 const artistRecommendationUri = baseUri + '/artist/';
 const playlistRecommendationUri = baseUri + '/playlist/';
@@ -13,18 +15,25 @@ const sendArtistSeedsUri = '/user/profile/seed/artists/';
 
 export async function getRecommendations() {
   const recEndpoint = standardRecommendationUri;
-  const response = await axiosInstance.get(recEndpoint).then(x => {
+  return await axiosInstance.get(recEndpoint).then(x => {
     return Promise.resolve(x.data)
   }, error => {;
     return Promise.reject(error)
   });
+}
 
-  return response;
+export async function getHomeRecommendations() {
+  const recEndpoint = homeRecommendationUri;
+  return await axiosInstance.get(recEndpoint).then(x => {
+    return Promise.resolve(x.data)
+  }, error => {;
+    return Promise.reject(error)
+  });
 }
 
 export async function getRecommendationsByArtist(artistId) {
   const artistRecEndpoint = artistRecommendationUri;
-  const response = await axiosInstance.get(artistRecEndpoint, {
+  return await axiosInstance.get(artistRecEndpoint, {
     params: {
       artist: artistId,
     }
@@ -33,13 +42,11 @@ export async function getRecommendationsByArtist(artistId) {
   }, error => {;
     return Promise.reject(error)
   });
-
-  return response;
 }
 
 export async function getRecommendationsByGenre(genreId) {
   const genreRecEndpoint = genreRecommendationUri;
-  const response = await axiosInstance.get(genreRecEndpoint, {
+  return await axiosInstance.get(genreRecEndpoint, {
     params: {
       genre: genreId,
     }
@@ -48,12 +55,10 @@ export async function getRecommendationsByGenre(genreId) {
   }, error => {;
     return Promise.reject(error)
   });
-
-  return response;
 }
 
 export async function getRecommendationsBySong(songId) {
-  const response = await axiosInstance.get(songRecommendationUri, {
+  return await axiosInstance.get(songRecommendationUri, {
     params: {
       song: songId,
     }
@@ -62,12 +67,10 @@ export async function getRecommendationsBySong(songId) {
   }, error => {;
     return Promise.reject(error)
   });
-
-  return response;
 }
 
 export async function getRecommendationsByAlbum(albumId) {
-  const response = await axiosInstance.get(albumRecommendationUri, {
+  return await axiosInstance.get(albumRecommendationUri, {
     params: {
       album: albumId,
     }
@@ -76,8 +79,6 @@ export async function getRecommendationsByAlbum(albumId) {
   }, error => {;
     return Promise.reject(error)
   });
-
-  return response;
 }
 
 export async function postGenreSeeds(genreIds) {
@@ -104,19 +105,17 @@ export async function postArtistSeeds(artistIds) {
 
 export async function obtainArtists() {
   const obtainArtistsEndpoint = obtainartistsUri;
-  const response = await axiosInstance.get(obtainArtistsEndpoint, {
+  return await axiosInstance.get(obtainArtistsEndpoint, {
   }).then(x => {
     return Promise.resolve(x.data)
   }, error => {;
     return Promise.reject(error)
   });
-
-  return response;
 }
 
 export async function getRecommendationsByPlaylist(playlistId) {
   const playlistRecEndpoint = playlistRecommendationUri;
-  const response = await axiosInstance.get(playlistRecEndpoint, {
+  return await axiosInstance.get(playlistRecEndpoint, {
     params: {
       playlist: playlistId,
     }
@@ -125,6 +124,4 @@ export async function getRecommendationsByPlaylist(playlistId) {
   }, error => {;
     return Promise.reject(error)
   });
-
-  return response;
 }

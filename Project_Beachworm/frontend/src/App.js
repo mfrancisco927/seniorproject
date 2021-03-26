@@ -24,16 +24,15 @@ function App() {
   const auth = useAuth();
   const history = useHistory();
 
-  const [ searchField , setSearchField ] = useState('');
-  const [ searchedTerm, setSearchedTerm ] = useState(null);
-  const [ searchData, setSearchData] = useState(null);
+  const [ searchText, setSearchText ] = useState(null);
+  const [ searchData, setSearchData ] = useState(null);
 
-  const submitSearch = (e) => {
-    e.preventDefault();
-    if(searchField !== ''){
+  const submitSearch = (text) => {
+    if (text) {
+      setSearchText(text);
       setSearchData({});
-      search(searchField).then((data) => {
-        setSearchData(data)
+      search(text).then(data => {
+        setSearchData(data);
       });
       history.push('/search');
     }
@@ -66,7 +65,7 @@ function App() {
   return (
     <div className={'page-wrapper' + (showFooter ? ' page-wrapper__footer' : ' page-wrapper__no-footer')}>
       {/* pages marked TEMP will not be accessible via nav-bar in production, but through some other context */}
-      <Navbar menuList={{
+      <Navbar submitSearch={submitSearch} menuList={{
         '/landing': 'Landing [TEMP]',
         '/': 'Home',
         '/questionnaire1': 'Questionnaire [TEMP]',
@@ -74,11 +73,7 @@ function App() {
         '/profile': 'Profile',
         '/playlist': 'Playlist [TEMP]',
         '/spotify-auth': 'Spotify Auth [TEMP]',
-      }} searchField={searchField}
-      setSearchField={setSearchField}
-      searchTermSelected={() => setSearchedTerm(searchField)}
-      submitSearch={submitSearch}
-      />
+      }}/>
       <WithFooter>
         <AuthorizedOrHidden>
           <button onClick={() => auth.signOut()}>Log out</button>
@@ -105,7 +100,7 @@ function App() {
             <PlaylistPage />
           </PrivateRoute>
           <Route path='/search'>
-            <SearchPage searchItem={searchedTerm} searchData={searchData} />
+            <SearchPage searchItem={searchText} searchData={searchData} />
           </Route>
           <PrivateRoute path='/spotify-auth'>
             <SpotifyAuth />

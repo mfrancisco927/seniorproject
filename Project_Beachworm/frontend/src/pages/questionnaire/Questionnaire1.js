@@ -4,7 +4,7 @@ import './Questionnaire.css';
 import '../../api/recommendationApi';
 import { postGenreSeeds } from '../../api/recommendationApi';
 import Placeholder from '../images/genres/placeholder.png';
-import { withRouter } from 'react-router';
+import { withRouter } from 'react-router-dom';
 
 class Questionarre1 extends Component {
  
