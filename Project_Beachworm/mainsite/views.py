@@ -1142,5 +1142,39 @@ class GetUserSeeds(APIView):
             profile = Profile.objects.get(user=user_id)
         except ProfileDoesNotExist :
             return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+
+        genre_seeds_query = UserGenreSeed.objects.filter(user = profile)
+        genre_seeds = []
+
+        if genre_seeds_query:
+            for genre in genre_seeds_query:
+                genre_seeds.append(genre.genre_id)
+
+
+        artist_seeds_query = UserArtistSeed.objects.filter(user = profile)
+        artist_seeds = []
+
+        if artist_seeds_query:
+            for artist in artist_seeds_query:
+                artist_seeds.append(artist.artist_id)
+
+        try:
+            song_seeds_query = profile.liked_songs.all()
+        except:
+            song_seeds_query = []
+        song_seeds = []
+
+        if song_seeds_query:
+            for song in song_seeds_query:
+                song_seeds.append(song.song_id)
         
+        response_json = {   
+                        'genres': genre_seeds,
+                        'artists': artist_seeds,
+                        'songs' : song_seeds,    
+                        }
+    
+        return Response(data=response_json, status=status.HTTP_200_OK)
+        
+
         
