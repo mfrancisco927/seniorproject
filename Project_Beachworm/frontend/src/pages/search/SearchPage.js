@@ -4,16 +4,19 @@ import LoadingImage from '../loading.svg';
 import useRadioLoaders from '../../hooks/radioLoaders';
 
 import './SearchPage.css';
+import { useHistory } from 'react-router';
 
 function SearchPage(props) {
     const { searchItem, searchData } = props;
+    const history = useHistory();
     const auth = useAuth();
     const radioLoaders = useRadioLoaders();
     const DEFAULT_IMAGE_URL = 'https://images-na.ssl-images-amazon.com/images/I/51Ib3jYSStL._AC_SY450_.jpg';
 
     const handlePlaylistClick = (playlist) => {
-        console.log('Clicked playlist', playlist);
-        // just load the playlist! history.push(/playlist)... and somehow pass in state
+        history.push('/playlist', {
+            playlistId: playlist.id,
+        });
     };
 
     let element;

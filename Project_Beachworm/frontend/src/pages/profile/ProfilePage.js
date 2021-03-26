@@ -77,7 +77,9 @@ function ProfilePage(){
   };
 
   const handlePlaylistClick = (playlistId) => {
-    console.log('Clicked playlist', playlistId);
+    history.push('/playlist', {
+      playlistId: playlistId,
+    });
   }
 
   const handleCreateNewPlaylist = async () => {
