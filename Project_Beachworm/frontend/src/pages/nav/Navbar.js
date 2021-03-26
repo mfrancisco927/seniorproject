@@ -30,7 +30,8 @@ function useWindowDimensions() {
 
 function Navbar(props) {
   const { width } = useWindowDimensions();
-  const { menuList, setSearchField, submitSearch, searchTermSelected } = props;
+  const { menuList, submitSearch } = props;
+  const [searchText, setSearchText] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isMobile = width <= 960;
 
@@ -42,6 +43,11 @@ function Navbar(props) {
   }
   const closeMobileMenu = () => setMobileMenuOpen(false);
    
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    submitSearch(searchText);
+  }
+
   return (
       <nav className="navbar">
         <NavLink to="/landing" className="navbar-logo" onClick={toggleMobileMenu}>
@@ -65,14 +71,14 @@ function Navbar(props) {
           }
         </ul>
         <div className="nav-bar-search-bar">
-          <form className="nav-bar-search-form" onSubmit={submitSearch} >
+          <form className="nav-bar-search-form" onSubmit={handleSubmit} >
             <input className="nav-bar-search-input"
             type="text"
             id="search"
             name="search"
             placeholder="Search"
-            onChange={(e) => setSearchField(e.target.value)} />
-            <IconButton className="nav-bar-search-button" type="submit" onClick={searchTermSelected}>
+            onChange={(e) => setSearchText(e.target.value)} />
+            <IconButton className="nav-bar-search-button" type="submit">
               <SearchIcon />
             </IconButton>
           </form>

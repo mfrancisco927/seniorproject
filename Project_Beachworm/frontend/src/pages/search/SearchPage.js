@@ -16,7 +16,7 @@ function SearchPage(props) {
 
     let element;
     if (searchData) {
-        console.log(searchData);
+        // console.log(searchData);
         const loaded = Object.keys(searchData).length !== 0;
         element = 
             <Fragment>

@@ -11,6 +11,7 @@ export default function useRadioLoaders() {
   const loadRadioAndRedirect = (queueName, songs, loadMoreCallback, redirect) => {
     // if we have any songs, queue them up and move to the explore page
     if (songs.length) {
+      console.log(`Starting radio: ${queueName}`);
       spotify.play(songs[0].id)
       spotify.setContextPlayQueue({
         name: queueName,
@@ -20,6 +21,8 @@ export default function useRadioLoaders() {
       if (redirect) {
         history.push('/explore');
       }
+    } else {
+      console.log(`Attempted to load radio ${queueName}, but wasn't given any songs.`);
     }
   }
 
