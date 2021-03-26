@@ -590,7 +590,7 @@ class GenreRecommendations(APIView):
             return Response(data=recommendations, status=status.HTTP_200_OK)
         
         else :
-            return Response({'error:', 'genre invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error:': 'genre invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
 
 class ArtistRecommendations(APIView):
     permission_classes = (permissions.AllowAny,)
@@ -619,7 +619,7 @@ class ArtistRecommendations(APIView):
             return Response(data=recommendations, status=status.HTTP_200_OK)
         
         else :
-            return Response({'error:', 'artist invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error:': 'artist invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
       
 class SongHistory(APIView):
     #get a user's song history
@@ -1053,6 +1053,82 @@ class SongRecommendations(APIView):
             return Response(data=recommendations, status=status.HTTP_200_OK)
         
         else :
-            return Response({'error:', 'song invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error:': 'song invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
+
+class AlbumRecommendations(APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self,request):
+        query = self.request.query_params
+
+        if query['album'] :
+            query_cleaned = query['album'].replace('\'','')
+            query_cleaned = query_cleaned.replace('\"','')
+            album_id = query_cleaned
+            
+            response_recs = { 'items': [] }
+
+            # Album_tracks are in the format of spotify album tracks, which are NOT
+            # the same as for what is returned with other songs, must then
+            # use Spotify id to get the standard track format
+            album_tracks_filtered = []
+            album_search = sp.album_tracks(album_id, limit=10, market='US')
+            for song in album_search['items']:
+                # Make sure the songs we're returning are playable on Spotify
+                if song['is_playable'] == True:
+                    album_tracks_filtered.append(song['id'])
+            album_tracks = sp.tracks(album_tracks_filtered, market='US')['tracks']
+            print(json.dumps(album_tracks, indent=4))
+            random.shuffle(album_tracks)
+
+            # Pull out some song_ids from album to put in recommender
+            song_ids = []
+            for i in range(min(4, len(album_tracks))):
+                song_ids.append(album_tracks[i]['id'])
+            if song_ids:
+                recommendations = sp.recommendations(
+                                                    seed_tracks=song_ids, 
+                                                    country='US',
+                                                    limit=30
+                                                    )
+            # Ensures that all elements are in an ['items'] array
+            recommendations['items'] = recommendations.pop('tracks')
+            
+            # Key of ids will make it easy to make sure no duplicates are added
+            response_ids = []
+            # Add three random album_tracks to response_recs
+            for i in range(min(3, len(album_tracks))):
+                next_track = album_tracks.pop()
+                response_recs['items'].append(next_track)
+                response_ids.append(next_track['id'])
+
+            for i in range(20-len(response_recs['items'])):
+                # Do a 1-to-1 intersperse of recommendations an albums
+                if i%2 == 1:
+                    # Try to add a recommendation song, if there are more left
+                    if recommendations['items']:
+                        if recommendations['items'][0]['id'] not in response_ids:
+                            next_track = recommendations['items'].pop()
+                            print(next_track)
+                            response_recs['items'].append(next_track)
+                            response_ids.append(next_track['id'])
+                        else:
+                            recommendations['items'].pop()
+                else:
+                    # Try to add an album song, if there are more left
+                    if album_tracks:
+                        if album_tracks[0]['id'] not in response_ids:
+                            next_track = album_tracks.pop()
+                            response_recs['items'].append(next_track)
+                            response_ids.append(next_track['id'])
+                        else:
+                            album_tracks.pop()
+            # print(response_recs)
+            saveSong(response_recs)
+
+            return Response(data=response_recs, status=status.HTTP_200_OK)
+
+        else :
+            return Response({'error:': 'album invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
         
 
