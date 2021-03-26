@@ -62,11 +62,10 @@ function MainPage(props) {
             />
           <SongRow title='Recommended Genres' 
             getItems={ () => data.genres}
-            onItemClick={item => {
-              loader.loadGenreRadio({
-                id: item
-              })
-            }}
+            onItemClick={item => loader.loadGenreRadio({
+              id: item,
+              name: item,
+            })}
             getImageCallback={ item => 'https://media.pitchfork.com/photos/5a71df0d85ed77242d8f1252/1:1/w_320/jpegmafiaveteran.jpg'}
             getTitle={ (item) => {return (<h2 className='artist-title'>{item}</h2>)}}
             getSubtitle={ item => ''}

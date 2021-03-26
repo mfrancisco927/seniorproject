@@ -1,4 +1,5 @@
 import { Fragment } from 'react';
+import { useAuth } from './../../hooks/authHooks';
 import LoadingImage from '../loading.svg';
 import useRadioLoaders from '../../hooks/radioLoaders';
 
@@ -6,6 +7,7 @@ import './SearchPage.css';
 
 function SearchPage(props) {
     const { searchItem, searchData } = props;
+    const auth = useAuth();
     const radioLoaders = useRadioLoaders();
     const DEFAULT_IMAGE_URL = 'https://images-na.ssl-images-amazon.com/images/I/51Ib3jYSStL._AC_SY450_.jpg';
 
@@ -31,7 +33,8 @@ function SearchPage(props) {
                             getSubtitle={item => item.artists.map(artist => artist.name).join(', ')}
                             onItemClick={song => radioLoaders.loadSongRadio(song)}
                             loading={!loaded}
-                            defaultText="No songs meet this search result!"/>
+                            defaultText="No songs meet this search result!"
+                            loggedIn={auth.id !== null}/>
                         <Results name="Artists"
                             getItems={() => searchData.artists.items}
                             getImageCallback={
@@ -44,7 +47,8 @@ function SearchPage(props) {
                                 }
                             }
                             loading={!loaded}
-                            defaultText="No artists meet this search result!"/>
+                            defaultText="No artists meet this search result!"
+                            loggedIn={auth.id !== null}/>
                         <Results name="Albums"
                             getItems={() => searchData.albums.items}
                             getImageCallback={
@@ -54,15 +58,17 @@ function SearchPage(props) {
                             getSubtitle={item => item.artists.map(artist => artist.name).join(', ')}
                             onItemClick={album => radioLoaders.loadAlbumRadio(album)}
                             loading={!loaded}
-                            defaultText="No albums meet this search result!"/>
-                        <Results name="Playlists"
+                            defaultText="No albums meet this search result!"
+                            loggedIn={auth.id !== null}/>
+                        {auth.id && <Results name="Playlists"
                             getItems={() => searchData.playlists.items}
                             getImageCallback={_item => DEFAULT_IMAGE_URL} // temporary
                             getTitle={item => item.title}
-                            getSubtitle={item => ('User ' + item.owner_id)}
+                            getSubtitle={item => (item.username || ('User ' + item.owner_id))}
                             onItemClick={item => handlePlaylistClick(item)}
                             loading={!loaded}
-                            defaultText="No playlists meet this search result!"/>
+                            defaultText="No playlists meet this search result!"
+                            loggedIn={auth.id !== null}/>}
                     </div>
             </Fragment>
     } else {
@@ -78,7 +84,7 @@ function SearchPage(props) {
 }
 
 function Results(props) {
-    const {name, getItems, getImageCallback, getTitle, getSubtitle, defaultText, loading, onItemClick } = props;
+    const {name, getItems, getImageCallback, getTitle, getSubtitle, defaultText, loading, onItemClick, loggedIn } = props;
     const MAX_ITEMS_SHOWN = 4;
     const items = !loading && getItems();
     
@@ -95,7 +101,9 @@ function Results(props) {
                                         src={getImageCallback(item)}
                                         alt={getTitle(item)}/>
                                 </div>
-                                <h3 className="result_title">{getTitle(item)}</h3>
+                                <h3 className="result_title" onClick={() => onItemClick(item)}>
+                                    {getTitle(item)}
+                                </h3>
                                 {getSubtitle && (
                                     <p className='result_subtitle'>{getSubtitle(item)}</p>
                                 )}
@@ -118,8 +126,9 @@ function Results(props) {
         </Fragment>
     );
 
+    const wrapperClassName = 'results_wrapper' + (loggedIn ? ' results_wrapper__user' : ' results_wrapper__guest');
     return (
-        <div className='results_wrapper'>
+        <div className={wrapperClassName}>
         <h2 className='results_title'>{name}</h2>
             {body}
         </div>

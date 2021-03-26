@@ -18,7 +18,7 @@
   }
 
   .results_title {
-    display:flex;
+    display: flex;
     justify-content: space-around;
   }
   
@@ -34,6 +34,7 @@
     padding-bottom: 100%; 
     height: 0;
     overflow: hidden;
+    cursor: pointer;
   }
 
   .result_image {
@@ -57,11 +58,14 @@
 
   .result_title {
     margin: 0.25rem 0;
+    cursor: pointer;
+    overflow-wrap: break-word;
   }
 
   .result_subtitle {
     margin-top: 0.25rem;
     margin-bottom: 0.5rem;
+    overflow-wrap: break-word;
   }
   
   .show-more:hover {
@@ -70,6 +74,10 @@
 
   .loading-image {
     align-self: center;
+  }
+
+  .results_default-text {
+    margin: 1em;
   }
 
   /* based on screen size, show 1, 2, 3, or 4 items per line */
@@ -82,6 +90,10 @@
     background: rgba(51, 51, 51, 0.308);
     border-radius: 3%;
     align-self: stretch;
+  }
+
+  .results_wrapper__guest {
+    width: 29%;
   }
 
   @media screen and (max-width: 1440px) {
