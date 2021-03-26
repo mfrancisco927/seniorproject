@@ -1078,7 +1078,7 @@ class AlbumRecommendations(APIView):
                 if song['is_playable'] == True:
                     album_tracks_filtered.append(song['id'])
             album_tracks = sp.tracks(album_tracks_filtered, market='US')['tracks']
-            print(json.dumps(album_tracks, indent=4))
+
             random.shuffle(album_tracks)
 
             # Pull out some song_ids from album to put in recommender
@@ -1104,12 +1104,11 @@ class AlbumRecommendations(APIView):
 
             for i in range(20-len(response_recs['items'])):
                 # Do a 1-to-1 intersperse of recommendations an albums
-                if i%2 == 1:
+                if i%2 == 0:
                     # Try to add a recommendation song, if there are more left
                     if recommendations['items']:
                         if recommendations['items'][0]['id'] not in response_ids:
                             next_track = recommendations['items'].pop()
-                            print(next_track)
                             response_recs['items'].append(next_track)
                             response_ids.append(next_track['id'])
                         else:
@@ -1123,8 +1122,13 @@ class AlbumRecommendations(APIView):
                             response_ids.append(next_track['id'])
                         else:
                             album_tracks.pop()
-            # print(response_recs)
+            
+            # Save the recommended songs to the database
             saveSong(response_recs)
+
+            # Will show you artist and track being returned - DEBUGGING purposes
+            # for rec in response_recs['items']:
+            #     print(str(rec['artists'][0]['name']) + " -- " + str(rec['name'])) 
 
             return Response(data=response_recs, status=status.HTTP_200_OK)
 
