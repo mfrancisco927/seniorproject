@@ -1134,5 +1134,13 @@ class AlbumRecommendations(APIView):
 
         else :
             return Response({'error:': 'album invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
-        
 
+class GetUserSeeds(APIView):
+    def get(self, request):
+        user_id = self.request.user.id
+        try : 
+            profile = Profile.objects.get(user=user_id)
+        except ProfileDoesNotExist :
+            return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        

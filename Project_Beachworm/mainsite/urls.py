@@ -36,6 +36,7 @@ urlpatterns = [
     path('api/user/profile/seed/genres/', GenreSave.as_view(), name='genre-save'),
     path('api/recommendation/obtain-artists/', ArtistsFromGenres.as_view(), name='artist-from-genres'),
     path('api/user/profile/seed/artists/', ArtistSave.as_view(), name='artist-save'),
+    path('api/user/profile/get-seeds/', GetUserSeeds.as_view(), name='user-seeds'),
     # Recommendation endpoints
     path('api/recommendation/user/', UserRecommendations.as_view(), name='recommendations-user'),
     path('api/recommendation/genre/', GenreRecommendations.as_view(), name='recommendations-genre'),
