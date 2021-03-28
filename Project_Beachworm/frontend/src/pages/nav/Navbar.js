@@ -1,39 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import SearchIcon from '@material-ui/icons/Search';
 import IconButton from '@material-ui/core/IconButton';
+import { useWindowDimensions, SCREEN_SIZE } from './../../hooks/responsiveHooks';
 import './NavBar.css';
-
-// window dimensions hook from https://stackoverflow.com/questions/36862334/get-viewport-window-height-in-reactjs
-function getWindowDimensions() {
-  const { innerWidth: width, innerHeight: height } = window;
-  return {
-    width,
-    height
-  };
-}
-
-function useWindowDimensions() {
-  const [windowDimensions, setWindowDimensions] = useState(getWindowDimensions());
-
-  useEffect(() => {
-    function handleResize() {
-      setWindowDimensions(getWindowDimensions());
-    }
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  return windowDimensions;
-}
 
 function Navbar(props) {
   const { width } = useWindowDimensions();
   const { menuList, submitSearch } = props;
   const [searchText, setSearchText] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const isMobile = width <= 960;
+  const isMobile = width <= SCREEN_SIZE.SMALL;
 
   const toggleMobileMenu = (event) => {
     if (isMobile) {
