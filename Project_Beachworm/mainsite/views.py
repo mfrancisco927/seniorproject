@@ -331,10 +331,12 @@ class Search(APIView):
                     # Saves songs to database
                     saveSong(results['tracks'])
 
-            #return public playlists whose name contains query
-            playlists = list(Playlist.objects.filter(title__icontains=query['q'], is_public=True).values())
+            #return public playlists whose name, description or creator's name contains query
+            params = Q(title__icontains=query['q']) | Q(description__icontains=query['q'])
+            playlists = list(Playlist.objects.filter(params, is_public=True).values())
             results['playlists'] = {}
             results['playlists']['items'] = playlists
+
 
             return Response(data=results, status=status.HTTP_200_OK)
 
