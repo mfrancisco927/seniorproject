@@ -1,6 +1,6 @@
 import { useContext, createContext, useState, useEffect } from "react";
 import { signIn as apiSignIn, refreshSpotifyToken }  from './../api/authenticationApi';
-import { getCurrentUser }  from './../api/userApi';
+import { getCurrentUser, getUserSeeds }  from './../api/userApi';
 import axiosInstance from './../api/axiosApi';
 
 /* This code is largely adapted from https://reactrouter.com/web/example/auth-workflow
@@ -26,6 +26,7 @@ function useProvideAuth() {
   const [user, setUser] = useState(localStorage.getItem('access_token'));
   const [id, setId] = useState(null);
   const [spotifyToken, setSpotifyToken] = useState(null);
+  const [hasSeeds, setHasSeeds] = useState({ artist: false, genre: false });
   const [hasAuthenticatedSpotify, setHasAuthenticatedSpotify] = useState(null);
 
   useEffect(() => {
@@ -35,10 +36,22 @@ function useProvideAuth() {
         await getCurrentUser().then(value => {
           setId(value.user_id);
           return Promise.resolve(value);
-        }, (reject) =>{
+        }, (_reject) =>{
           console.log('Couldn\'t find curr user');
-        }
-        ).then(async _value => {
+        }).then(async _value => {
+          // now attempt to set questionnaire status
+          await getUserSeeds().then(value => {
+            const numArtistSeeds = value.artists.length;
+            const numGenreSeeds = value.genres.length;
+            setHasSeeds({
+              artist: numArtistSeeds > 0,
+              genre: numGenreSeeds > 0,
+            });
+            console.log(`User has ${numArtistSeeds} artist seeds and ${numGenreSeeds} genre seeds.`);
+          }, _reject => {
+            console.log('Could not retrieve user seeds');
+          });
+        }).then(async _value => {
           console.log('Current user successfully pulled, attempting to get initial Spotify access token.');
           // have successful user, so should also have spotify token
           await refreshSpotifyAuth().then(() => {
@@ -73,6 +86,7 @@ function useProvideAuth() {
       setId(null);
       setSpotifyToken(null);
       setHasAuthenticatedSpotify(false);
+      setHasSeeds({artist: false, genre: false});
       axiosInstance.defaults.headers['Authorization'] = null;
       if (cb) {
         cb();
@@ -108,6 +122,8 @@ function useProvideAuth() {
       setSpotifyToken(token);
       setHasAuthenticatedSpotify(true);
     },
+    setHasSeeds,
     hasAuthenticatedSpotify,
+    hasSeeds,
   };
 }

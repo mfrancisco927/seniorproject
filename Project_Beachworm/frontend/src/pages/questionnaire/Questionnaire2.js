@@ -1,120 +1,88 @@
-import React , { Component } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import Grid from '@material-ui/core/Grid';
+import { useAuth } from './../../hooks/authHooks';
 import { obtainArtists } from '../../api/recommendationApi';
 import { postArtistSeeds } from '../../api/recommendationApi';
+import { useHistory } from 'react-router-dom';
+import DefaultImage from './../images/genres/placeholder.png';
+import LoadingImage from './../loading.svg';
 import './Questionnaire.css';
 
-class Questionarre2 extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {artists: {
-      artists:{
-        href: '',
-        items: [{
-          external_urls: {spotify: '0'},
-          followers:{href: '0', total: 0},
-          genres: ["0"],
-          href: '0',
-          id: '0',
-          images: [{
-            height: 640,
-            url: "../images/genres/placeholder.png",
-            width: 640
-          },
-          {
-            height: 320,
-            url: "../images/genres/placeholder.png",
-            width: 320,
-          },
-          {
-            height: 160,
-            url: "../images/genres/placeholder.png",
-            width: 160,
-          }],
-          name: '0',
-          popularity: 0,
-          selected: false,
-          type: "artist",
-          uri: '0',
-        }],
-        limit: 20,
-        next: '0',
-        offset: '0',
-        previous: null,
-        total: 10000
-      }
-    }}
-    this.sendArtistSeeds = this.sendArtistSeeds.bind(this);
-  }
-  async getArtists(){
-    await obtainArtists().then(data => {
-      data.artists.items.forEach(artistsKV =>
-        artistsKV.selected = false
-      )
-      this.setState({
-        artists: data
+function Questionnaire2() {
+  const history = useHistory();
+  const auth = useAuth();
+  const { redirect } = history.location.state || {};
+  const [artists, setArtists] = useState(null);
+
+  useEffect(() => {
+    const getArtists = async () => {
+      await obtainArtists().then(data => {
+        const artists = data.artists.items;
+        artists.forEach(artistsKV =>
+          artistsKV.selected = false
+        )
+        setArtists(artists);
+        console.log('Acquired artist data: ', artists);
       })
-      console.log(data)
-    })
-  }
-  async componentDidMount(){
-    await this.getArtists();
-    console.log(this.state);
-  }
-  onIconClick(event) {
-    let newState = this.state;
-    console.log(event.target.id)
-    console.log(newState.artists.artists.items[event.target.id])
-    newState.artists.artists.items[event.target.id].selected = !newState.artists.artists.items[event.target.id].selected;
-    this.setState({
-      newState,
-    })
+    };
+
+    getArtists();
+  }, []);
+
+  const onIconClick = (event) => {
+    let newState = [...artists];
+    newState[event.target.id].selected = !newState[event.target.id].selected;
+    setArtists(newState);
   }
 
-  sendArtistSeeds(){
+  const sendArtistSeeds = () => {
     let artistIds = [];
-    (this.state.artists.artists.items).forEach(artistKV => {
-      if(artistKV.selected){
+    artists.forEach(artistKV => {
+      if (artistKV.selected) {
         artistIds.push(artistKV.id);
       }
     });
-    console.log(artistIds);
-    postArtistSeeds(artistIds);
+    console.log('Sending artist seeds', artistIds);
+    postArtistSeeds(artistIds).then(() => {
+      auth.setHasSeeds({
+        ...auth.hasSeeds,
+        artist: true,
+      });
+      history.push(redirect || '/explore');
+    });
   }
-  
-  render() {
-    console.log(this.state)
-    return (
-      <div className="questionnaire">
-          <Link to='/explore'>
-          <button 
-                type="button" 
-                className="btn"
-                onClick={this.sendArtistSeeds}
-              >
-                Submit
-              </button>
-          </Link>
-          <Grid container>
-            {this.state.artists.artists.items.map((icon, index) => (
-              <Grid item sm key={index}>
-                <div className={icon.selected ? "withBorder" : "noBorder"} >
-                  <img
-                    src={icon.images[1].url}
-                    width="300"
-                    height="300"
-                    id={index}
-                    alt={index}
-                    onClick={(e) => this.onIconClick(e)} />
-                  <p>{icon.name}</p>
-                </div>
-              </Grid>
-            ))}
-          </Grid>     
-      </div>
-    );
-  }
+
+  return (
+    <div className="questionnaire">
+        <button 
+          type="button" 
+          className="btn"
+          onClick={sendArtistSeeds}
+        >
+          Submit
+        </button>
+        <Grid container>
+          {artists ? (
+            artists.map((icon, index) => (
+            <Grid item sm key={index}>
+              <div className={icon.selected ? "withBorder" : "noBorder"} >
+                <img
+                  src={icon.images.length ? icon.images[1].url : DefaultImage}
+                  width="300"
+                  height="300"
+                  id={index}
+                  alt={icon.name}
+                  onClick={(e) => onIconClick(e)} />
+                <p>{icon.name}</p>
+              </div>
+            </Grid>
+          ))
+        ) : (
+          <img className="loading-image" src={LoadingImage} alt="Artists loading..." />
+        )}
+        </Grid>     
+    </div>
+  );
 }
 
-export default Questionarre2;
+export default Questionnaire2;

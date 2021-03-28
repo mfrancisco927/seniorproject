@@ -1,4 +1,3 @@
-import { KeyboardReturnSharp } from '@material-ui/icons';
 import axiosInstance from './axiosApi';
 
 const baseUri = '/user/';
@@ -9,6 +8,7 @@ const playlistEndpointUri = (userId) => baseUri + userId + '/playlists/';
 const registerEndpointUri = baseUri + 'create/';
 const profileEndpointUri = (userId) => baseUri2 + userId + '/profile/';
 const followingEndpointUri = (targetUid) => baseUri2 + 'profile/following/' + targetUid + '/';
+const getSeedEndpointUri = baseUri + 'profile/get-seeds/';
 
 export async function getCurrentUser() {
   const currentUserEndpoint = currentUserEndpointUri;
@@ -85,6 +85,14 @@ export async function followUser(targetUserId) {
 export async function unfollowUser(targetUserId) {
   const profileEndpoint = followingEndpointUri(targetUserId);
   return await axiosInstance.delete(profileEndpoint).then(resp => {
+    return Promise.resolve(resp.data);
+  }, (error) =>{
+    return Promise.reject(error)
+  })
+}
+
+export async function getUserSeeds() {
+  return await axiosInstance.get(getSeedEndpointUri).then(resp => {
     return Promise.resolve(resp.data);
   }, (error) =>{
     return Promise.reject(error)

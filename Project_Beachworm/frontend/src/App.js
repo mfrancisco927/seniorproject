@@ -1,5 +1,5 @@
 import './App.css';
-import { useState, Fragment, useRef } from 'react';
+import { useState, Fragment } from 'react';
 import { Switch, Route, useHistory, Redirect, useLocation } from "react-router-dom";
 import MainPage from './pages/home/MainPage.js';
 import Navbar from './pages/nav/Navbar.js';
@@ -13,8 +13,7 @@ import PageNotFound from './pages/pageNotFound/PageNotFound.js';
 import Questionnaire1 from './pages/questionnaire/Questionnaire1.js';
 import Questionnaire2 from './pages/questionnaire/Questionnaire2.js';
 import SpotifyAuth from './pages/spotifyAuth/SpotifyAuth.js';
-import {search} from './api/searchApi';
-
+import { search } from './api/searchApi';
 import { useAuth } from './hooks/authHooks';
 
 // needed for Spotify SDK
@@ -84,7 +83,9 @@ function App() {
           </Route>
           <Route path='/explore'>
             <RequireSpotifyAuthForLoggedInOnly>
-              <Explore />
+              <RequireSeedsChosen>
+                <Explore />
+              </RequireSeedsChosen>
             </RequireSpotifyAuthForLoggedInOnly>
           </Route>
           <PrivateRoute path='/questionnaire1'>
@@ -107,7 +108,9 @@ function App() {
           </PrivateRoute>
           <Route path='/' exact>
             <RequireSpotifyAuthForLoggedInOnly>
-              <MainPage />
+              <RequireSeedsChosen>
+                <MainPage />
+              </RequireSeedsChosen>
             </RequireSpotifyAuthForLoggedInOnly>
           </Route>
           <Route path='*'>
@@ -142,6 +145,28 @@ function PrivateRoute({ children, ...rest }) {
       }
     />
   );
+}
+
+/* wrapper component to require questionnaire to be done for a page,
+ * redirects to questionnaire if not completed (which will redirect
+ * back on successful completion) */
+function RequireSeedsChosen({ children }) {
+  const auth = useAuth();
+  const location = useLocation();
+
+  const { genre: hasGenreSeeds, artist: hasArtistSeeds } = auth.hasSeeds;
+
+  // if we're not logged in, just return children right away
+  return (
+    (!auth.id || (hasGenreSeeds && hasArtistSeeds)) ? (
+      children
+    ) : (
+      <Redirect to={{
+        pathname: hasGenreSeeds ? '/questionnaire2' : '/questionnaire1',
+        state: { redirect: location.pathname }
+      }} />
+    )
+  )
 }
 
 /* wrapper component to require spotify authentication for a page,

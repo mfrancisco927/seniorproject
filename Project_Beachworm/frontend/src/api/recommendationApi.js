@@ -1,4 +1,3 @@
-import { AssignmentReturnedOutlined, AssignmentReturnedRounded, KeyboardReturnRounded, KeyboardReturnTwoTone } from '@material-ui/icons';
 import axiosInstance from './axiosApi';
 
 const baseUri = '/recommendation';
@@ -92,7 +91,6 @@ export async function postGenreSeeds(genreIds) {
 }
 
 export async function postArtistSeeds(artistIds) {
-  console.log(artistIds)
   const formData = new FormData()
   for (let x of artistIds) {
     formData.append('artists[]', x)
