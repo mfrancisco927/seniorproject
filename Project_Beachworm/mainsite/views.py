@@ -951,7 +951,8 @@ class UserPlaylists(APIView):
         profile = Profile.objects.get(user=user_id)
         title = self.request.query_params['title']
         is_public = bool(self.request.query_params['is_public'])
-        new_playlist = Playlist(title=title, is_public=is_public, owner=profile)
+        description = self.request.query_params['desc']
+        new_playlist = Playlist(title=title, is_public=is_public, description=description, owner=profile)
         new_playlist.save()
         added_playlist = list(Playlist.objects.filter(id=new_playlist.id).values())
         results={'new_playlist' : added_playlist}
