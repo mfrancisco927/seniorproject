@@ -8,11 +8,3 @@
 .page-wrapper__footer {
   height: 100%;
 }
-
-/* creates an invisible pseudelement to make sure we don't 
-cover up content with the footer */
-.page-wrapper__footer:after {
-    content: "";
-    display: block;
-    height: 5rem; /* sum of footer height + padding */
-}

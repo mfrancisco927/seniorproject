@@ -1,5 +1,23 @@
+$fullFooterHeight: 5rem;
+$mobileFooterHeight: 9rem;
+
+/* creates an invisible pseudoelement to make sure we don't cover up content with the footer */
+.page-wrapper__footer {
+  &:after {
+    content: "";
+    display: block;
+    height: $fullFooterHeight;
+  }
+
+  @media screen and (max-width: 960px) {
+    &:after {
+      height: $mobileFooterHeight;
+    }
+  }
+}
+
 .play-footer {
-    height: 5rem;
+    height: $fullFooterHeight;
     display: flex;
     flex-direction: row;
     position: fixed;
@@ -9,7 +27,7 @@
     background-color: #fd7c54;
 
     &__mobile {
-      height: 9rem;
+      height: $mobileFooterHeight;
 
       .scan-wrapper {
         padding: 0;
@@ -63,6 +81,7 @@
   justify-content: center;
   align-items: center;
   width: 80px;
+  background: rgba(51, 51, 51, 0.208);
 
   &__mobile {
     margin: 0.5rem;
