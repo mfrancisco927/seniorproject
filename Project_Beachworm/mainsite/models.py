@@ -52,6 +52,7 @@ def save_user_profile(sender, instance, **kwargs):
 class Playlist(BaseModel):
   id = models.AutoField(primary_key=True)
   title = models.TextField()
+  description = models.TextField(blank=True)
   is_public = models.BooleanField(default=True)
   owner = models.ForeignKey(Profile, on_delete=models.CASCADE)
   songs = models.ManyToManyField(Song, blank=True)

@@ -87,7 +87,8 @@ function ProfilePage(){
     // alternatively, a modal.
     const numPlaylists = profileData.playlists.length;
     const playlistName = prompt('Enter the playlist title.', 'Playlist' + numPlaylists);
-    await createPlaylist(auth.id, playlistName, true).then(success => {
+    const playlistDesc = prompt('Enter the playlist description.', 'Desc' + numPlaylists);
+    await createPlaylist(auth.id, playlistName, playlistDesc, true).then(success => {
       console.log('Created new playlist', success.new_playlist);
       updateTargetData();
     }, reject => {

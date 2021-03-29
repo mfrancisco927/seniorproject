@@ -7,21 +7,19 @@ import { getHomeRecommendations } from './../../api/recommendationApi';
 import LoadingImage from '../loading.svg';
 import useRadioLoaders from '../../hooks/radioLoaders';
 
-function MainPage(props) {
-
-  
+function MainPage() {
   const auth = useAuth();
   const loader = useRadioLoaders();
   const [data, setData] = useState({});
-  const [loaded, setLoaded] = useState(false)
+  const [loaded, setLoaded] = useState(false);
 
-  useEffect( () =>{
-    getHomeRecommendations().then( (data) => {
-          console.log(data);
-          setData(data);
-          setLoaded(true);
-        }
-      );
+  useEffect(() => {
+    getHomeRecommendations().then((data) => {
+        console.log(data);
+        setData(data);
+        setLoaded(true);
+      }
+    );
   }, [auth.id])
 
   return (
@@ -80,8 +78,6 @@ function MainPage(props) {
 }
 
 function SongRow(props){
-
-
   const {title, getImageCallback, getItems, getTitle, getSubtitle, onItemClick} = props;
   const songBoxRef = useRef({});
   const MAX_ITEMS_SHOWN = 10;
