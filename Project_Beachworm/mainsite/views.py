@@ -332,13 +332,42 @@ class Search(APIView):
                     saveSong(results['tracks'])
 
             #return public playlists whose name, description or creator's name contains query
+            #search by owner's username - get list of user ids whose usernames match qstring, then filter for playlists owned by users in that set
+            query_no_whitespace = str(query['q']).replace(' ', '')
+            print(query_no_whitespace)
+            pl_users = list(User.objects.filter(username__icontains=query_no_whitespace, is_active=True).values_list('id', flat=True))
+            playlists1 = Playlist.objects.filter(owner__in=pl_users, is_public=True)
+            #search by playlist name or description
             params = Q(title__icontains=query['q']) | Q(description__icontains=query['q'])
-            playlists = list(Playlist.objects.filter(params, is_public=True).values())
+            playlists2 = Playlist.objects.filter(params, is_public=True)
+            playlists = playlists1 | playlists2
+            playlists = list(playlists.values())           
             results['playlists'] = {}
             results['playlists']['items'] = playlists
+            #add users to results
+            users = list(User.objects.filter(username__icontains=query_no_whitespace).values())
+            users = clean_users(users)
+            results['users'] =  users
+            print(users)
+            
 
 
             return Response(data=results, status=status.HTTP_200_OK)
+
+def clean_users(users):
+    for i in range(0, len(users)):
+        #clean unnecessary keys and refresh token
+        del users[i]['password']
+        del users[i]['last_login']
+        del users[i]['is_superuser']
+        del users[i]['first_name']
+        del users[i]['last_name']
+        del users[i]['email']
+        del users[i]['is_staff']
+        del users[i]['is_active']
+        del users[i]['date_joined']
+
+    return users
 
 class GetUser(APIView):
     def get(self, request):
