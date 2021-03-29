@@ -15,6 +15,7 @@ class Song(BaseModel):
   song_id = models.TextField(primary_key=True)
   title = models.TextField()
   artists = models.TextField()
+  album = models.TextField(null=True)
   danceability = models.TextField()
   energy = models.FloatField()
   key = models.IntegerField()
