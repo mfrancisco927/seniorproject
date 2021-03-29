@@ -7,9 +7,9 @@ import './../../api/recommendationApi';
 import { postGenreSeeds } from '../../api/recommendationApi';
 import Placeholder from '../images/genres/placeholder.png';
 import { useWindowDimensions, SCREEN_SIZE } from './../../hooks/responsiveHooks';
-
 import Fab from '@material-ui/core/Grid';
 import { Typography } from '@material-ui/core';
+
 /*
 * TO-DO:
 * Get images for each genre
@@ -56,12 +56,13 @@ function PlaceLetter(props) {
 }
 
 function LetterGrid(props) {
-  return (<Grid item key={props.name} xs={10} sm='10' justify='center'>
-  <Typography style={{ width: '100'}} display='block'
-        color = 'primary' variant='h2' >
-    {props.name.charAt(0).toUpperCase()}
-  </Typography>
-  </Grid>)
+  return (
+    <Grid item key={props.name} xs={10} sm='10' justify='center'>
+      <Typography style={{ width: '100'}} display='block'
+            color = 'primary' variant='h2' >
+        {props.name.charAt(0).toUpperCase()}
+      </Typography>
+    </Grid>)
 }
 
 function Questionnaire1() {
@@ -103,6 +104,7 @@ function Questionnaire1() {
         >
           Submit
         </button>
+        <Typography align='center' color='primary' variant='h4'>Select some genres you like</Typography>
         <Grid container>
           {Object.keys(genres).map(icon => (
             <Grid item sm key={genres[icon]['id']}>
@@ -122,6 +124,7 @@ function Questionnaire1() {
       </div>
     ) : (
       <div className="questionnaire">
+        
         <button 
           type="button" 
           className="btn"
@@ -129,6 +132,7 @@ function Questionnaire1() {
         >
           Submit
         </button>
+        <Typography align='center' color='primary' variant='h4'>Select some genres you like</Typography>
         <Grid container justify="space-evenly" alightItems="center" spacing={2}>
           {Object.keys(genres).map(icon => (
             <React.Fragment>
