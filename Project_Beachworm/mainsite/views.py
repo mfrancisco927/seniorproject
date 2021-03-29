@@ -86,11 +86,17 @@ def saveSong(results):
                 for i in range(len(track_ids)):
                     db_track = Song.objects.filter(song_id = track_ids[i])
                     #add track to db if it's not there
+ 
+
                     if not db_track.exists():
+                        artist_array = []
+                        for artist in results['items'][i]['artists']:
+                            artist_array.append(artist['name'])
+                            
                         trackEntry = Song(
                             song_id = results['items'][i]['id'],
                             title = results['items'][i]['name'],
-                            artists = results['items'][i]['artists'][0]['name'],
+                            artists = artist_array,
                             album = results['items'][i]['album']['name'],
                             danceability = float(track_features[i]['danceability']),
                             energy = float(track_features[i]['energy']),
