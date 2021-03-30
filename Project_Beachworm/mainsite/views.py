@@ -729,18 +729,19 @@ class PlaylistSongs(APIView):
 
         return Response({"edit_playlist_songs" : "error: user does not own this playlist"}, status=status.HTTP_404_NOT_FOUND)
     
-    def delete(self, request, playlist_id, playlist_song_id):
+    def delete(self, request, playlist_id):
         query = self.request.query_params
+        print(query)
         try:
             playlist= Playlist.objects.get(pk=playlist_id)
         except:
            return Response({"edit_playlist_songs" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
         
         songs= list(playlist.songs.all().values())
-    
+        print(songs[int(query['id'])]['song_id'])
         if playlist.owner.user.id == self.request.user.id:
             try:
-                song= Song.objects.get(pk=songs[query['id']]['song_id'])
+                song= Song.objects.get(pk=songs[int(query['id'])]['song_id'])
             except:
                 return Response({"edit_playlist_songs" : "error: song does not exist"}, status=status.HTTP_404_NOT_FOUND)
                 
