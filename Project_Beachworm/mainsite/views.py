@@ -1041,9 +1041,6 @@ class HomeRecommendations(APIView):
         if (not seed_artists) and (not seed_tracks) and (not seed_genres):
             seed_genres = ['rock', 'rap', 'alternative', 'pop', 'electronic']
 
-        print(seed_tracks)
-        print(seed_artists)
-        print(seed_genres)
         recommendations = sp.recommendations(
                                             seed_tracks=seed_tracks, 
                                             seed_artists=seed_artists, 
