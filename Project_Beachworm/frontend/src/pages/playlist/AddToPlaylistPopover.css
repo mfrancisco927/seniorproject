@@ -1,0 +1,18 @@
+.playlist-popover {
+    padding: 1em;
+    max-height: 300px;
+    width: 225px;
+    overflow-y: auto;
+}
+
+.card-content_text {
+    width: 80%;
+}
+
+.popover-section_list {
+    overflow-y: hidden;
+}
+
+.controls_add-icon {
+    cursor: pointer;
+}

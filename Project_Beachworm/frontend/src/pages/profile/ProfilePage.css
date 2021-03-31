@@ -78,3 +78,27 @@
 .follow-button_x-icon {
     margin-right: 0.5em;
 }
+
+.playlist-item__with-settings {
+    position: relative;
+}
+
+.playlist-item_settings-icon {
+    position: absolute;
+    top: 2%;
+    right: 2%;
+    color: black;
+    background-color: rgba(212, 212, 212, 0.3);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.playlist-item_visibility-icon {
+    position: absolute;
+    bottom: 2%;
+    right: 2%;
+    color: black;
+    background-color: rgba(212, 212, 212, 0.3);
+    border-radius: 50%;
+    cursor: pointer;
+}

@@ -781,9 +781,6 @@ class FollowPlaylist(APIView):
 class ModifyPlaylist(APIView):
     def put(self, request, playlist_id):
         data=self.request.data
-        print(data)
-        new_name = data['name']
-        public = bool(data['public'] == 'true')
 
         try:
             playlist= Playlist.objects.get(pk=playlist_id)
@@ -791,10 +788,14 @@ class ModifyPlaylist(APIView):
            return Response({"modify_playlist" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
 
         try:
-            if new_name is not None:
-                playlist.title = new_name
-            if public is not None:
-                playlist.is_public = public
+            new_name = data['title']
+            playlist.title = new_name
+            
+            public = bool(data['public'])
+            playlist.is_public = public
+            
+            new_desc = data['description']
+            playlist.description = new_desc
         except:
              return Response({"modify_playlist" : "error: form data incorrect"}, status=status.HTTP_404_NOT_FOUND)
 

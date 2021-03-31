@@ -37,7 +37,7 @@ export async function getPlaylists(userId) {
   })
 }
 
-export async function createPlaylist(userId, title, description, isPublic=true) {
+export async function createPlaylist(userId, title, description, isPublic) {
   const playlistEndpoint = playlistEndpointUri(userId);
   // config is THIRD argument in post, so pass in empty object for data
   return await axiosInstance.post(playlistEndpoint, {}, {

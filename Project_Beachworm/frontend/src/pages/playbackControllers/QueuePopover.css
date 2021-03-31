@@ -36,7 +36,6 @@
 .card-content_text {
     border-radius: 5px 5px;
     border: 0px solid rgb(158, 153, 153);
-    background-color: rgb(243, 240, 240);
     overflow: hidden;
 }
 
@@ -54,4 +53,8 @@
 .btn-smaller {
     padding: 0 !important;
     font-size: 0.6rem !important;
+}
+
+.controls_delete {
+    cursor: pointer;
 }
