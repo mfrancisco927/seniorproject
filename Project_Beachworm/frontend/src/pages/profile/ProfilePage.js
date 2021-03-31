@@ -86,7 +86,7 @@ function ProfilePage(){
 
   const handlePlaylistClick = (playlist) => {
     history.push('/playlist', {
-      playlistId: playlist.id,
+      playlist: playlist,
     });
   }
 
