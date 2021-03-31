@@ -8,6 +8,7 @@ import DefaultImage from './../images/genres/placeholder.png';
 import LoadingImage from './../loading.svg';
 import { useWindowDimensions, SCREEN_SIZE } from './../../hooks/responsiveHooks';
 import { Typography } from '@material-ui/core';
+import Fab from '@material-ui/core/Grid';
 import './Questionnaire.css';
 
 function Questionnaire2() {
@@ -97,13 +98,13 @@ function Questionnaire2() {
         Submit
       </button>
       <Typography align='center' color='primary' variant='h5'>Select some artists you like</Typography>
-      <Grid container justify="space-evenly" alignItems="center" spacing={0}>
+      <Grid container justify="space-evenly" alignItems="flex-start" spacing={0}>
         {artists ? (
           artists.map((icon, index) => (
           <Grid item key={index} sm={4} xs={4}>
             <div className={icon.selected ? "withBorder" : "noBorder"} >
               <img
-                // object-fit='cover'
+               
                 src={icon.images.length ? icon.images[1].url : DefaultImage}
                 width="98%"
                 // height='160'
@@ -113,7 +114,14 @@ function Questionnaire2() {
                 id={index}
                 alt={icon.name}
                 onClick={(e) => onIconClick(e)} />
-              <p>{icon.name}</p>
+             
+              <Fab
+                    variant="extended"
+                    id={index}
+                    alt={icon.name}
+                    onClick={(e) => onIconClick(e)}>
+                    {icon.name}
+              </Fab>
             </div>
           </Grid>
         ))
