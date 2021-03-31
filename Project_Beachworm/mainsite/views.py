@@ -982,7 +982,7 @@ class UserPlaylists(APIView):
             return Response(data={'error' : 'user_id must be the same as requesting user'}, status=status.HTTP_403_FORBIDDEN)
         profile = Profile.objects.get(user=user_id)
         title = self.request.query_params['title']
-        is_public = bool(self.request.query_params['is_public'])
+        is_public = self.request.query_params['is_public'] == 'true'
         description = self.request.query_params['desc']
         new_playlist = Playlist(title=title, is_public=is_public, description=description, owner=profile)
         new_playlist.save()
