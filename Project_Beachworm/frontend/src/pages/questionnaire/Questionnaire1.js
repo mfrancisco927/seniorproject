@@ -137,7 +137,7 @@ function Questionnaire1() {
           {Object.keys(genres).map(icon => (
             <React.Fragment>
               <PlaceLetter name={genres[icon]['name']}/>
-              <Grid item sm='5' key={genres[icon]['id']} xs={5}>
+              <Grid item sm='5' xs={5} key={genres[icon]['id']} >
                 
                 <div className={genres[icon]['selected'] ? "withBorder" : "noBorder"} >
                   <Fab

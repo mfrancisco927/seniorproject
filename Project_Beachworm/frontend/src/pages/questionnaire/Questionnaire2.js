@@ -6,6 +6,8 @@ import { postArtistSeeds } from '../../api/recommendationApi';
 import { useHistory } from 'react-router-dom';
 import DefaultImage from './../images/genres/placeholder.png';
 import LoadingImage from './../loading.svg';
+import { useWindowDimensions, SCREEN_SIZE } from './../../hooks/responsiveHooks';
+import { Typography } from '@material-ui/core';
 import './Questionnaire.css';
 
 function Questionnaire2() {
@@ -13,6 +15,8 @@ function Questionnaire2() {
   const auth = useAuth();
   const { redirect } = history.location.state || {};
   const [artists, setArtists] = useState(null);
+  const { width } = useWindowDimensions();
+  const isMobile = width <= SCREEN_SIZE.SMALL;
 
   useEffect(() => {
     const getArtists = async () => {
@@ -52,7 +56,7 @@ function Questionnaire2() {
     });
   }
 
-  return (
+  return !isMobile ? (
     <div className="questionnaire">
         <button 
           type="button" 
@@ -61,6 +65,7 @@ function Questionnaire2() {
         >
           Submit
         </button>
+        <Typography align='center' color='primary' variant='h4'>Select some artists you like</Typography>
         <Grid container>
           {artists ? (
             artists.map((icon, index) => (
@@ -82,7 +87,38 @@ function Questionnaire2() {
         )}
         </Grid>     
     </div>
-  );
+  ) : (
+    <div className="questionnaire">
+      <button 
+        type="button" 
+        className="btn"
+        onClick={sendArtistSeeds}
+      >
+        Submit
+      </button>
+      <Typography align='center' color='primary' variant='h4'>Select some artists you like</Typography>
+      <Grid container justify="space-evenly" alightItems="center" spacing={1}>
+        {artists ? (
+          artists.map((icon, index) => (
+          <Grid item key={index} sm={4} xs={4}>
+            <div className={icon.selected ? "withBorder" : "noBorder"} >
+              <img
+                src={icon.images.length ? icon.images[1].url : DefaultImage}
+                width="160"
+                height="160"
+                id={index}
+                alt={icon.name}
+                onClick={(e) => onIconClick(e)} />
+              <p>{icon.name}</p>
+            </div>
+          </Grid>
+        ))
+      ) : (
+        <img className="loading-image" src={LoadingImage} alt="Artists loading..." />
+      )}
+      </Grid>     
+    </div>
+  ) ;
 }
 
 export default Questionnaire2;
