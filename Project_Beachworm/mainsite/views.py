@@ -17,6 +17,7 @@ import basicauth
 import requests
 import json
 from random import randint
+from random import randrange
 import random
 import datetime
 from datetime import timezone
@@ -656,6 +657,30 @@ class ArtistRecommendations(APIView):
             # must turn tracks into items to make dict same as search dict
             recommendations['items'] = recommendations.pop('tracks')
             recommendations.pop('seeds')
+            
+            # get songs from that artist
+            artist_info = sp.artist(seed_artist[0])
+            search_string = "artist:" + artist_info['name']
+            artist_tracks = sp.search(search_string, type='track', market='US', limit=50)
+
+            # randomly pick one and add to recommendations
+            len_artist_track = len(artist_tracks['tracks']['items'])
+            rand_track = artist_tracks['tracks']['items'][randrange(0,len_artist_track)]
+            # make sure selected track isn't already in Recommendations
+            no_dups = True
+            for rec in recommendations['items']:
+                if rec['id'] == rand_track['id']:
+                    recommendations['items'].remove(rec)
+                    no_dups = False
+                    break
+            # if none were taken off, remove first one
+            if no_dups:
+                recommendations['items'].pop()
+
+            # Add random recommendation to the front of the list     
+            recommendations['items'].insert(0, rand_track)
+
+            
 
             saveSong(recommendations)
         
