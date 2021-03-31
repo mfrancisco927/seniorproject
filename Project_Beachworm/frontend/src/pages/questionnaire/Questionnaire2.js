@@ -79,7 +79,13 @@ function Questionnaire2() {
                   id={index}
                   alt={icon.name}
                   onClick={(e) => onIconClick(e)} />
-                <p>{icon.name}</p>
+              <Fab
+                    variant="extended"
+                    id={index}
+                    alt={icon.name}
+                    onClick={(e) => onIconClick(e)}>
+                    {icon.name}
+              </Fab>
               </div>
             </Grid>
           ))

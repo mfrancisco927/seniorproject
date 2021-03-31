@@ -116,7 +116,13 @@ function Questionnaire1() {
                   id={genres[icon]['id']}
                   alt={genres[icon]['name']}
                   onClick={(e) => onIconClick(e)} />
-                <p>{genres[icon]['name']} </p>
+                <Fab
+                    variant="extended"
+                    id={genres[icon]['id']}
+                    alt={genres[icon]['name']}
+                    onClick={(e) => onIconClick(e)}>
+                    {genres[icon]['name']}
+                  </Fab>
               </div>
             </Grid>
           ))}
