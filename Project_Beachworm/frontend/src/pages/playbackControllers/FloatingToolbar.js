@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useSpotifySdk } from './../../hooks/spotifyHooks';
 import SeekBar from './SeekBar';
 import VolumeSlider from './VolumeSlider';
@@ -32,12 +32,16 @@ function FloatingToolbar(props) {
     setAddToPlaylistOpen(true);
   }
 
+  const closePopover = useCallback(
+    () => setAddToPlaylistOpen(false),
+  [setAddToPlaylistOpen]);
+
   return (
     <div className="floating-toolbar">
       <AddToPlaylistPopover
         anchorEl={anchorRef}
         open={addToPlaylistOpen}
-        onClose={() => setAddToPlaylistOpen(false)}
+        onClose={closePopover}
         song={currentTrack} />
       <SeekBar duration={duration} position={position} disabled={!playerState} />
       <div className="controls-wrapper">

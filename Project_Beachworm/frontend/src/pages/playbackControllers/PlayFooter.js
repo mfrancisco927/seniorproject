@@ -1,4 +1,4 @@
-import { useState, Fragment } from 'react';
+import { useState, useCallback, Fragment } from 'react';
 import { useSpotifySdk } from './../../hooks/spotifyHooks';
 import { useWindowDimensions, SCREEN_SIZE } from './../../hooks/responsiveHooks';
 import AddToPlaylistPopover from './../playlist/AddToPlaylistPopover';
@@ -115,11 +115,15 @@ function PlayFooter() {
     />
   );
 
+  const closeAddToPlaylistPopover = useCallback(
+    () => setAddToPlaylistOpen(false),
+  [setAddToPlaylistOpen])
+
   const addToPlaylistPopover = (
     <AddToPlaylistPopover
         anchorEl={anchorRef}
         open={addToPlaylistOpen}
-        onClose={() => setAddToPlaylistOpen(false)}
+        onClose={closeAddToPlaylistPopover}
         song={currentTrack} />
   );
 
