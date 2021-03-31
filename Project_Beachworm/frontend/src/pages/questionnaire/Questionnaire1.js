@@ -132,7 +132,7 @@ function Questionnaire1() {
         >
           Submit
         </button>
-        <Typography align='center' color='primary' variant='h4'>Select some genres you like</Typography>
+        <Typography align='center' color='primary' variant='h5'>Select some genres you like</Typography>
         <Grid container justify="space-evenly" alightItems="center" spacing={2}>
           {Object.keys(genres).map(icon => (
             <React.Fragment>

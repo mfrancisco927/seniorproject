@@ -96,16 +96,20 @@ function Questionnaire2() {
       >
         Submit
       </button>
-      <Typography align='center' color='primary' variant='h4'>Select some artists you like</Typography>
-      <Grid container justify="space-evenly" alightItems="center" spacing={1}>
+      <Typography align='center' color='primary' variant='h5'>Select some artists you like</Typography>
+      <Grid container justify="space-evenly" alignItems="center" spacing={0}>
         {artists ? (
           artists.map((icon, index) => (
           <Grid item key={index} sm={4} xs={4}>
             <div className={icon.selected ? "withBorder" : "noBorder"} >
               <img
+                // object-fit='cover'
                 src={icon.images.length ? icon.images[1].url : DefaultImage}
-                width="160"
-                height="160"
+                width="98%"
+                // height='160'
+                float='center'
+                // // max-width='98%'
+                // height="100%"
                 id={index}
                 alt={icon.name}
                 onClick={(e) => onIconClick(e)} />
