@@ -23,7 +23,7 @@ function AddToPlaylistPopover(props) {
       ...snackbarState,
       open: false,
     });
-  }
+  };
   
   const scrollProps = {
     rampMillis: 500,

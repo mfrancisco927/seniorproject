@@ -12,20 +12,22 @@ export function useSpotifySdk() {
 
 export function ProvideSpotify({ children }) {
   const auth = useAuth();
+  const signedIn = !!auth.user;
   const deviceIdRef = useRef(null);
-  const [playerLoaded, setPlayerLoaded] = useState(false);
-  const [playerSelected, setPlayerSelected] = useState(false);
+  const [, setPlayerLoaded] = useState(false);
+  const [, setPlayerSelected] = useState(false);
   const [playerReady, setPlayerReady] = useState(false);
   const [playerState, setPlayerState] = useState({});
   const [stateCallbacks, setStateCallbacks] = useState({});
   const [onReadyCallbacks, setOnReadyCallbacks] = useState({});
   const [onDeviceSelectedCallbacks, setOnDeviceSelectedCallbacks] = useState({});
   const [playerRef, setPlayerRef] = useState(null);
+  const [currentTrack, setCurrentTrack] = useState(null);
 
   const [trackEnded, setTrackEnded] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [volume, setVolume] = useState(null);
-  const [songHistory, setSongHistory] = useState([]);
+  const [, setSongHistory] = useState([]);
 
   const [sessionSongHistoryStack, setSessionHistoryStack] = useState([]);
 
@@ -34,6 +36,9 @@ export function ProvideSpotify({ children }) {
     if (nextState) {
       setPlaying(!nextState.paused);
       
+      const trackWindow = nextState.track_window;
+      setCurrentTrack(trackWindow && trackWindow.current_track);
+
       if (!nextState.paused) {
         setTrackEnded(false);
       }
@@ -51,8 +56,7 @@ export function ProvideSpotify({ children }) {
       && !playerState.paused
       && nextState.paused) {
         setTrackEnded(true);
-        const prevSongId = nextState.track_window.current_track.id;
-        setSessionHistoryStack([...sessionSongHistoryStack, prevSongId]);
+        setSessionHistoryStack([...sessionSongHistoryStack, nextState.track_window.current_track]);
     }
   };
 
@@ -122,7 +126,7 @@ export function ProvideSpotify({ children }) {
   return (
     <sdkContext.Provider value={useProvideSdk()}>
       {/* remove the player from the hierarchy if there's no user logged in */}
-      {auth.user ? (
+      {signedIn ? (
         <WebPlaybackReact {...webPlaybackSdkProps} ref={(e) => e ? setPlayerRef(e.webPlaybackInstance) : setPlayerRef(e)}>
           {children}
         </WebPlaybackReact>
@@ -152,20 +156,14 @@ export function ProvideSpotify({ children }) {
       };
 
       playNext();
-    }, [trackEnded]);
-  
-    // const onlyIfLoadedWrapper = (callback) => {
-    //   if (isPlayerLoaded) {
-    //     return (params) => callback(params);
-    //   } else {
-    //     console.error('Cannot use ' + callback.name + ' before player is loaded!');
-    //   }
-    // }
+    }, [trackEnded]); // eslint-disable-line react-hooks/exhaustive-deps
+    // only want this to run when a track ending is noticed
   
     const refreshAndTry = async (callback, parameters, firstTry) => {
       const attempt = async () => {
-        return await new Promise(parameters ? () => callback(parameters) : callback)
-        .catch(async e => {
+        return await callback(parameters).then((result) => {
+          return Promise.resolve(result);
+        }).catch(async e => {
           console.log('Error in refreshable function', e);
           if (firstTry) {
             console.log('Attempting to retrieve new Spotify token');
@@ -178,7 +176,7 @@ export function ProvideSpotify({ children }) {
       };
   
       // if spotify endpoint tells us we don't have the auth, refresh token and try again
-      if (!auth.spotifyToken) {
+      if (signedIn && !auth.spotifyToken) {
         console.log(`Called a Spotify auth-required function, but we have no access token. Will try to refresh token then attempt.`);
         return auth.refreshSpotifyAuth().then(result => {
           if (result) {
@@ -200,7 +198,7 @@ export function ProvideSpotify({ children }) {
       return (parameters) => refreshAndTry(callback, parameters, true).then(value => {
         return Promise.resolve(value);
       }, reject => {
-        console.error('Ignoring error');
+        console.error('Ignoring error in refresh wrapped function');
         return Promise.resolve(null);
       });
     };
@@ -214,9 +212,16 @@ export function ProvideSpotify({ children }) {
       return playerRef.pause();
     };
   
-    const play = async (songId) => {
+    const play = async (song) => {
+      const songId = song.id;
+
+      if (!signedIn) {
+        setCurrentTrack(song);
+        return Promise.resolve(songId);
+      }
+
       if (!playerRef) {
-        return;
+        return Promise.resolve();
       }
       
       if (songId) {
@@ -239,7 +244,7 @@ export function ProvideSpotify({ children }) {
     };
   
     const togglePlaying = async () => {
-      if (!playerRef) {
+      if (!playerRef || !signedIn) {
         return;
       }
       
@@ -249,7 +254,7 @@ export function ProvideSpotify({ children }) {
         const nextSong = await dequeueNextSong();
         // console.log(nextSong);
         if (nextSong) {
-          return play(nextSong.id);
+          return play(nextSong);
         }
       } else {
         return playerRef.togglePlay();
@@ -293,6 +298,12 @@ export function ProvideSpotify({ children }) {
     const clearContextPlayQueue = () => {
       console.log('Clearing context play queue');
       setContextPlayQueue({ name: undefined, songs: [], getMoreSongs: undefined });
+    }
+
+    const clearAll = () => {
+      clearUserPlayQueue();
+      clearContextPlayQueue();
+      setCurrentTrack(null);
     }
   
     // TODO: rework shuffle index or rng seed to a state variable so that
@@ -349,6 +360,10 @@ export function ProvideSpotify({ children }) {
     const getContextPlayQueue = () => {
       return contextPlayQueue;
     }
+
+    const getCurrentTrack = () => {
+      return currentTrack;
+    }
   
     const deleteUserQueueSong = (index) => {
       console.log('Deleting index ' + index + ' from user queue');
@@ -375,23 +390,19 @@ export function ProvideSpotify({ children }) {
     }
 
     const skip = async () => {
-      const refreshWrappedPlay = refreshWrapper(play);
       const nextSong = await dequeueNextSong();
-      const trackWindow = playerState && playerState.track_window;
-      const currentTrack = trackWindow && trackWindow.current_track;
       if (nextSong) {
         if (currentTrack) {
-          setSessionHistoryStack([...sessionSongHistoryStack, currentTrack.id]);
+          setSessionHistoryStack([...sessionSongHistoryStack, currentTrack]);
         }
-        await refreshWrappedPlay(nextSong.id);
+        const nextResult = await play(nextSong);
+        return Promise.resolve(nextResult);
       }
     }
 
     const playPrevious = async () => {
       if (sessionSongHistoryStack.length) {
-        const trackWindow = playerState && playerState.track_window;
-        const currentTrack = trackWindow && trackWindow.current_track;
-        const prevSongId = sessionSongHistoryStack[sessionSongHistoryStack.length - 1];
+        const prevSong = sessionSongHistoryStack[sessionSongHistoryStack.length - 1];
         // remove last song id from stack
         setSessionHistoryStack([...sessionSongHistoryStack.slice(0, sessionSongHistoryStack.length - 1)]);
         // push currently playing to user queue
@@ -399,8 +410,18 @@ export function ProvideSpotify({ children }) {
           setUserPlayQueue([currentTrack, ...userPlayQueue]);
         }
         // play the previous song
-        console.log('Moving to previous track ' + prevSongId);
-        await playTrack(prevSongId, deviceIdRef.current, auth.spotifyToken);
+        console.log('Moving to previous track ' + prevSong.id);
+        if (signedIn) {
+          await playTrack(prevSong.id, deviceIdRef.current, auth.spotifyToken);
+        } else {
+          setCurrentTrack(prevSong);
+        }
+      }
+    }
+
+    const disconnect = () => {
+      if (playerRef) {
+        playerRef.disconnect();
       }
     }
   
@@ -411,7 +432,7 @@ export function ProvideSpotify({ children }) {
       play: refreshWrapper(play),
       togglePlay: refreshWrapper(togglePlaying),
       seek: refreshWrapper(seek),
-      skip: skip,
+      skip: refreshWrapper(skip),
       playPrevious: refreshWrapper(playPrevious),
       // general playback/info controls
       isPlaying: () => playing,
@@ -421,6 +442,7 @@ export function ProvideSpotify({ children }) {
       peekNextSong: peekNextSong,
       setAutoplay: setAutoplay,
       isAutoplaying: () => autoplay,
+      getCurrentTrack: getCurrentTrack,
       // volume controls
       setVolume: setVolume,
       getVolume: () => volume,
@@ -437,12 +459,14 @@ export function ProvideSpotify({ children }) {
       deleteContextQueueSong: deleteContextQueueSong,
       clearContextPlayQueue: clearContextPlayQueue,
       setContextPlayQueue: setContextPlayQueue,
+      clearAll: clearAll,
       // various functions
       addStateListeners: addStateListeners,
       addOnReadyListeners: addOnReadyListeners,
       addOnDeviceSelectedListeners: addOnDeviceSelectedListeners,
       getPlayerState: () => playerState,
       isPlayerReady: () => playerReady,
+      disconnect: disconnect,
     };
   }
 }

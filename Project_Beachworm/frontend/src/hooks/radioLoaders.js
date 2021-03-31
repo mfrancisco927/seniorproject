@@ -12,7 +12,7 @@ export default function useRadioLoaders() {
     // if we have any songs, queue them up and move to the explore page
     if (songs.length) {
       console.log(`Starting radio: ${queueName}`);
-      spotify.play(songs[0].id)
+      spotify.play(songs[0])
       spotify.setContextPlayQueue({
         name: queueName,
         songs: songs.slice(1),

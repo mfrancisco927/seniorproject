@@ -1,6 +1,6 @@
 import { useState, useEffect, Fragment } from 'react';
 import Modal from '@material-ui/core/Modal';
-import { makeStyles, ThemeProvider } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
 import Fade from '@material-ui/core/Fade';
 import Backdrop from '@material-ui/core/Backdrop';
 import TextField from '@material-ui/core/TextField';

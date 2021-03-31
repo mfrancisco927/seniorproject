@@ -23,9 +23,8 @@ function PlayFooter() {
   const shuffling = spotify.isShuffling();
 
   const currState = spotify.getPlayerState();
+  const currentTrack = spotify.getCurrentTrack();
   const position = currState.position;
-  const trackWindow = currState && currState.track_window;
-  const currentTrack = trackWindow && trackWindow.current_track;
   const { width } = useWindowDimensions();
   const isMobile = width <= SCREEN_SIZE.SMALL;
 
@@ -70,7 +69,7 @@ function PlayFooter() {
       // if there's no currently playing song, play the next one
       const nextSong = spotify.dequeueNextSong();
       if (nextSong) {
-        await spotify.play(nextSong.id).catch(_e => console.log("Can't play yet!"));
+        await spotify.play(nextSong).catch(_e => console.log("Can't play yet!"));
       }
     }
   }

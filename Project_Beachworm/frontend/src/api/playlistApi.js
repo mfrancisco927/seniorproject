@@ -62,7 +62,7 @@ export async function deletePlaylist(playlistId) {
   const recEndpoint = playlistDeletePlaylist(playlistId);
   return await axiosInstance.delete(recEndpoint).then( (resp) => {
     return Promise.resolve(resp.data);
-  }, (error) =>{
+  }, (error) => {
     return Promise.reject(error)
   });
 }
@@ -80,7 +80,7 @@ export async function unfollowPlaylist(playlistId, userId) {
   const recEndpoint = playlistUnfollowPlaylist(playlistId, userId);
   return await axiosInstance.delete(recEndpoint).then( (resp) => {
     return Promise.resolve(resp.data);
-  }, (error) =>{
+  }, (error) => {
     return Promise.reject(error)
   });
 }
