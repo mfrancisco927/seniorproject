@@ -59,7 +59,6 @@ class Playlist(BaseModel):
 
 class Radio(BaseModel):
   name = models.TextField()
-  artist_id = models.TextField()
   genre_id = models.TextField()
 
 class UserArtistSeed(BaseModel):

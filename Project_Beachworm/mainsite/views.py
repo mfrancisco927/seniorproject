@@ -125,7 +125,12 @@ def curateSongs(profile, recommendations, recommendation_number) :
     # Go througuh recommendations removing any from user's disliked song list
     counter = 0
     for i in range(len(recommendations['items'])) :
-        if not profile.disliked_songs.filter(song_id = recommendations['items'][i]['id']).exists() :
+        # if a profile exists
+        if profile:
+            if not profile.disliked_songs.filter(song_id = recommendations['items'][i]['id']).exists() :
+                curated_recommendations['items'].append(recommendations['items'][i])
+                counter += 1
+        else:
             curated_recommendations['items'].append(recommendations['items'][i])
             counter += 1
         if counter == number_of_recommendations :
@@ -411,7 +416,7 @@ class GenreSave(APIView):
         user_id = self.request.user.id
         try : 
             profile = Profile.objects.get(user=user_id)
-        except ProfileDoesNotExist :
+        except :
             return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
         genre_formatted = self.request.POST.getlist('genres[]')
@@ -435,7 +440,7 @@ class ArtistsFromGenres(APIView):
         user_id = self.request.user.id
         try : 
             profile = Profile.objects.get(user=user_id)
-        except ProfileDoesNotExist :
+        except :
             return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -477,7 +482,7 @@ class ArtistSave(APIView):
         user_id = self.request.user.id
         try : 
             profile = Profile.objects.get(user=user_id)
-        except ProfileDoesNotExist :
+        except :
             return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
         artist_formatted = request.POST.getlist("artists[]")
@@ -496,7 +501,7 @@ class UserRecommendations(APIView):
         user_id = self.request.user.id
         try : 
             profile = Profile.objects.get(user=user_id)
-        except ProfileDoesNotExist :
+        except:
             return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
         # These will be passed into recommender function
@@ -998,37 +1003,47 @@ class UserPlaylists(APIView):
         return Response(data=results, status=status.HTTP_200_OK)
 
 class HomeRecommendations(APIView):
+    permission_classes = (permissions.AllowAny,)
+
     # Home Recommendations come from 1 genre seed, 1 artist seed, and 3 song seeds if they exist
     def get(self, request):
         user_id = self.request.user.id
+        print(user_id)
+        # profile is null unless JWT request
+        profile = None
         try : 
             profile = Profile.objects.get(user=user_id)
-        except ProfileDoesNotExist :
-            return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
-
+        except :
+            pass
+        
         # These will be passed into recommender function
         seed_tracks = []
         seed_artists = []
         seed_genres = []
 
-        genre_seeds_total = genreSeedsShuffled(profile)
-        artist_seeds_total = artistSeedsShuffled(profile)
-        
-        # Add 1 artist seed, if they exist
-        if genre_seeds_total :
-            seed_genres.append(genre_seeds_total[0])
-        if artist_seeds_total :
-            seed_artists.append(artist_seeds_total[0])
+        # If the user exists (JWT), popualte with user info
+        if user_id:
+            genre_seeds_total = genreSeedsShuffled(profile)
+            artist_seeds_total = artistSeedsShuffled(profile)
+            
+            # Add 1 artist seed, if they exist
+            if genre_seeds_total :
+                seed_genres.append(genre_seeds_total[0])
+            if artist_seeds_total :
+                seed_artists.append(artist_seeds_total[0])
 
-        song_seed_total = songSeedsShuffled(profile)
+            song_seed_total = songSeedsShuffled(profile)
 
-        for i in range(min(len(song_seed_total), 5 - len(seed_genres) - len(seed_artists))):
-            seed_tracks.append(song_seed_total[i])
+            for i in range(min(len(song_seed_total), 5 - len(seed_genres) - len(seed_artists))):
+                seed_tracks.append(song_seed_total[i])
 
         # If no seeds exist, seed with genre pop only
         if (not seed_artists) and (not seed_tracks) and (not seed_genres):
-            seed_genres = ['pop']
+            seed_genres = ['rock', 'rap', 'alternative', 'pop', 'electronic']
 
+        print(seed_tracks)
+        print(seed_artists)
+        print(seed_genres)
         recommendations = sp.recommendations(
                                             seed_tracks=seed_tracks, 
                                             seed_artists=seed_artists, 
@@ -1042,7 +1057,12 @@ class HomeRecommendations(APIView):
 
         
         # Use songs -> rec artists -> rec genres
-        curated_recommendations = curateSongs(profile, recommendations,75)
+        # if profile exists, curate songs against profile
+        if profile:
+            curated_recommendations = curateSongs(profile, recommendations,75)
+        # if profile does not exist (guest), just curate songs 
+        else:
+            curated_recommendations = curateSongs(None, recommendations,75)
         curated_artists = artistsFromSongs(curated_recommendations)
         curated_genres = genresFromArtists(curated_artists, HOME_RECOMMENDATION_NUMBER)
 
@@ -1179,7 +1199,7 @@ class GetUserSeeds(APIView):
         user_id = self.request.user.id
         try : 
             profile = Profile.objects.get(user=user_id)
-        except ProfileDoesNotExist :
+        except :
             return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Get the genre seeds from database then make an array with just the ids
