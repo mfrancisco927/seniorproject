@@ -110,8 +110,15 @@ def saveSong(results):
                         )
                         trackEntry.save()
                         for artist in results['items'][i]['artists']:
-                            new_artist = Artist(artist_name = artist['name'])
-                            new_artist.save()
+                            print(artist['name'])
+                            artist_query = Artist.objects.filter(artist_name = artist['name'])
+                            #add the artist if not already there
+                            if not artist_query.exists():
+                                new_artist = Artist(artist_name = artist['name'])
+                                new_artist.save()
+                            #use existing artist if in db already
+                            else:
+                                new_artist = artist_query.first()
                             print(new_artist)
                             trackEntry.artists.add(new_artist)
                             trackEntry.save()
@@ -384,7 +391,9 @@ class GetUser(APIView):
         followers = clean_profiles(followers)
         following = list(profile.following.values())
         following = clean_profiles(following)
-        liked_songs = list(profile.liked_songs.values('song_id', 'title', 'artists', 'duration_ms'))
+        liked_songs_query = profile.liked_songs.values_list()
+        liked_songs = []
+
         disliked_songs = list(profile.disliked_songs.values_list('song_id', flat=True))
         #playlists that a user follows but does not own
         favorite_playlists = list(profile.favorite_playlists.filter(~Q(owner=profile)).values())
