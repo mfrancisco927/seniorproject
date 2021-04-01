@@ -105,12 +105,12 @@ function Questionnaire1() {
     >
       Submit
     </button>
-    <Typography align='center' color='primary' variant='h5' style={{ width:'60%'}}>Select some genres you like</Typography>
-    <Grid container justify="space-evenly" alignItems="baseline" spacing={5} style={{ width:'60%'}}>
+    <Typography align='center' color='primary' variant='h5' style={{ width:'60%', margin: '0 auto'}}>Select some genres you like</Typography>
+    <Grid container  alignItems="baseline" spacing={5} style={{ width:'60%', margin: '0 auto'}}>
       {Object.keys(genres).map(icon => (
         <React.Fragment>
           <PlaceLetter name={genres[icon]['name']}/>
-          <Grid item sm='5' xs={5} m={3} lg={3}  xl={3} key={genres[icon]['id']} >
+          <Grid item sm='5' xs={5} m={4} lg={4}  xl={4} key={genres[icon]['id']} >
             
             <div className={genres[icon]['selected'] ? "withBorder" : "noBorder"} >
               <Fab
