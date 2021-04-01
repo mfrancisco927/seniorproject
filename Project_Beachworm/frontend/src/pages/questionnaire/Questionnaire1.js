@@ -111,7 +111,7 @@ function Questionnaire1() {
         </Button>
       </Container>
     </AppBar>
-    <Typography align='center' color='primary' variant='h5' style={{ width:'60%', margin: '0 auto'}}>Select some genres you like</Typography>
+    <Typography align='center' color='primary' variant='h4' style={{ width:'60%', margin: '0 auto'}}>Select some genres you like</Typography>
     <Grid container  alignItems="baseline" spacing={5} style={{ width:'60%', margin: '0 auto'}}>
       {Object.keys(genres).map(icon => (
         <React.Fragment>

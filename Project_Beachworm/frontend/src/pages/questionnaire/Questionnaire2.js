@@ -83,7 +83,7 @@ function Questionnaire2() {
               <img
                 src={icon.images.length ? icon.images[1].url : DefaultImage}
                 width="300"
-                height="300"
+                
                 id={index}
                 alt={icon.name}
                 onClick={(e) => onIconClick(e)} />
