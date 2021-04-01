@@ -1,23 +1,30 @@
 import { useHistory, useParams } from 'react-router-dom';
 import { useCallback } from 'react';
 import { useAuth } from './../../hooks/authHooks';
-import { getProfile, getCurrentUser, followUser, unfollowUser, createPlaylist } from './../../api/userApi';
+import { getProfile, getCurrentUser, followUser, unfollowUser } from './../../api/userApi';
 import { Button } from '@material-ui/core';
 import PersonIcon from '@material-ui/icons/Person';
 import ClearIcon from '@material-ui/icons/Clear';
+import SettingsIcon from '@material-ui/icons/Settings';
+import VisibilityIcon from '@material-ui/icons/Visibility';
+import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 
+import EditPlaylistModal from './../playlist/EditPlaylistModal';
 import TabbedGallery from './TabbedGallery';
 
 import './ProfilePage.css';
 import { useEffect, useState, Fragment } from 'react';
 
+const DEFAULT_IMAGE_URL = 'https://images-na.ssl-images-amazon.com/images/I/51Ib3jYSStL._AC_SY450_.jpg';
+
 function ProfilePage(){
   const auth = useAuth();
   const history = useHistory();
-  const [profileData, setProfileData] = useState({'playlists': [], 'following': [], 'followers': []});
+  const [profileData, setProfileData] = useState({'playlists': [], 'following': [], 'followers': [], 'followedPlaylists': [],});
   const [dataLoaded, setDataLoaded] = useState(false);
   const [errorLoadingProfile, setErrorLoadingProfile] = useState(false);
   const [following, setFollowing] = useState(false);
+  const [playlistModalState, setPlaylistModalState] = useState({open: false, playlist: null});
   const profileId = useParams().profileId || auth.id;
   const viewingSelf = Number(profileId) === auth.id;
 
@@ -27,13 +34,14 @@ function ProfilePage(){
     }
 
     const loadProfileCallback = viewingSelf ? getCurrentUser : () => getProfile(profileId);
-    let tempProfile = {'playlists': [], 'following': [], 'followers': []};
+    let tempProfile = {'playlists': [], 'following': [], 'followers': [], 'followedPlaylists': [],};
     
     // first load profile data
     await loadProfileCallback().then(async (profileData) => {
       // if successful, request playlist data
       tempProfile = { ...profileData, 
         playlists: viewingSelf ? profileData.users_playlists : profileData.public_playlists,
+        followedPlaylists: profileData.favorite_playlists,
       };
       setFollowing(tempProfile.followers.map(user => user.user_id).includes(auth.id));
       return Promise.resolve(profileData);
@@ -76,29 +84,19 @@ function ProfilePage(){
     // TODO: when playlist page is done, load up the liked songs within it here
   };
 
-  const handlePlaylistClick = (playlistId) => {
+  const handlePlaylistClick = (playlist) => {
     history.push('/playlist', {
-      playlistId: playlistId,
+      playlist: playlist,
     });
   }
 
-  const handleCreateNewPlaylist = async () => {
-    // TODO: show pop-up similar to queue visualizer that allows for name entry.
-    // alternatively, a modal.
-    const numPlaylists = profileData.playlists.length;
-    const playlistName = prompt('Enter the playlist title.', 'Playlist' + numPlaylists);
-    const playlistDesc = prompt('Enter the playlist description.', 'Desc' + numPlaylists);
-    await createPlaylist(auth.id, playlistName, playlistDesc, true).then(success => {
-      console.log('Created new playlist', success.new_playlist);
-      updateTargetData();
-    }, reject => {
-      console.log('Failed to create new playlist');
-    });
+  const handleEditPlaylist = (playlist) => {
+    setPlaylistModalState({open: true, playlist: playlist, });
   }
 
   const likedSongsElement = (
     <ImageSquare
-    src="https://images-na.ssl-images-amazon.com/images/I/51Ib3jYSStL._AC_SY450_.jpg"
+    src={DEFAULT_IMAGE_URL}
     onClick={loadLikedSongsPlaylist}>
       {'Liked songs'}
     </ImageSquare>
@@ -106,9 +104,17 @@ function ProfilePage(){
 
   const createNewPlaylistElement = (
     <ImageSquare
-    src="https://images-na.ssl-images-amazon.com/images/I/51Ib3jYSStL._AC_SY450_.jpg"
-    onClick={handleCreateNewPlaylist}>
+    src={DEFAULT_IMAGE_URL}
+    onClick={() => setPlaylistModalState({open: true, playlist: null,})}>
       {'New playlist'}
+    </ImageSquare>
+  );
+
+  const makePlaylistSquare = (playlist) => (
+    <ImageSquare
+      src={DEFAULT_IMAGE_URL}
+      onClick={() => handlePlaylistClick(playlist)}>
+      {playlist.title}
     </ImageSquare>
   );
 
@@ -119,22 +125,45 @@ function ProfilePage(){
         // TODO: edit this one to also add a config button on the playlist that allows
         // the user to change name and visibility settings. maybe add some way to see
         // that it's public?
-        <ImageSquare
-          src="https://images-na.ssl-images-amazon.com/images/I/51Ib3jYSStL._AC_SY450_.jpg"
-          onClick={() => handlePlaylistClick(playlist.id)}>
-          {playlist.title}
-        </ImageSquare>
+        viewingSelf ? (
+          <div className="playlist-item__with-settings">
+            {makePlaylistSquare(playlist)}
+            <SettingsIcon
+              className="playlist-item_settings-icon"
+              onClick={() => handleEditPlaylist(playlist)} />
+            {playlist.is_public ? (
+              <VisibilityIcon className="playlist-item_visibility-icon playlist-item_visibility-icon__public"
+              onClick={() => handleEditPlaylist(playlist)} />
+            ) : (
+              <VisibilityOffIcon className="playlist-item_visibility-icon playlist-item_visibility-icon__private"
+              onClick={() => handleEditPlaylist(playlist)} />
+            )}
+          </div>
+        ) : (
+          makePlaylistSquare(playlist)
+        )
       ),
       emptyTabText: !viewingSelf && 'No playlists available for this user!',
       prependItems: viewingSelf && (
         [likedSongsElement, createNewPlaylistElement]
       )
     },
+    'followed-playlists': {
+      text: 'Followed playlists',
+      tabItemCreationCallback: (playlist) => (
+        <ImageSquare
+          src={DEFAULT_IMAGE_URL}
+          onClick={() => handlePlaylistClick(playlist)}>
+          {playlist.title}
+        </ImageSquare>
+      ),
+      emptyTabText: (viewingSelf ? "You don't " : "This user doesn't ") + 'follow any playlists!',
+    },
     'following': {
       text: 'Following',
       tabItemCreationCallback: (followedUser) => (
         <ImageSquare
-        src="https://images-na.ssl-images-amazon.com/images/I/51Ib3jYSStL._AC_SY450_.jpg"
+        src={DEFAULT_IMAGE_URL}
         onClick={() => history.push(`/profile/${followedUser.user_id}`)}>
           {followedUser.username}
         </ImageSquare>
@@ -145,7 +174,7 @@ function ProfilePage(){
       text: 'Followers',
       tabItemCreationCallback: (follower) => (
         <ImageSquare
-        src="https://images-na.ssl-images-amazon.com/images/I/51Ib3jYSStL._AC_SY450_.jpg"
+        src={DEFAULT_IMAGE_URL}
         onClick={() => history.push(`/profile/${follower.user_id}`)}>
           {follower.username}
         </ImageSquare>
@@ -156,15 +185,15 @@ function ProfilePage(){
 
   const toggleFollow = async () => {
     if (following) {
-      await unfollowUser(profileId).then(success => {
+      await unfollowUser(profileId).then(async _success => {
         console.log('Unfollowed user ' + profileId);
-        setFollowing(false);
+        await updateTargetData();
       }, reject => (console.log('Failed to unfollow user ' + profileId)));
     } else {
-      await followUser(profileId).then(success => {
+      await followUser(profileId).then(async _success => {
         console.log('Followed user ' + profileId);
-        setFollowing(true);
-      }, reject => (console.log('Failed to follow user ' + profileId)));
+        await updateTargetData();
+      }, _reject => (console.log('Failed to follow user ' + profileId)));
     }
   };
 
@@ -201,9 +230,16 @@ function ProfilePage(){
             )}
             
           </div>
+          {viewingSelf && (
+            <EditPlaylistModal
+            open={playlistModalState.open}
+            playlist={playlistModalState.playlist}
+            onClose={() => setPlaylistModalState({...playlistModalState, open: false,})}
+            onSubmit={() => updateTargetData()}/>
+          )}
           <TabbedGallery
           tabDetails={tabDetails}>
-            {[profileData.playlists, profileData.following, profileData.followers]}
+            {[profileData.playlists, profileData.followedPlaylists, profileData.following, profileData.followers]}
           </TabbedGallery>
         </Fragment>
       )}

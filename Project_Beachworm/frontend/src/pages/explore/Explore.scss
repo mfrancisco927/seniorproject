@@ -9,7 +9,7 @@
     border: 1px solid rgba(51, 51, 51, 0.63);
     border-radius: 2em;
     background-color:  rgba(51, 51, 51, 0.308);
-    padding-top: 2%;
+    padding: 2% 0;
 }
 
 .control-row {
@@ -63,12 +63,17 @@
     font-size: 2em !important;
 }
 
+// Override Sass min()
+@function min($numbers...) {
+    @return m#{i}n(#{$numbers});
+}
+
 .album-image_wrapper {
     position: relative;
     width: min(30%, 300px);
     /* this is actually the height! padding percentages are calculated based on WIDTH
     so this trick allows you to make a percentage-based square */
-    padding-bottom: min(30%, 300px); 
+    padding-bottom: min(30%, 300px);
     height: 0;
     background-color: rgba(51, 51, 51, 0.308)
 }
@@ -107,4 +112,10 @@
 
 .toolbar-wrapper {
     margin: 3% auto;
+}
+
+.info-row {
+    &_artist {
+        margin-bottom: 0;
+    }
 }

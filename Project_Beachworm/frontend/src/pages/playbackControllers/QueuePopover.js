@@ -43,7 +43,9 @@ function QueuePopover(props) {
                     </div>
                     {deleteQueueCallback && (
                       <span className="card-content_controls">
-                        <DeleteIcon onClick={() => handleCallback(index)} />
+                        <DeleteIcon
+                          className="controls_delete"
+                          onClick={() => handleCallback(index)} />
                       </span>
                     )}
                   </CardContent>

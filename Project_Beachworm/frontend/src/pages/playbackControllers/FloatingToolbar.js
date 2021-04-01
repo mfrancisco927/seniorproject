@@ -1,6 +1,8 @@
+import { useState, useCallback } from 'react';
 import { useSpotifySdk } from './../../hooks/spotifyHooks';
 import SeekBar from './SeekBar';
 import VolumeSlider from './VolumeSlider';
+import AddToPlaylistPopover from './../playlist/AddToPlaylistPopover';
 
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import PauseIcon from '@material-ui/icons/Pause';
@@ -19,16 +21,28 @@ function FloatingToolbar(props) {
   const trackWindow = playerState && playerState.track_window;
   const currentTrack = trackWindow && trackWindow.current_track;
 
+  const [ addToPlaylistOpen, setAddToPlaylistOpen ] = useState(false);
+  const [ anchorRef, setAnchorRef ] = useState(null);
+
   const handlePlay = () => {
     spotify.togglePlay();
   }
 
   const handlePlaylistAdd = () => {
-    console.log('Add to playlist called for song id ' + currentTrack.id);
+    setAddToPlaylistOpen(true);
   }
+
+  const closePopover = useCallback(
+    () => setAddToPlaylistOpen(false),
+  [setAddToPlaylistOpen]);
 
   return (
     <div className="floating-toolbar">
+      <AddToPlaylistPopover
+        anchorEl={anchorRef}
+        open={addToPlaylistOpen}
+        onClose={closePopover}
+        song={currentTrack} />
       <SeekBar duration={duration} position={position} disabled={!playerState} />
       <div className="controls-wrapper">
         <span className="">
@@ -41,7 +55,9 @@ function FloatingToolbar(props) {
                 <PlayArrowIcon className="controls_small-button" />
               )}
             </IconButton>
-            <IconButton onClick={handlePlaylistAdd}>
+            <IconButton
+              onClick={handlePlaylistAdd}
+              ref={el => setAnchorRef(el)} >
               <PlaylistAddIcon className="controls_small-button" />
             </IconButton>
           </div>

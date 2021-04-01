@@ -1,6 +1,7 @@
-import { useState, Fragment } from 'react';
+import { useState, useCallback, Fragment } from 'react';
 import { useSpotifySdk } from './../../hooks/spotifyHooks';
 import { useWindowDimensions, SCREEN_SIZE } from './../../hooks/responsiveHooks';
+import AddToPlaylistPopover from './../playlist/AddToPlaylistPopover';
 import SeekBar from './SeekBar';
 import ScrollText from './ScrollText';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
@@ -22,9 +23,8 @@ function PlayFooter() {
   const shuffling = spotify.isShuffling();
 
   const currState = spotify.getPlayerState();
+  const currentTrack = spotify.getCurrentTrack();
   const position = currState.position;
-  const trackWindow = currState && currState.track_window;
-  const currentTrack = trackWindow && trackWindow.current_track;
   const { width } = useWindowDimensions();
   const isMobile = width <= SCREEN_SIZE.SMALL;
 
@@ -43,10 +43,17 @@ function PlayFooter() {
     setPopoverAnchorEl(event.currentTarget);
   }
 
+  const [ addToPlaylistOpen, setAddToPlaylistOpen ] = useState(false);
+  const [ anchorRef, setAnchorRef ] = useState(null);
+
+  const handlePlaylistAdd = () => {
+    setAddToPlaylistOpen(true);
+  }
+
   const scrollProps = {
     rampMillis: 500,
-    decayMillis: 500,
-    speed: 45,
+    decayMillis: 1000,
+    speed: 30,
   }
 
   const handlePrevious = () => {
@@ -62,7 +69,7 @@ function PlayFooter() {
       // if there's no currently playing song, play the next one
       const nextSong = spotify.dequeueNextSong();
       if (nextSong) {
-        await spotify.play(nextSong.id).catch(_e => console.log("Can't play yet!"));
+        await spotify.play(nextSong).catch(_e => console.log("Can't play yet!"));
       }
     }
   }
@@ -107,6 +114,18 @@ function PlayFooter() {
     />
   );
 
+  const closeAddToPlaylistPopover = useCallback(
+    () => setAddToPlaylistOpen(false),
+  [setAddToPlaylistOpen])
+
+  const addToPlaylistPopover = (
+    <AddToPlaylistPopover
+        anchorEl={anchorRef}
+        open={addToPlaylistOpen}
+        onClose={closeAddToPlaylistPopover}
+        song={currentTrack} />
+  );
+
   const shuffleButton = (
     <button className='control-button' onClick={() => spotify.setShuffle(!shuffling)}>
       <ShuffleIcon
@@ -123,7 +142,10 @@ function PlayFooter() {
   );
 
   const addToPlaylistButton = (
-    <button className='control-button' onClick={() => {}}>
+    <button
+      className='control-button'
+      onClick={handlePlaylistAdd}
+      ref={el => setAnchorRef(el)}>
       <PlaylistAddIcon className="playlist-add"/>
     </button>
   );
@@ -152,7 +174,7 @@ function PlayFooter() {
     <div className="profile-controls-wrapper">
       {queuePopover}
       <span className="profile-controls_row">
-        <PlaylistAddIcon className={mobileClassName("profile-controls_item")}/>
+        {addToPlaylistButton}
         {shuffleButton}
         {showQueueButton}
       </span>
@@ -171,6 +193,7 @@ function PlayFooter() {
           {songControlsRow}
       </div>
       {profileControls}
+      {addToPlaylistPopover}
     </span>
   ) : (
     <span className={mobileClassName('play-footer')}>
@@ -191,6 +214,7 @@ function PlayFooter() {
             </div>
         </div>
       </div>
+      {addToPlaylistPopover}
     </span>
   );
 }

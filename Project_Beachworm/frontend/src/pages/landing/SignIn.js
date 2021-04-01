@@ -3,9 +3,11 @@ import { useHistory } from 'react-router-dom';
 import { refreshToken } from './../../api/authenticationApi';
 import { createUser } from './../../api/userApi';
 import { useAuth } from './../../hooks/authHooks';
+import { useSpotifySdk } from './../../hooks/spotifyHooks';
 
 function SignIn() {
   const auth = useAuth();
+  const spotify = useSpotifySdk();
   const history = useHistory();
   const { redirect } = history.location.state || {}; // location.state;
   const [username, setUsername] = useState('');
@@ -46,8 +48,11 @@ function SignIn() {
   // if an error is still returned by the signIn method, display a 
   // top-level error on the page and let the user know
   const handleSubmit = (event) => {
+      event.preventDefault();
+
       auth.signIn(username, password).then(value => {
           updateTokenVars();
+          spotify.clearAll();
           setErrorText();
           if (redirect) {
             history.replace(redirect);
