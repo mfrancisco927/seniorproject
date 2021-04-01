@@ -88,16 +88,11 @@ def saveSong(results):
                     db_track = Song.objects.filter(song_id = track_ids[i])
                     #add track to db if it's not there
  
-
                     if not db_track.exists():
-                        artist_array = []
-                        for artist in results['items'][i]['artists']:
-                            artist_array.append(artist['name'])
-                            
+
                         trackEntry = Song(
                             song_id = results['items'][i]['id'],
                             title = results['items'][i]['name'],
-                            artists = artist_array,
                             album = results['items'][i]['album']['name'],
                             danceability = float(track_features[i]['danceability']),
                             energy = float(track_features[i]['energy']),
@@ -114,8 +109,10 @@ def saveSong(results):
                             time_signature = int(track_features[i]['time_signature']),
                             img_640 = results['items'][i]['album']['images'][0]['url']
                         )
-                        
                         trackEntry.save()
+                        for artist in results['items'][i]['artists']:
+                            new_artist = Artist(song = trackEntry, artist_name = artist['name'])
+                            new_artist.save()
 
 def curateSongs(profile, recommendations, recommendation_number) :
     # Curated_recommendations will be sent back to requestor
@@ -347,7 +344,6 @@ class Search(APIView):
             #return public playlists whose name, description or creator's name contains query
             #search by owner's username - get list of user ids whose usernames match qstring, then filter for playlists owned by users in that set
             query_no_whitespace = str(query['q']).replace(' ', '')
-            print(query_no_whitespace)
             pl_users = list(User.objects.filter(username__icontains=query_no_whitespace, is_active=True).values_list('id', flat=True))
             playlists1 = Playlist.objects.filter(owner__in=pl_users, is_public=True)
             #search by playlist name or description
@@ -737,7 +733,12 @@ class PlaylistSongs(APIView):
         songs= list(playlist.songs.all().values())
         result = {}
         for i in range((len(songs))):
-            result[i]=songs[i] 
+            result[i]=songs[i]
+            song = Song.objects.get(song_id = songs[i]['song_id'])
+            print(song)
+            artists = Artist.objects.filter(song=song)
+            result[i]['artists'] = list(artists.values_list('artist_name', flat=True))
+
         return Response(data = result , status=status.HTTP_200_OK)
 
     def post(self, request, playlist_id):
