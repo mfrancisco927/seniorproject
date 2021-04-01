@@ -391,9 +391,10 @@ class GetUser(APIView):
         followers = clean_profiles(followers)
         following = list(profile.following.values())
         following = clean_profiles(following)
-        liked_songs_query = profile.liked_songs.values_list()
-        liked_songs = []
-
+        liked_songs = list(profile.liked_songs.values('song_id', 'title', 'duration_ms'))
+        for i in range(len(liked_songs)):
+            song = Song.objects.get(song_id = liked_songs[i]['song_id'])
+            liked_songs[i]['artists'] = list(song.artists.values_list('artist_name', flat=True))
         disliked_songs = list(profile.disliked_songs.values_list('song_id', flat=True))
         #playlists that a user follows but does not own
         favorite_playlists = list(profile.favorite_playlists.filter(~Q(owner=profile)).values())
