@@ -14,7 +14,7 @@ class BaseModel(models.Model):
 class Song(BaseModel):
   song_id = models.TextField(primary_key=True)
   title = models.TextField()
-  album = models.TextField()
+  artists = models.TextField()
   danceability = models.TextField()
   energy = models.FloatField()
   key = models.IntegerField()
@@ -80,6 +80,3 @@ class UserPlaylistPlay(BaseModel):
   radio = models.ForeignKey(Radio, on_delete=models.CASCADE)
   listened_at = models.DateTimeField(auto_now_add=True)
 
-class Artist(BaseModel):
-  song = models.ForeignKey(Song, on_delete=models.CASCADE)
-  artist_name = models.TextField()
