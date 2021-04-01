@@ -59,14 +59,16 @@ function Questionnaire2() {
 
   return !isMobile ? (
     <div className="questionnaire">
-      <AppBar position='sticky' fullWidth='false' style={{ background: 'transparent', boxShadow: 'none'}}>
+      <AppBar position='sticky' fullWidth='false' style={{ background: 'transparent', boxShadow: 'none'}}  >
         <Container maxWidth='xl'>    
             <Button 
+              
               variant="contained"
               type="button" 
               className="btn"
               width='20%'
               onClick={sendArtistSeeds}
+              style= {{ float: 'right'}}
             >
           Submit
           </Button>
@@ -103,12 +105,13 @@ function Questionnaire2() {
   ) : (
     <div className="questionnaire">
       <AppBar position='sticky' fullWidth='false' style={{ background: 'transparent', boxShadow: 'none'}}>
-        <Container maxWidth='xl'>    
+        <Container maxWidth='xl' style={{ justifyContent: 'right'}} >    
             <Button 
               variant="contained"
               type="button" 
               className="btn"
               width='20%'
+              style= {{ float: 'right'}}
               onClick={sendArtistSeeds}
             >
           Submit

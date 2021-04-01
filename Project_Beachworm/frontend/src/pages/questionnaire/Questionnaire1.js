@@ -104,6 +104,7 @@ function Questionnaire1() {
             type="button" 
             className="btn"
             width='20%'
+            style= {{ float: 'right'}}
             onClick={sendGenreSeeds}
           >
         Submit
@@ -140,6 +141,7 @@ function Questionnaire1() {
                 type="button" 
                 className="btn"
                 width='20%'
+                style= {{ float: 'right'}}
                 onClick={sendGenreSeeds}
               >
             Submit
