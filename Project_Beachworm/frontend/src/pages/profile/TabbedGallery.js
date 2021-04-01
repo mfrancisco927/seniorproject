@@ -1,10 +1,8 @@
-import { useState } from 'react';
 import { Button } from '@material-ui/core';
 import './TabbedGallery.css';
 
 function TabbedGallery(props) {
-  const { children: tabContent, tabDetails } = props;
-  const [ selectedTabIndex, setSelectedTabIndex ] = useState(0);
+  const { children: tabContent, tabDetails, selectedTabIndex, setSelectedTabIndex } = props;
   const tabKeys = Object.keys(tabDetails);
 
   const createTab = (key, index) => {

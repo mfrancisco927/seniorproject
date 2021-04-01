@@ -45,6 +45,9 @@ function ScrollText(props) {
     refreshScrollSettings();
   });
 
+  // TODO: consider rewriting above with https://www.npmjs.com/package/react-resize-detector
+  // or similar to stop rerunning every render
+
   const defaultStyle = {
     left: 0,
   };

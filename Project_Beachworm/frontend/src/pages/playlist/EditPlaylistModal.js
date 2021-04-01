@@ -82,8 +82,8 @@ function EditPlaylistModal(props) {
     const { title, description, isPublic } = formValues;
     // update current playlist
     if (playlist) {
-      await updatePlaylistSettings(playlist.id, title, description, isPublic).then(() => {
-        onSubmit && onSubmit();
+      await updatePlaylistSettings(playlist.id, title, description, isPublic).then(newPlaylist => {
+        onSubmit && onSubmit(newPlaylist);
         onClose && onClose();
         setSnackbarState({
           open: true,

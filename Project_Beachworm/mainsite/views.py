@@ -800,7 +800,8 @@ class ModifyPlaylist(APIView):
              return Response({"modify_playlist" : "error: form data incorrect"}, status=status.HTTP_404_NOT_FOUND)
 
         playlist.save()
-        return Response(status=status.HTTP_200_OK)
+        serializer = PlaylistSerializer(playlist)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def delete(self, request, playlist_id):
         try:

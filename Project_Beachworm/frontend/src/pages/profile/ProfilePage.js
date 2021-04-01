@@ -25,8 +25,10 @@ function ProfilePage(){
   const [errorLoadingProfile, setErrorLoadingProfile] = useState(false);
   const [following, setFollowing] = useState(false);
   const [playlistModalState, setPlaylistModalState] = useState({open: false, playlist: null});
+  const [ selectedTabIndex, setSelectedTabIndex ] = useState(0);
   const profileId = useParams().profileId || auth.id;
   const viewingSelf = Number(profileId) === auth.id;
+  
 
   const updateTargetData = useCallback(async () => {
     if (!auth.id) {
@@ -164,7 +166,10 @@ function ProfilePage(){
       tabItemCreationCallback: (followedUser) => (
         <ImageSquare
         src={DEFAULT_IMAGE_URL}
-        onClick={() => history.push(`/profile/${followedUser.user_id}`)}>
+        onClick={() => {
+          setSelectedTabIndex(0);
+          history.push(`/profile/${followedUser.user_id}`);
+        }}>
           {followedUser.username}
         </ImageSquare>
       ),
@@ -175,7 +180,10 @@ function ProfilePage(){
       tabItemCreationCallback: (follower) => (
         <ImageSquare
         src={DEFAULT_IMAGE_URL}
-        onClick={() => history.push(`/profile/${follower.user_id}`)}>
+        onClick={() => {
+          setSelectedTabIndex(0);
+          history.push(`/profile/${follower.user_id}`);
+        }}>
           {follower.username}
         </ImageSquare>
       ),
@@ -238,6 +246,8 @@ function ProfilePage(){
             onSubmit={() => updateTargetData()}/>
           )}
           <TabbedGallery
+          selectedTabIndex={selectedTabIndex}
+          setSelectedTabIndex={setSelectedTabIndex}
           tabDetails={tabDetails}>
             {[profileData.playlists, profileData.followedPlaylists, profileData.following, profileData.followers]}
           </TabbedGallery>
