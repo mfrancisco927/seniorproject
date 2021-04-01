@@ -8,7 +8,7 @@ import { postGenreSeeds } from '../../api/recommendationApi';
 import Placeholder from '../images/genres/placeholder.png';
 import { useWindowDimensions, SCREEN_SIZE } from './../../hooks/responsiveHooks';
 import Fab from '@material-ui/core/Grid';
-import { Typography } from '@material-ui/core';
+import { Typography, AppBar, Button, Container } from '@material-ui/core';
 
 /*
 * TO-DO:
@@ -97,14 +97,19 @@ function Questionnaire1() {
 
   return !isMobile ? (   
     <div className="questionnaire">
-        
-    <button 
-      type="button" 
-      className="btn"
-      onClick={sendGenreSeeds}
-    >
-      Submit
-    </button>
+    <AppBar position='sticky' fullWidth='false' style={{ background: 'transparent', boxShadow: 'none'}}>
+      <Container maxWidth='xl'>    
+          <Button 
+            variant="contained"
+            type="button" 
+            className="btn"
+            width='20%'
+            onClick={sendGenreSeeds}
+          >
+        Submit
+        </Button>
+      </Container>
+    </AppBar>
     <Typography align='center' color='primary' variant='h5' style={{ width:'60%', margin: '0 auto'}}>Select some genres you like</Typography>
     <Grid container  alignItems="baseline" spacing={5} style={{ width:'60%', margin: '0 auto'}}>
       {Object.keys(genres).map(icon => (
@@ -128,14 +133,19 @@ function Questionnaire1() {
   </div>
     ) : (
       <div className="questionnaire">
-        
-        <button 
-          type="button" 
-          className="btn"
-          onClick={sendGenreSeeds}
-        >
-          Submit
-        </button>
+        <AppBar position='sticky' fullWidth='false' style={{ background: 'transparent', boxShadow: 'none'}}>
+          <Container align='right-align'>    
+              <Button 
+                variant="contained"
+                type="button" 
+                className="btn"
+                width='20%'
+                onClick={sendGenreSeeds}
+              >
+            Submit
+            </Button>
+          </Container>
+        </AppBar>
         <Typography align='center' color='primary' variant='h5'>Select some genres you like</Typography>
         <Grid container justify="space-evenly" alightItems="center" spacing={2}>
           {Object.keys(genres).map(icon => (
