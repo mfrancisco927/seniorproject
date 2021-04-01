@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('mainsite', '0002_playlist_description'),
+        ('mainsite', '0002_profile_refresh_token'),
     ]
 
     operations = [
