@@ -86,6 +86,12 @@ def saveSong(results):
                 for i in range(len(track_ids)):
                     db_track = Song.objects.filter(song_id = track_ids[i])
                     #add track to db if it's not there
+
+                    # check if it has an image, if it does make it img_640
+                    if results['items'][i]['album']['images']:
+                        track_image = results['items'][i]['album']['images'][0]['url']
+                    else:
+                        track_image = 'https://imgur.com/a/RMIhpXF'
  
                     if not db_track.exists():
 
@@ -106,7 +112,7 @@ def saveSong(results):
                             tempo = float(track_features[i]['tempo']),
                             duration_ms = float(track_features[i]['duration_ms']),
                             time_signature = int(track_features[i]['time_signature']),
-                            img_640 = results['items'][i]['album']['images'][0]['url']
+                            img_640 = track_image,
                         )
                         trackEntry.save()
                         for artist in results['items'][i]['artists']:
@@ -1054,7 +1060,7 @@ class HomeRecommendations(APIView):
 
         
         # Use songs -> rec artists -> rec genres
-        curated_recommendations = curateSongs(profile, recommendations,75)
+        curated_recommendations = curateSongs(profile, recommendations,10)
         curated_artists = artistsFromSongs(curated_recommendations)
         curated_genres = genresFromArtists(curated_artists, HOME_RECOMMENDATION_NUMBER)
 
