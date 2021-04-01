@@ -9,11 +9,36 @@ import Placeholder from '../images/genres/placeholder.png';
 import { useWindowDimensions, SCREEN_SIZE } from './../../hooks/responsiveHooks';
 import Fab from '@material-ui/core/Grid';
 import { Typography, AppBar, Button, Container } from '@material-ui/core';
+import { makeStyles } from '@material-ui/core/styles';
 
-/*
-* TO-DO:
-* Get images for each genre
-*/
+const useStyles = makeStyles({
+  AppBar: {
+    background: 'transparent', 
+    boxShadow: 'none'
+  },
+
+  GenreFabBig: {
+    fontSize: '1.5em',
+    textTransform: 'capitalize',
+  },
+
+  GenreFabSmall: {
+    fontSize: '1.2em',
+    textTransform: 'capitalize',
+  },
+
+  SubmitButton: {
+    float: 'right',
+  },
+
+  GridContainer: {
+    width:'60%', 
+    margin: '0 auto'
+  },
+
+})
+
+
 const spotifyGenreIds = ['acoustic', 'afrobeat', 'alt-rock', 'alternative', 'ambient', 'anime', 'black-metal', 
 'bluegrass', 'blues', 'brazil', 'breakbeat', 'british', 'cantopop', 'chicago-house', 'children', 
 'chill', 'classical', 'club', 'comedy', 'country', 'dance', 'dancehall', 'death-metal', 'deep-house', 'detroit-techno',
@@ -70,6 +95,7 @@ function Questionnaire1() {
   const auth = useAuth();
   const history = useHistory();
   const { width } = useWindowDimensions();
+  const classes = useStyles()
   const isMobile = width <= SCREEN_SIZE.SMALL;
 
   const onIconClick = (event) => {
@@ -97,22 +123,20 @@ function Questionnaire1() {
 
   return !isMobile ? (   
     <div className="questionnaire">
-    <AppBar position='sticky' fullWidth='false' style={{ background: 'transparent', boxShadow: 'none'}}>
-      <Container maxWidth='xl'>    
-          <Button 
+    <AppBar className={classes.AppBar} position='sticky' fullWidth='false'>
+      <Container maxWidth='xl' >    
+          <Button className={classes.SubmitButton}
             variant="contained"
             type="button" 
-            className="btn"
             width='20%'
-            style= {{ float: 'right'}}
             onClick={sendGenreSeeds}
           >
         Submit
         </Button>
       </Container>
     </AppBar>
-    <Typography align='center' color='primary' variant='h4' style={{ width:'60%', margin: '0 auto'}}>Select some genres you like</Typography>
-    <Grid container  alignItems="baseline" spacing={5} style={{ width:'60%', margin: '0 auto'}}>
+    <Typography className={classes.Instructions} align='center' color='primary' variant='h4'>Select some genres you like</Typography>
+    <Grid className={classes.GridContainer} container  alignItems="baseline" spacing={5}>
       {Object.keys(genres).map(icon => (
         <React.Fragment>
           <PlaceLetter name={genres[icon]['name']}/>
@@ -120,6 +144,7 @@ function Questionnaire1() {
             
             <div className={genres[icon]['selected'] ? "withBorder" : "noBorder"} >
               <Fab
+                className={classes.GenreFabBig}
                 variant="extended"
                 id={genres[icon]['id']}
                 alt={genres[icon]['name']}
@@ -134,14 +159,12 @@ function Questionnaire1() {
   </div>
     ) : (
       <div className="questionnaire">
-        <AppBar position='sticky' fullWidth='false' style={{ background: 'transparent', boxShadow: 'none'}}>
+        <AppBar className={classes.AppBar} position='sticky' fullWidth='false'>
           <Container align='right-align'>    
-              <Button 
+              <Button className={classes.SubmitButton}
                 variant="contained"
                 type="button" 
-                className="btn"
                 width='20%'
-                style= {{ float: 'right'}}
                 onClick={sendGenreSeeds}
               >
             Submit
@@ -157,6 +180,7 @@ function Questionnaire1() {
                 
                 <div className={genres[icon]['selected'] ? "withBorder" : "noBorder"} >
                   <Fab
+                    className={classes.GenreFabSmall}
                     variant="extended"
                     id={genres[icon]['id']}
                     alt={genres[icon]['name']}

@@ -10,6 +10,29 @@ import { useWindowDimensions, SCREEN_SIZE } from './../../hooks/responsiveHooks'
 import { Typography, AppBar, Button, Container } from '@material-ui/core';
 import Fab from '@material-ui/core/Grid';
 import './Questionnaire.css';
+import { makeStyles } from '@material-ui/core/styles';
+
+const useStyles = makeStyles({
+  AppBar: {
+    background: 'transparent', 
+    boxShadow: 'none'
+  },
+
+  ArtistFabBig: {
+    fontSize: '1.4em',
+    textTransform: 'capitalize',
+  },
+
+  ArtistFabSmall: {
+    fontSize: '1.2em',
+    textTransform: 'capitalize',
+  },
+
+  SubmitButton: {
+    float: 'right',
+  },
+})
+
 
 function Questionnaire2() {
   const history = useHistory();
@@ -17,6 +40,7 @@ function Questionnaire2() {
   const { redirect } = history.location.state || {};
   const [artists, setArtists] = useState(null);
   const { width } = useWindowDimensions();
+  const classes = useStyles()
   const isMobile = width <= SCREEN_SIZE.SMALL;
 
   useEffect(() => {
@@ -59,16 +83,14 @@ function Questionnaire2() {
 
   return !isMobile ? (
     <div className="questionnaire">
-      <AppBar position='sticky' fullWidth='false' style={{ background: 'transparent', boxShadow: 'none'}}  >
+      <AppBar className={classes.AppBar} position='sticky' fullWidth='false'>
         <Container maxWidth='xl'>    
             <Button 
-              
+              className={classes.SubmitButton}
               variant="contained"
               type="button" 
-              className="btn"
               width='20%'
               onClick={sendArtistSeeds}
-              style= {{ float: 'right'}}
             >
           Submit
           </Button>
@@ -88,6 +110,7 @@ function Questionnaire2() {
                 alt={icon.name}
                 onClick={(e) => onIconClick(e)} />
             <Fab
+                  className={classes.ArtistFabBig}
                   variant="extended"
                   id={index}
                   alt={icon.name}
@@ -104,14 +127,13 @@ function Questionnaire2() {
     </div>
   ) : (
     <div className="questionnaire">
-      <AppBar position='sticky' fullWidth='false' style={{ background: 'transparent', boxShadow: 'none'}}>
-        <Container maxWidth='xl' style={{ justifyContent: 'right'}} >    
-            <Button 
+      <AppBar className={classes.AppBar} position='sticky' fullWidth='false'>
+        <Container maxWidth='xl' >    
+            <Button
+              className={classes.SubmitButton} 
               variant="contained"
               type="button" 
-              className="btn"
               width='20%'
-              style= {{ float: 'right'}}
               onClick={sendArtistSeeds}
             >
           Submit
@@ -134,6 +156,7 @@ function Questionnaire2() {
                 onClick={(e) => onIconClick(e)} />
              
               <Fab
+                    className={classes.ArtistFabSmall}
                     variant="extended"
                     id={index}
                     alt={icon.name}
