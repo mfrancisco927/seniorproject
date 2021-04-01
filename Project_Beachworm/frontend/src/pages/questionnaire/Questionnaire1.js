@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from './../../hooks/authHooks';
 import { useHistory } from 'react-router-dom';
 import Grid from '@material-ui/core/Grid';
@@ -6,6 +6,9 @@ import './Questionnaire.css';
 import './../../api/recommendationApi';
 import { postGenreSeeds } from '../../api/recommendationApi';
 import Placeholder from '../images/genres/placeholder.png';
+import { useWindowDimensions, SCREEN_SIZE } from './../../hooks/responsiveHooks';
+import Fab from '@material-ui/core/Grid';
+import { Typography } from '@material-ui/core';
 
 /*
 * TO-DO:
@@ -35,10 +38,39 @@ spotifyGenreIds.forEach(genreId => {
   }
 });
 
+function PlaceLetter(props) {
+  // Do the first one manually
+  if(props.name === 'acoustic'){
+    return <LetterGrid name={props.name}/>
+    }
+  
+  // If the first character of genre doesn't match the last one, at the big letter divider
+  const index = spotifyGenreIds.indexOf(props.name.replace(" ","-"))
+  if(index>0){
+    if(props.name.charAt(0) !== spotifyGenreIds[index-1].charAt(0)){
+      return <LetterGrid name={props.name}/>
+    }
+  }
+
+  return null
+}
+
+function LetterGrid(props) {
+  return (
+    <Grid item key={props.name} xs={10} sm='10' justify='center'>
+      <Typography style={{ width: '100'}} display='block'
+            color = 'primary' variant='h2' >
+        {props.name.charAt(0).toUpperCase()}
+      </Typography>
+    </Grid>)
+}
+
 function Questionnaire1() {
   const [genres, setGenres] = useState(defaultGenres);
   const auth = useAuth();
   const history = useHistory();
+  const { width } = useWindowDimensions();
+  const isMobile = width <= SCREEN_SIZE.SMALL;
 
   const onIconClick = (event) => {
     let newState = {...genres};
@@ -63,7 +95,7 @@ function Questionnaire1() {
     });
   }
 
-  return (   
+  return !isMobile ? (   
       <div className="questionnaire">
         <button 
           type="button" 
@@ -72,6 +104,7 @@ function Questionnaire1() {
         >
           Submit
         </button>
+        <Typography align='center' color='primary' variant='h4'>Select some genres you like</Typography>
         <Grid container>
           {Object.keys(genres).map(icon => (
             <Grid item sm key={genres[icon]['id']}>
@@ -89,7 +122,38 @@ function Questionnaire1() {
           ))}
         </Grid>
       </div>
-  );
+    ) : (
+      <div className="questionnaire">
+        
+        <button 
+          type="button" 
+          className="btn"
+          onClick={sendGenreSeeds}
+        >
+          Submit
+        </button>
+        <Typography align='center' color='primary' variant='h4'>Select some genres you like</Typography>
+        <Grid container justify="space-evenly" alightItems="center" spacing={2}>
+          {Object.keys(genres).map(icon => (
+            <React.Fragment>
+              <PlaceLetter name={genres[icon]['name']}/>
+              <Grid item sm='5' key={genres[icon]['id']} xs={5}>
+                
+                <div className={genres[icon]['selected'] ? "withBorder" : "noBorder"} >
+                  <Fab
+                    variant="extended"
+                    id={genres[icon]['id']}
+                    alt={genres[icon]['name']}
+                    onClick={(e) => onIconClick(e)}>
+                    {genres[icon]['name']}
+                  </Fab>
+                </div>
+              </Grid>
+            </React.Fragment>
+          ))}
+        </Grid>
+      </div>
+    );
 }
 
 export default Questionnaire1;
