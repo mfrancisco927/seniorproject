@@ -11,10 +11,14 @@ class BaseModel(models.Model):
   class Meta:
     abstract = True
 
+class Artist(BaseModel):
+  artist_name = models.TextField()
+
 class Song(BaseModel):
   song_id = models.TextField(primary_key=True)
   title = models.TextField()
   album = models.TextField()
+  artists = models.ManyToManyField(Artist, related_name='song_artists', blank=False)
   danceability = models.TextField()
   energy = models.FloatField()
   key = models.IntegerField()
@@ -80,6 +84,4 @@ class UserPlaylistPlay(BaseModel):
   radio = models.ForeignKey(Radio, on_delete=models.CASCADE)
   listened_at = models.DateTimeField(auto_now_add=True)
 
-class Artist(BaseModel):
-  song = models.ForeignKey(Song, on_delete=models.CASCADE)
-  artist_name = models.TextField()
+

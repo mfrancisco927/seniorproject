@@ -110,8 +110,11 @@ def saveSong(results):
                         )
                         trackEntry.save()
                         for artist in results['items'][i]['artists']:
-                            new_artist = Artist(song = trackEntry, artist_name = artist['name'])
+                            new_artist = Artist(artist_name = artist['name'])
                             new_artist.save()
+                            print(new_artist)
+                            trackEntry.artists.add(new_artist)
+                            trackEntry.save()
 
 def curateSongs(profile, recommendations, recommendation_number) :
     # Curated_recommendations will be sent back to requestor
@@ -705,10 +708,7 @@ class PlaylistSongs(APIView):
         for i in range((len(songs))):
             result[i]=songs[i]
             song = Song.objects.get(song_id = songs[i]['song_id'])
-            print(song)
-            artists = Artist.objects.filter(song=song)
-            result[i]['artists'] = list(artists.values_list('artist_name', flat=True))
-
+            result[i]['artists'] = list(song.artists.values_list('artist_name', flat=True))
         return Response(data = result , status=status.HTTP_200_OK)
 
     def post(self, request, playlist_id):
