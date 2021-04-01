@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('mainsite', '0002_playlist_description'),
+        ('mainsite', '0006_playlist_description'),
         ('mainsite', '0007_song_album'),
     ]
 
