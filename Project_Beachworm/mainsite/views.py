@@ -110,7 +110,7 @@ def saveSong(results):
                         )
                         trackEntry.save()
                         for artist in results['items'][i]['artists']:
-                            print(artist['name'])
+                            # print(artist['name'])
                             artist_query = Artist.objects.filter(artist_name = artist['name'])
                             #add the artist if not already there
                             if not artist_query.exists():
@@ -119,7 +119,7 @@ def saveSong(results):
                             #use existing artist if in db already
                             else:
                                 new_artist = artist_query.first()
-                            print(new_artist)
+                            # print(new_artist)
                             trackEntry.artists.add(new_artist)
                             trackEntry.save()
 
@@ -361,7 +361,7 @@ class Search(APIView):
             users = list(User.objects.filter(username__icontains=query_no_whitespace).values())
             users = clean_users(users)
             results['users'] =  users
-            print(users)
+            # print(users)
             
 
 
@@ -742,14 +742,14 @@ class PlaylistSongs(APIView):
     
     def delete(self, request, playlist_id):
         query = self.request.query_params
-        print(query)
+        # print(query)
         try:
             playlist= Playlist.objects.get(pk=playlist_id)
         except:
            return Response({"edit_playlist_songs" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
         
         songs= list(playlist.songs.all().values())
-        print(songs[int(query['id'])]['song_id'])
+        # print(songs[int(query['id'])]['song_id'])
         if playlist.owner.user.id == self.request.user.id:
             try:
                 song= Song.objects.get(pk=songs[int(query['id'])]['song_id'])
@@ -833,7 +833,7 @@ class ModifyPlaylist(APIView):
 class LikeSong(APIView):
 
     def post(self, request, user_id, song_id):
-        print(user_id, song_id)
+        # print(user_id, song_id)
 
         try:
             song= Song.objects.get(pk=song_id)
@@ -856,7 +856,7 @@ class LikeSong(APIView):
         return Response(status=status.HTTP_200_OK)
 
     def delete(self, request, user_id, song_id):
-        print(user_id, song_id)
+        # print(user_id, song_id)
 
         try:
             song= Song.objects.get(pk=song_id)
@@ -874,7 +874,7 @@ class LikeSong(APIView):
         return Response(status=status.HTTP_200_OK)
 class DislikeSong(APIView):
     def post(self, request, user_id, song_id):
-        print(user_id, song_id)
+        # print(user_id, song_id)
 
         try:
             song= Song.objects.get(pk=song_id)
@@ -897,7 +897,7 @@ class DislikeSong(APIView):
         return Response(status=status.HTTP_200_OK)
 
     def delete(self, request, user_id, song_id):
-        print(user_id, song_id)
+        # print(user_id, song_id)
 
         try:
             song= Song.objects.get(pk=song_id)
