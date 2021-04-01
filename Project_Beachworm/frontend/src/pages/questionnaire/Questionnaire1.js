@@ -21,11 +21,11 @@ const spotifyGenreIds = ['acoustic', 'afrobeat', 'alt-rock', 'alternative', 'amb
 'garage', 'german', 'gospel', 'goth', 'grindcore', 'groove', 'grunge', 'guitar', 'happy', 'hard-rock', 'hardcore',
 'hardstyle', 'heavy-metal', 'hip-hop', 'honky-tonk', 'house', 'idm', 'indian', 'indie', 'indie-pop',
 'industrial', 'iranian', 'j-dance', 'j-idol', 'j-pop', 'j-rock', 'jazz', 'k-pop', 'kids', 'latin', 'latino', 'malay',
-'mandopop', 'metal', 'metalcore', 'movies', 'mpb', 'new-age', 'opera', 'pagode', 'party', 'philippines-opm', 'piano',
-'pop', 'post-dubstep', 'power-pop', 'progressive-house', 'psych-rock', 'punk', 'punk-rock', 'r-n-b', 'rainy-day',
-'reggae', 'reggaeton', 'road-trip', 'rock', 'rockabilly', 'romance', 'sad', 'salsa', 'samba', 'sertanejo', 'ska',
-'sleep', 'songwriter', 'soul', 'spanish', 'study', 'summer', 'swedish', 'synth-pop', 'tango', 'techno', 'trance',
-'trip-hop', 'turkish', 'work-out', 'world-music'];
+'mandopop', 'metal', 'metalcore', 'new-age', 'opera', 'pagode', 'piano',
+'pop', 'progressive-house', 'psych-rock', 'punk', 'punk-rock', 'r-n-b',
+'reggae', 'reggaeton', 'rock', 'rockabilly', 'sad', 'salsa', 'samba', 'sertanejo', 'ska',
+'sleep', 'songwriter', 'soul', 'spanish', 'swedish', 'synth-pop', 'tango', 'techno', 'trance',
+'trip-hop', 'turkish', 'world-music'];
 const defaultGenres = {};
 
 spotifyGenreIds.forEach(genreId => {
@@ -57,7 +57,7 @@ function PlaceLetter(props) {
 
 function LetterGrid(props) {
   return (
-    <Grid item key={props.name} xs={10} sm='10' justify='center'>
+    <Grid item key={props.name} xs='10' sm='10' m='10' lg='10' xl='10' justify='center'>
       <Typography style={{ width: '100'}} display='block'
             color = 'primary' variant='h2' >
         {props.name.charAt(0).toUpperCase()}
@@ -96,38 +96,36 @@ function Questionnaire1() {
   }
 
   return !isMobile ? (   
-      <div className="questionnaire">
-        <button 
-          type="button" 
-          className="btn"
-          onClick={sendGenreSeeds}
-        >
-          Submit
-        </button>
-        <Typography align='center' color='primary' variant='h4'>Select some genres you like</Typography>
-        <Grid container>
-          {Object.keys(genres).map(icon => (
-            <Grid item sm key={genres[icon]['id']}>
-              <div className={genres[icon]['selected'] ? "withBorder" : "noBorder"} >
-                <img
-                  src={Placeholder}
-                  width="300"
-                  height="300"
-                  id={genres[icon]['id']}
-                  alt={genres[icon]['name']}
-                  onClick={(e) => onIconClick(e)} />
-                <Fab
-                    variant="extended"
-                    id={genres[icon]['id']}
-                    alt={genres[icon]['name']}
-                    onClick={(e) => onIconClick(e)}>
-                    {genres[icon]['name']}
-                  </Fab>
-              </div>
-            </Grid>
-          ))}
-        </Grid>
-      </div>
+    <div className="questionnaire">
+        
+    <button 
+      type="button" 
+      className="btn"
+      onClick={sendGenreSeeds}
+    >
+      Submit
+    </button>
+    <Typography align='center' color='primary' variant='h5' style={{ width:'60%'}}>Select some genres you like</Typography>
+    <Grid container justify="space-evenly" alignItems="baseline" spacing={5} style={{ width:'60%'}}>
+      {Object.keys(genres).map(icon => (
+        <React.Fragment>
+          <PlaceLetter name={genres[icon]['name']}/>
+          <Grid item sm='5' xs={5} m={3} lg={3}  xl={3} key={genres[icon]['id']} >
+            
+            <div className={genres[icon]['selected'] ? "withBorder" : "noBorder"} >
+              <Fab
+                variant="extended"
+                id={genres[icon]['id']}
+                alt={genres[icon]['name']}
+                onClick={(e) => onIconClick(e)}>
+                {genres[icon]['name']}
+              </Fab>
+            </div>
+          </Grid>
+        </React.Fragment>
+      ))}
+    </Grid>
+  </div>
     ) : (
       <div className="questionnaire">
         
