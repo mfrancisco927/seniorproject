@@ -149,7 +149,7 @@ export function ProvideSpotify({ children }) {
           if (autoplay) {
             const nextSong = await dequeueNextSong(shuffle);
             if (nextSong) {
-              refreshWrapper(play)(nextSong.id);
+              play(nextSong);
             }
           }
         }

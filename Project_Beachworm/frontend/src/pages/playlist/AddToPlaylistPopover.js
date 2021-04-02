@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, Fragment } from 'react';
+import { useState, useEffect, useCallback, Fragment, memo } from 'react';
 import Popover from '@material-ui/core/Popover';
 import { Card, CardContent, Button } from '@material-ui/core';
 import { getCurrentUser } from './../../api/userApi';
@@ -25,11 +25,11 @@ function AddToPlaylistPopover(props) {
     });
   };
   
-  const scrollProps = {
+  const scrollProps = useState({
     rampMillis: 500,
     decayMillis: 500,
     speed: 20,
-  }
+  });
 
   const updatePlaylists = useCallback(async () => {
     await getCurrentUser().then(result => {
@@ -64,7 +64,7 @@ function AddToPlaylistPopover(props) {
     updatePlaylists();
   }
 
-  const generateBody = () => {
+  const PopoverBody = () => {
     return (
       <div className="playlist-popover">
         <div className="popover-section">
@@ -107,24 +107,23 @@ function AddToPlaylistPopover(props) {
     );
   };
 
+  const [transformOrigin] = useState({
+    vertical: 'bottom',
+    horizontal: 'center',
+  });
+
   return (
     <Fragment>
       <Popover
         id="playlist-popover"
         open={open}
-        anchorEl={anchorEl}
-        anchorOrigin={{
-          vertical: 'top',
-          horizontal: 'center',
-        }}
-        transformOrigin={{
-          vertical: 'bottom',
-          horizontal: 'center',
-        }}
+        anchorReference="anchorPosition"
+        anchorPosition={anchorEl && anchorEl.getBoundingClientRect()}
+        transformOrigin={transformOrigin}
         onClose={onClose}
         disableRestoreFocus
       >
-        {generateBody()}
+        <PopoverBody />
       </Popover>
       <Snackbar open={snackbarState.open} autoHideDuration={6000} onClose={handleHideSnackbar}>
           <MuiAlert
@@ -139,4 +138,4 @@ function AddToPlaylistPopover(props) {
   );
 }
 
-export default AddToPlaylistPopover;
+export default memo(AddToPlaylistPopover);

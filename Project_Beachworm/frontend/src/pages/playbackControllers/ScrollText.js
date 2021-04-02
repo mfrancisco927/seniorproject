@@ -3,7 +3,8 @@ import './ScrollText.css';
 import { Transition } from 'react-transition-group';
 
 function ScrollText(props) {
-  const { rampMillis, decayMillis, speed, children } = props;
+  const { rampMillis, decayMillis, speed, children, refreshMillis } = props;
+  const REFRESH_MIN_MS = refreshMillis || 250;
   const [scrolling, setScrolling] = useState(false); // whether the wrapper is CURRENTLY scrolling
   const [childRef, setChildRef] = useState(null); // ref for the element that scrolling is based upon
   const [wrapperRef, setWrapperRef] = useState(null); // ref for the wrapping parent element
@@ -36,14 +37,15 @@ function ScrollText(props) {
         setScrolling(false);
       }
     }
-  }, [childRef, wrapperRef, rampMillis, speed]);
+  }, [childRef, wrapperRef, speed, rampMillis]);
 
-  // disabled because we WANT this to run on every render since we don't get a state update if the innerhtml
-  // text changes on the refs
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    refreshScrollSettings();
-  });
+    const interval = setInterval(refreshScrollSettings, REFRESH_MIN_MS);
+    return () => clearInterval(interval);
+  }, [REFRESH_MIN_MS, refreshScrollSettings]);
+
+  // TODO: consider rewriting above with https://www.npmjs.com/package/react-resize-detector
+  // or similar to stop rerunning every render
 
   const defaultStyle = {
     left: 0,
