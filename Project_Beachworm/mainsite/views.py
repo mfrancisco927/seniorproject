@@ -86,11 +86,18 @@ def saveSong(results):
                 for i in range(len(track_ids)):
                     db_track = Song.objects.filter(song_id = track_ids[i])
                     #add track to db if it's not there
+
+                    # check if it has an image, if it does make it img_640
+                    if results['items'][i]['album']['images']:
+                        track_image = results['items'][i]['album']['images'][0]['url']
+                    else:
+                        track_image = 'https://imgur.com/a/RMIhpXF'
+ 
                     if not db_track.exists():
                         trackEntry = Song(
                             song_id = results['items'][i]['id'],
                             title = results['items'][i]['name'],
-                            artists = results['items'][i]['artists'][0]['name'],
+                            album = results['items'][i]['album']['name'],
                             danceability = float(track_features[i]['danceability']),
                             energy = float(track_features[i]['energy']),
                             key = float(track_features[i]['key']),
@@ -104,10 +111,23 @@ def saveSong(results):
                             tempo = float(track_features[i]['tempo']),
                             duration_ms = float(track_features[i]['duration_ms']),
                             time_signature = int(track_features[i]['time_signature']),
-                            img_640 = results['items'][i]['album']['images'][0]['url']
+                            img_640 = track_image,
                         )
                         
                         trackEntry.save()
+                        for artist in results['items'][i]['artists']:
+                            # print(artist['name'])
+                            artist_query = Artist.objects.filter(artist_name = artist['name'])
+                            #add the artist if not already there
+                            if not artist_query.exists():
+                                new_artist = Artist(artist_name = artist['name'])
+                                new_artist.save()
+                            #use existing artist if in db already
+                            else:
+                                new_artist = artist_query.first()
+                            # print(new_artist)
+                            trackEntry.artists.add(new_artist)
+                            trackEntry.save()
 
 def curateSongs(profile, recommendations, recommendation_number) :
     # Curated_recommendations will be sent back to requestor
@@ -348,7 +368,7 @@ class Search(APIView):
             users = list(User.objects.filter(username__icontains=query_no_whitespace).values())
             users = clean_users(users)
             results['users'] =  users
-            print(users)
+            # print(users)
             
 
 
@@ -378,7 +398,10 @@ class GetUser(APIView):
         followers = clean_profiles(followers)
         following = list(profile.following.values())
         following = clean_profiles(following)
-        liked_songs = list(profile.liked_songs.values('song_id', 'title', 'artists', 'duration_ms'))
+        liked_songs = list(profile.liked_songs.values('song_id', 'title', 'duration_ms'))
+        for i in range(len(liked_songs)):
+            song = Song.objects.get(song_id = liked_songs[i]['song_id'])
+            liked_songs[i]['artists'] = list(song.artists.values_list('artist_name', flat=True))
         disliked_songs = list(profile.disliked_songs.values_list('song_id', flat=True))
         #playlists that a user follows but does not own
         favorite_playlists = list(profile.favorite_playlists.filter(~Q(owner=profile)).values())
@@ -700,7 +723,9 @@ class PlaylistSongs(APIView):
         songs= list(playlist.songs.all().values())
         result = {}
         for i in range((len(songs))):
-            result[i]=songs[i] 
+            result[i]=songs[i]
+            song = Song.objects.get(song_id = songs[i]['song_id'])
+            result[i]['artists'] = list(song.artists.values_list('artist_name', flat=True))
         return Response(data = result , status=status.HTTP_200_OK)
 
     def post(self, request, playlist_id):
@@ -724,14 +749,14 @@ class PlaylistSongs(APIView):
     
     def delete(self, request, playlist_id):
         query = self.request.query_params
-        print(query)
+        # print(query)
         try:
             playlist= Playlist.objects.get(pk=playlist_id)
         except:
            return Response({"edit_playlist_songs" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
         
         songs= list(playlist.songs.all().values())
-        print(songs[int(query['id'])]['song_id'])
+        # print(songs[int(query['id'])]['song_id'])
         if playlist.owner.user.id == self.request.user.id:
             try:
                 song= Song.objects.get(pk=songs[int(query['id'])]['song_id'])
@@ -816,7 +841,7 @@ class ModifyPlaylist(APIView):
 class LikeSong(APIView):
 
     def post(self, request, user_id, song_id):
-        print(user_id, song_id)
+        # print(user_id, song_id)
 
         try:
             song= Song.objects.get(pk=song_id)
@@ -839,7 +864,7 @@ class LikeSong(APIView):
         return Response(status=status.HTTP_200_OK)
 
     def delete(self, request, user_id, song_id):
-        print(user_id, song_id)
+        # print(user_id, song_id)
 
         try:
             song= Song.objects.get(pk=song_id)
@@ -857,7 +882,7 @@ class LikeSong(APIView):
         return Response(status=status.HTTP_200_OK)
 class DislikeSong(APIView):
     def post(self, request, user_id, song_id):
-        print(user_id, song_id)
+        # print(user_id, song_id)
 
         try:
             song= Song.objects.get(pk=song_id)
@@ -880,7 +905,7 @@ class DislikeSong(APIView):
         return Response(status=status.HTTP_200_OK)
 
     def delete(self, request, user_id, song_id):
-        print(user_id, song_id)
+        # print(user_id, song_id)
 
         try:
             song= Song.objects.get(pk=song_id)
@@ -1037,7 +1062,7 @@ class HomeRecommendations(APIView):
 
         
         # Use songs -> rec artists -> rec genres
-        curated_recommendations = curateSongs(profile, recommendations,75)
+        curated_recommendations = curateSongs(profile, recommendations,10)
         curated_artists = artistsFromSongs(curated_recommendations)
         curated_genres = genresFromArtists(curated_artists, HOME_RECOMMENDATION_NUMBER)
 
