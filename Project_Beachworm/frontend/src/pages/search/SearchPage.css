@@ -10,6 +10,10 @@
     flex-wrap: wrap;
   }
 
+  .profile_icon {
+    font-size: 7em !important;
+  } 
+
   .results_items-wrapper {
     display: flex;
     flex-direction: row;
@@ -110,3 +114,9 @@
     }
   }
   
+  @media screen and (min-width: 1441px) {
+    .results_wrapper {
+      width: 25%;
+      margin: 2%;
+    }
+  }

@@ -2,6 +2,8 @@ import { Fragment } from 'react';
 import { useAuth } from './../../hooks/authHooks';
 import LoadingImage from '../loading.svg';
 import useRadioLoaders from '../../hooks/radioLoaders';
+import PersonIcon from '@material-ui/icons/Person';
+
 
 import './SearchPage.css';
 import { useHistory } from 'react-router';
@@ -19,9 +21,13 @@ function SearchPage(props) {
         });
     };
 
+    const handleUserClick = (user) => {
+        //TODO: Imlement this
+    }
+
     let element;
     if (searchData) {
-        // console.log(searchData);
+        console.log(searchData);
         const loaded = Object.keys(searchData).length !== 0;
         element = 
             <Fragment>
@@ -72,6 +78,15 @@ function SearchPage(props) {
                             loading={!loaded}
                             defaultText="No playlists meet this search result!"
                             loggedIn={auth.id !== null}/>}
+                        <Results name="Users"
+                            getItems={() => searchData.users}
+                            getImageCallback={console.log('')}
+                            getTitle={item => item.username}
+                            getSubtitle={() => ''}
+                            onItemClick={handleUserClick}
+                            loading={!loaded}
+                            defaultText="No Users meet this search result!"
+                            loggedIn={auth.id !== null}/>
                     </div>
             </Fragment>
     } else {
@@ -100,9 +115,13 @@ function Results(props) {
                         items.slice(0, Math.min(items.length, MAX_ITEMS_SHOWN)).map((item) => (
                             <div className='result'>
                                 <div className="result_image-wrapper" onClick={() => onItemClick(item)}>
+                                    
+                                    {name !== 'Users' ? 
                                     <img className="result_image"
                                         src={getImageCallback(item)}
-                                        alt={getTitle(item)}/>
+                                        alt={getTitle(item)}/> : 
+                                        <PersonIcon className='profile_icon'></PersonIcon>}
+                                    
                                 </div>
                                 <h3 className="result_title" onClick={() => onItemClick(item)}>
                                     {getTitle(item)}
