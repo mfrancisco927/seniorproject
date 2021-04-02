@@ -673,7 +673,6 @@ class ArtistRecommendations(APIView):
             # must turn tracks into items to make dict same as search dict
             recommendations['items'] = recommendations.pop('tracks')
             recommendations.pop('seeds')
-            print(json.dumps(recommendations['items'],indent=4))
             
             # get songs from that artist
             artist_info = sp.artist(seed_artist[0])
@@ -1167,7 +1166,6 @@ class SongRecommendations(APIView):
                 artist_tracks = sp.search(search_string, type='track', market='US', limit=50)
                 just_artist_tracks = {}
                 just_artist_tracks['items'] = artist_tracks['tracks']['items']
-                # artist_tracks['items'] = artist_tracks['tracks'].pop()
         
                 return Response(data=just_artist_tracks, status=status.HTTP_200_OK)
 
