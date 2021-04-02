@@ -11,6 +11,57 @@ import AddIcon from '@material-ui/icons/Add';
 import './../playbackControllers/QueuePopover.css';
 import './AddToPlaylistPopover.css';
 
+const PopoverBody = ({playlistModalOpen, onEditPlaylistClose, updatePlaylists, 
+  openPlaylistModal, playlists, onPlaylistAdd}) => {
+  
+  const scrollProps = useState({
+    rampMillis: 500,
+    decayMillis: 500,
+    speed: 20,
+  });
+
+  return (
+    <div className="playlist-popover">
+      <div className="popover-section">
+        <EditPlaylistModal
+          open={playlistModalOpen}
+          onClose={onEditPlaylistClose}
+          onSubmit={updatePlaylists} />
+        <span className="popover-section_header-wrapper">
+          <h4 className="popover-section_header">Add to playlist</h4>
+          <Button onClick={openPlaylistModal}
+            className="btn-smaller"
+            variant="outlined"
+            size="small">
+              create new
+          </Button>
+        </span>
+        <ul className="popover-section_list">
+          {playlists.map((playlist, index) => {
+            return (
+              <li key={index} className="popover-section_list-item">
+                <Card variant="outlined">
+                  <CardContent className="card-content">
+                    <div className="card-content_text" >
+                      <ScrollText className="card-content_line" {...scrollProps}>{playlist.title}</ScrollText>
+                      <ScrollText className="card-content_line" {...scrollProps}>{playlist.description}</ScrollText>
+                    </div>
+                    <span className="card-content_controls">
+                      <AddIcon
+                        className="controls_add-icon"
+                        onClick={() => onPlaylistAdd(playlist)} />
+                    </span>
+                  </CardContent>
+                </Card>
+              </li>
+            )
+          })}
+        </ul>
+      </div>
+    </div>
+  );
+};
+
 function AddToPlaylistPopover(props) {
   const { open, anchorEl, onClose, song } = props;
 
@@ -24,12 +75,6 @@ function AddToPlaylistPopover(props) {
       open: false,
     });
   };
-  
-  const scrollProps = useState({
-    rampMillis: 500,
-    decayMillis: 500,
-    speed: 20,
-  });
 
   const updatePlaylists = useCallback(async () => {
     await getCurrentUser().then(result => {
@@ -64,48 +109,9 @@ function AddToPlaylistPopover(props) {
     updatePlaylists();
   }
 
-  const PopoverBody = () => {
-    return (
-      <div className="playlist-popover">
-        <div className="popover-section">
-          <EditPlaylistModal
-            open={playlistModalOpen}
-            onClose={() => setPlaylistModalOpen(false)}
-            onSubmit={() => updatePlaylists()} />
-          <span className="popover-section_header-wrapper">
-            <h4 className="popover-section_header">Add to playlist</h4>
-            <Button onClick={() => setPlaylistModalOpen(true)}
-              className="btn-smaller"
-              variant="outlined"
-              size="small">
-                create new
-            </Button>
-          </span>
-          <ul className="popover-section_list">
-            {playlists.map((playlist, index) => {
-              return (
-                <li key={index} className="popover-section_list-item">
-                  <Card variant="outlined">
-                    <CardContent className="card-content">
-                      <div className="card-content_text" >
-                        <ScrollText className="card-content_line" {...scrollProps}>{playlist.title}</ScrollText>
-                        <ScrollText className="card-content_line" {...scrollProps}>{playlist.description}</ScrollText>
-                      </div>
-                      <span className="card-content_controls">
-                        <AddIcon
-                          className="controls_add-icon"
-                          onClick={() => addToPlaylist(playlist)} />
-                      </span>
-                    </CardContent>
-                  </Card>
-                </li>
-              )
-            })}
-          </ul>
-        </div>
-      </div>
-    );
-  };
+  const openPlaylistModal = useCallback(
+    () => setPlaylistModalOpen(true), [setPlaylistModalOpen]
+  );
 
   const [transformOrigin] = useState({
     vertical: 'bottom',
@@ -123,7 +129,13 @@ function AddToPlaylistPopover(props) {
         onClose={onClose}
         disableRestoreFocus
       >
-        <PopoverBody />
+        <PopoverBody 
+          playlistModalOpen={playlistModalOpen}
+          onEditPlaylistClose={() => setPlaylistModalOpen(false)}
+          updatePlaylists={() => updatePlaylists()}
+          openPlaylistModal={openPlaylistModal}
+          playlists={playlists}
+          onPlaylistAdd={(playlist) => addToPlaylist(playlist)}/>
       </Popover>
       <Snackbar open={snackbarState.open} autoHideDuration={6000} onClose={handleHideSnackbar}>
           <MuiAlert

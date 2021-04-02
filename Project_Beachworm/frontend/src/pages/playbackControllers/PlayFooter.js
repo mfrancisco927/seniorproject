@@ -212,6 +212,12 @@ function PlayFooter() {
 
   return (
     <Fragment>
+      <FooterAddToPlaylistPopover 
+        {...mobileProps}
+        currentTrack={currentTrack}
+        addPlaylistAnchorRef={addPlaylistAnchorRef}
+        addToPlaylistOpen={addToPlaylistOpen}
+        closeAddToPlaylistPopover={closeAddToPlaylistPopover} />
       <FooterQueuePopover 
         currentTrack={currentTrack}
         showQueuePopover={showQueuePopover}
@@ -250,12 +256,6 @@ function PlayFooter() {
             spotify={spotify}
             shuffling={shuffling}
             handleQueueClicked={handleQueueClicked}/>
-          <FooterAddToPlaylistPopover 
-            {...mobileProps}
-            currentTrack={currentTrack}
-            addPlaylistAnchorRef={addPlaylistAnchorRef}
-            addToPlaylistOpen={addToPlaylistOpen}
-            closeAddToPlaylistPopover={closeAddToPlaylistPopover} />
         </span>
       ) : (
         <span className={mobileClassName(isMobile, 'play-footer')}>

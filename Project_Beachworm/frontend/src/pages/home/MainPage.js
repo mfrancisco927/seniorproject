@@ -15,7 +15,7 @@ function MainPage() {
 
   useEffect(() => {
     getHomeRecommendations().then((data) => {
-        console.log(data);
+        console.log(`Retrieved ${data.tracks.length} tracks, ${data.artists.length} artists, ${data.genres.length} genres for home page`);
         setData(data);
         setLoaded(true);
       }
@@ -33,7 +33,7 @@ function MainPage() {
             getItems={ () => data.tracks}
             onItemClick={song => loader.loadSongRadio(song)}
             getImageCallback={(item) => {
-              if(item.album.images.length != 0){
+              if(item.album.images.length !== 0){
                   return item.album.images[0].url;
                 }else{
                   return 'https://media.pitchfork.com/photos/5a71df0d85ed77242d8f1252/1:1/w_320/jpegmafiaveteran.jpg';
