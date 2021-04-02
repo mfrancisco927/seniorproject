@@ -97,7 +97,7 @@ def saveSong(results):
                         trackEntry = Song(
                             song_id = results['items'][i]['id'],
                             title = results['items'][i]['name'],
-                            artists = results['items'][i]['artists'][0]['name'],
+                            album = results['items'][i]['album']['name'],
                             danceability = float(track_features[i]['danceability']),
                             energy = float(track_features[i]['energy']),
                             key = float(track_features[i]['key']),
