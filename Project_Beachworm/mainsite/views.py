@@ -673,11 +673,18 @@ class ArtistRecommendations(APIView):
             # must turn tracks into items to make dict same as search dict
             recommendations['items'] = recommendations.pop('tracks')
             recommendations.pop('seeds')
+            print(json.dumps(recommendations['items'],indent=4))
             
             # get songs from that artist
             artist_info = sp.artist(seed_artist[0])
             search_string = "artist:" + artist_info['name']
             artist_tracks = sp.search(search_string, type='track', market='US', limit=50)
+
+            # Some artists have NO recommendations returned
+            if not recommendations['items']:
+                just_artist_tracks = {}
+                just_artist_tracks['items'] = artist_tracks['tracks']['items']
+                return Response(data=just_artist_tracks, status=status.HTTP_200_OK)
 
             # randomly pick one and add to recommendations
             len_artist_track = len(artist_tracks['tracks']['items'])
@@ -1150,7 +1157,20 @@ class SongRecommendations(APIView):
             recommendations.pop('seeds')
 
             saveSong(recommendations)
+
+            # In the case the seed song does not return any recommendations
+            if not recommendations['items']:
+                track_info = sp.track(seed_song[0])
+                track_info_formatted = {'items': [track_info]}
+                artists = artistsFromSongs(track_info_formatted)['artists']
+                search_string = "artist:" + artists[0]['name']
+                artist_tracks = sp.search(search_string, type='track', market='US', limit=50)
+                just_artist_tracks = {}
+                just_artist_tracks['items'] = artist_tracks['tracks']['items']
+                # artist_tracks['items'] = artist_tracks['tracks'].pop()
         
+                return Response(data=just_artist_tracks, status=status.HTTP_200_OK)
+
             return Response(data=recommendations, status=status.HTTP_200_OK)
         
         else :
