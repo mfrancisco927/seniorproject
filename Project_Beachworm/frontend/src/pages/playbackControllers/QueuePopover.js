@@ -1,4 +1,5 @@
 import { Fragment } from 'react';
+import { useSpotifySdk } from './../../hooks/spotifyHooks';
 import Popover from '@material-ui/core/Popover';
 import { Card, CardContent, Button } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -13,16 +14,19 @@ const scrollProps = {
 
 function QueuePopover(props) {
   const { 
-    anchorEl, 
+    anchorEl,
+    open,
     currentTrack, 
-    userQueue, 
-    contextQueue,
     onCloseCallback,
-    deleteFromUserQueue, deleteFromContextQueue,
-    clearUserQueue, clearContextQueue 
   } = props;
 
-  const queuePopoverBody = () => {
+  const spotify = useSpotifySdk();
+
+  const { deleteFromUserQueue, deleteFromContextQueue, clearUserQueue, clearContextQueue } = spotify
+  const userQueue = spotify.getUserPlayQueue();
+  const contextQueue= spotify.getContextPlayQueue();
+
+  const QueuePopoverBody = () => {
     const songList = (songs, deleteQueueCallback) => {
       const handleCallback = (index) => {
         if (deleteQueueCallback) {
@@ -81,10 +85,6 @@ function QueuePopover(props) {
       );
     };
 
-    const emptyLabel = () => (
-      <h4>Nothing is queued!</h4>
-    );
-
     return (
       <div className="queue-popover">
         {
@@ -98,7 +98,7 @@ function QueuePopover(props) {
             {!!contextQueue.songs.length
               && songHeaderWithList('Context queue', contextQueue.songs, 5, deleteFromContextQueue, clearContextQueue)}
           </Fragment>
-          ) : emptyLabel()
+          ) : <h4>Nothing is queued!</h4>
         }
       </div>
     );
@@ -107,12 +107,9 @@ function QueuePopover(props) {
   return (
     <Popover
       id="queue-popover"
-      open={!!anchorEl}
-      anchorEl={anchorEl}
-      anchorOrigin={{
-        vertical: 'top',
-        horizontal: 'center',
-      }}
+      open={open}
+      anchorReference="anchorPosition"
+      anchorPosition={anchorEl && anchorEl.getBoundingClientRect()}
       transformOrigin={{
         vertical: 'bottom',
         horizontal: 'center',
@@ -120,7 +117,7 @@ function QueuePopover(props) {
       onClose={onCloseCallback}
       disableRestoreFocus
     >
-      {queuePopoverBody()}
+      <QueuePopoverBody />
     </Popover>
   );
 }

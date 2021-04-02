@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import useRadioLoaders from '../../hooks/radioLoaders';
+import useRadioLoaders from './../../hooks/radioLoaders';
+import { useSpotifySdk } from './../../hooks/spotifyHooks';
 import AddToPlaylistPopover from './AddToPlaylistPopover';
 import './PlaylistContextMenu.scss';
 
@@ -41,56 +42,62 @@ const usePlaylistContextMenu = () => {
   };
 
 const ContextMenu = ({ menu }) => {
-    const { xPos, yPos, showMenu, setShowMenu, contextTarget, openStandardMenu } = usePlaylistContextMenu();
-    return (showMenu ? (
-        <div className="context-menu_container"
-          style={{
-            position: 'absolute',
-            top: yPos,
-            left: xPos,
-          }}>
-          {menu(contextTarget, setShowMenu, openStandardMenu)}
-        </div>
-      ) : (
-          null
-      )
-    );
+  const { xPos, yPos, showMenu, setShowMenu, contextTarget, openStandardMenu } = usePlaylistContextMenu();
+  return (showMenu ? (
+      <div className="context-menu_container"
+        style={{
+          position: 'absolute',
+          top: yPos,
+          left: xPos,
+        }}>
+        {menu(contextTarget, setShowMenu, openStandardMenu)}
+      </div>
+    ) : (
+        null
+    )
+  );
 };
 
 const PlaylistContextMenu = (props) => {
-  const { playSongByIndex } = props;
+  const { playSongByIndex, refreshPlaylist } = props;
   const [ addToPlaylistOpen, setAddToPlaylistOpen ] = useState(false);
   const [ anchorRef, setAnchorRef ] = useState(null);
 
   const closePopover = useCallback(() => {
     setAddToPlaylistOpen(false);
-  }, [])
+    refreshPlaylist();
+  }, [refreshPlaylist])
 
   const loaders = useRadioLoaders();
+  const spotify = useSpotifySdk();
+
+  const addToSpotifyQueue = useCallback((song) => {
+    spotify.addToUserPlayQueue([song]);
+  }, [spotify]);
 
   return <ContextMenu menu={(target, setShowMenu, openStandardMenu) =>
     {
       const songId = target.getAttribute('songId');
       const songName = target.getAttribute('songName');
-      const playlistIndex = target.getAttribute('playlistIndex');
+      const playlistIndex = Number(target.getAttribute('playlistIndex'));
 
       const handleCloseMenu = () => {
         setShowMenu(false);
-      }
+      };
 
       const handleStartSongRadio = async (songId) => {
         loaders.loadSongRadio({id: songId, name: 'unknown'});
         handleCloseMenu(false);
       };
+
+      const handleAddToQueue = (song) => {
+        handleCloseMenu(false);
+        addToSpotifyQueue(song);
+      };
     
       const handlePlaylistAdd = (e) => {
         setAddToPlaylistOpen(true);
-      }
-
-      const handleAddToQueue = () => {
-        // TODO: do this WITHOUT causing tons of lag thru spotify hook
-        handleCloseMenu(false);
-      }
+      };
 
       if (!songId && !playlistIndex) {
         openStandardMenu(target);
@@ -122,7 +129,7 @@ const PlaylistContextMenu = (props) => {
                 Add to playlist
             </li>
             <li className="playlist-context-menu_list-item"
-                onClick={() => handleAddToQueue()}>
+                onClick={() => handleAddToQueue({id: songId, name: songName})}>
               Add to queue
             </li>
           </ul>

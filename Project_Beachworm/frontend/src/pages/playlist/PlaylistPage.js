@@ -1,5 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
-import { withStyles } from '@material-ui/core/styles';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
 import SettingsIcon from '@material-ui/icons/Settings';
@@ -49,7 +48,7 @@ function PlaylistPage() {
     await getPlaylistSongs(playlist.id).then(data => {
       const songs = data;
       const tempList = [];
-      Object.entries(songs).forEach(songKV => {
+      Object.entries(songs).forEach((songKV, index) => {
         tempList.push({
           id: songKV[0],
           songId: songKV[1].song_id,
@@ -57,11 +56,16 @@ function PlaylistPage() {
           artists: songKV[1].artists,
           album: 'under construction :)',
           duration: songKV[1].duration_ms,
+          songDetails: {
+            songId: songKV[1].song_id,
+            songName: songKV[1].title,
+            playlistIndex: index,
+          }
         });
       });
       setSongList(tempList);
       console.log('Loaded song data for playlist ' + playlist.title);
-    })
+    });
   }, [playlist.id, playlist.title]);
 
   useEffect(() => {
@@ -96,12 +100,12 @@ function PlaylistPage() {
     return [totalHours, minutes, seconds, millis];
   }
 
-  const mstominsecs = (ms) => {
+  const mstominsecs = useCallback((ms) => {
     const [, min, sec, ] = msToHourMinSecondsMillis(ms);
     return `${min}:${sec < 10 ? '0' + sec : sec}`;
-  }
+  }, []);
 
-  const msToHourMins = (ms) => {
+  const msToHourMins = useCallback((ms) => {
     const [hours, min] = msToHourMinSecondsMillis(ms);
     const componentArray = [];
     if (hours) {
@@ -111,85 +115,67 @@ function PlaylistPage() {
       componentArray.push(min + ' min')
     }
     return componentArray.join(', ');
-  }
+  }, []);
 
-  const handleDeleteClicked = async () =>{
-    // temporary fix to deal with back-end issue with keys being indices that can change over time.
-    const shiftedSelected = selected.map(x => Number(x)).map((val, ind) => (
-      val - selected
-        .map(x => Number(x)) // convert to numbers
-        .slice(0, ind) // all items before the current index
-        .filter(x => x < val) // only keep indices that will cause a shift
-        .length // count them
-    ));
-    console.log('deleting indices', shiftedSelected);
-    for (let id of shiftedSelected) { // change to selected after back-end fixed
-      await deleteSongFromPlaylist(playlist.id, id).then(() => {
-        console.log('Deleted playlist_song with id ' + id);
-      }, () => {
-        console.log('Failed to delete song ' + id);
-      });
-    }
-    await getSongs();
-    setSelected([]);
-  };
-  
-  const StyledTableCell = withStyles((theme) => ({
-    head: {
-      color: theme.palette.common.white,
-      fontSize: '1.25em',
-    },
-    body: {
-      color: theme.palette.common.white,
-      fontSize: '1em',
-      padding: theme.spacing(0.5),
-    },
-  }))(TableCell);
-  
-  const StyledTableRow = withStyles((theme) => ({
-    root: {
-      '&:nth-of-type(odd)': {
-        backgroundColor: 'rgba(0, 0, 0, 0.1)',
-      },
-      '&:active': {
-        backgroundColor: 'rgba(0, 0, 0, 0.25)',
-      },
-      '&:hover': {
-        backgroundColor: 'rgba(0, 0, 0, 0.25)',
-      },
-    },
-  }))(TableRow);
+  const handleDeleteClicked = useCallback(() => {
+    const deleteSelected = async () => {
+      // temporary fix to deal with back-end issue with keys being indices that can change over time.
+      const shiftedSelected = selected.map(x => Number(x)).map((val, ind) => (
+        val - selected
+          .map(x => Number(x)) // convert to numbers
+          .slice(0, ind) // all items before the current index
+          .filter(x => x < val) // only keep indices that will cause a shift
+          .length // count them
+      ));
+      console.log('deleting indices', shiftedSelected);
+      for (let id of shiftedSelected) { // change to selected after back-end fixed
+        await deleteSongFromPlaylist(playlist.id, id).then(() => {
+          console.log('Deleted playlist_song with id ' + id);
+        }, () => {
+          console.log('Failed to delete song ' + id);
+        });
+      }
+      await getSongs();
+      setSelected([]);
+    };
+
+    deleteSelected();
+  }, [getSongs, playlist.id, selected]);
 
   const durationMs = songList.length ? songList.map(x => x.duration).reduce((prevSum, next) => (prevSum + next)) : 0;
 
-  const handleEditPlaylist = () => {
-    setEditModalOpen(true);
-  };
+  const handleEditPlaylist = useCallback(() => setEditModalOpen(true), [setEditModalOpen]);
 
-  const handleSubmitEdit = (updatedPlaylist) => {
+  const handleSubmitEdit = useCallback((updatedPlaylist) => {
     setPlaylist({...playlist, ...updatedPlaylist});
-  }
+  }, [playlist]);
 
-  const handleHideSnackbar = () => {
+  const handleModalClose = useCallback(() => setEditModalOpen(false), []);
+
+  const handleHideSnackbar = useCallback(() => {
     setSnackbarState({...snackbarState, open: false});
-  }
+  }, [snackbarState]);
 
-  const handleToggleFollow = async () => {
-    const callback = following ? unfollowPlaylist : followPlaylist; 
-    await callback(playlist.id, playlist.owner_id).then(() => {
-      showAlert(`${following ? 'Unfollowed' : 'Followed'} playlist!`, 'success');
-      setFollowing(!following);
-    }, () => {
-      showAlert(`Error trying to ${following ? 'unfollow' : 'follow'} playlist.`, 'error');
-    })
-  }
+  const handleToggleFollow = useCallback(() => {
+    const toggle = async () => {
+      const callback = following ? unfollowPlaylist : followPlaylist; 
+      await callback(playlist.id, playlist.owner_id).then(() => {
+        showAlert(`${following ? 'Unfollowed' : 'Followed'} playlist!`, 'success');
+        setFollowing(!following);
+      }, () => {
+        showAlert(`Error trying to ${following ? 'unfollow' : 'follow'} playlist.`, 'error');
+      })
+    };
+
+    toggle();
+  }, [following, playlist.id, playlist.owner_id]);
 
   const handleSongPlayed = useCallback((index) => {
     const playSong = async (index) => {
       // mapping required because spotify hook expects the key 'id' to hold the song id
       const mappedSongs = songList.map(song => ({...song, name: song.title, id: song.songId}));
       console.log('Starting ' + mappedSongs[index].title + ' from playlist page');
-  
+      
       spotify.current.play(mappedSongs[index]);
       spotify.current.setContextPlayQueue({
         name: 'Playlist_' + playlist.id,
@@ -201,47 +187,136 @@ function PlaylistPage() {
     playSong(index);
   }, [songList, playlist.id]);
 
+  const handleDoubleClick = useCallback((event, index) => {
+    event.preventDefault();
+    handleSongPlayed(index);
+  }, [handleSongPlayed]);
+
   const DeleteCheckboxTableCell = (props) => {
-    const {song} = props;
+    const {song, checked} = props;
+    
+    const onChange = useCallback((e) => {
+      if (e.target.checked){
+        setSelected([...selected, song.id]);
+      } else {
+        const index = selected.indexOf(song.id);
+        setSelected([...selected.slice(0, index), ...selected.slice(index+1)]);
+      }
+    }, [song.id]);
+
     return (
-      <StyledTableCell align="center">
+      <PlaylistTableCell align="center">
         <Checkbox color='default' 
-        checked={selected.includes(song.id)}
-        onChange={(e) => {
-          if(e.target.checked){
-            setSelected([...selected, song.id]);
-          } else {
-            const index = selected.indexOf(song.id);
-            setSelected([...selected.slice(0, index), ...selected.slice(index+1)]);
-          }}
-        } />
-      </StyledTableCell>
+        checked={checked}
+        onChange={onChange} />
+      </PlaylistTableCell>
     )
   };
 
-  // const [body, setBody] = useState(null);
+  const PlaylistTableRow = ({children, ...restProps}) => (
+    <TableRow
+    className="playlist_table-row"
+    {...restProps}>
+      {children}
+    </TableRow>
+  )
 
-  // useEffect(() => {
-  //   setBody();
-  // }, [editModalOpen, following, ourPlaylist, playlist, selected,  // eslint-disable-line react-hooks/exhaustive-deps
-  //   snackbarState.message, snackbarState.open, snackbarState.severity, songList])
+  const PlaylistHeaderTableCell = ({children, ...restProps}) => (
+    <PlaylistTableCell
+    className="playlist_header-cell"
+    component="th"
+    scope="col"
+    {...restProps}>
+      {children}
+    </PlaylistTableCell>
+  );
 
-  return playlist.id ? (
+  const PlaylistTableCell = ({ children, songDetails, ...restProps }) => (
+    <TableCell
+    className="playlist_body-cell"
+    {...songDetails}
+    {...restProps}>
+      {children}
+    </TableCell>
+  )
+
+  const MemoizedSnackBar = useMemo(() => (
+    <Snackbar open={snackbarState.open} autoHideDuration={3000} onClose={handleHideSnackbar}>
+      <MuiAlert
+        onClose={handleHideSnackbar}
+        severity={snackbarState.severity}
+        elevation={6}
+        variant="filled">
+        {snackbarState.message}
+      </MuiAlert>
+    </Snackbar>
+  ), [handleHideSnackbar, snackbarState.message, snackbarState.open, snackbarState.severity]);
+
+  const MemoizedTableHead = useMemo(() => (
+    <TableHead>
+      <TableRow>
+        {ourPlaylist && (
+          <PlaylistHeaderTableCell align="center" width="1">
+            <IconButton align='center' aria-label="delete"
+              onClick={handleDeleteClicked}>
+              <DeleteIcon />
+            </IconButton>
+          </PlaylistHeaderTableCell>
+        )}
+        <PlaylistHeaderTableCell>TITLE</PlaylistHeaderTableCell>
+        <PlaylistHeaderTableCell align="right">ARTIST</PlaylistHeaderTableCell>
+        <PlaylistHeaderTableCell align="right">ALBUM</PlaylistHeaderTableCell>
+        <PlaylistHeaderTableCell align="right">DURATION</PlaylistHeaderTableCell>
+      </TableRow>
+    </TableHead>
+  ), [handleDeleteClicked, ourPlaylist]);
+
+  const MemoizedTableBody = useMemo(() => {
+    return (
+      <TableBody checkboxSelection>
+        {songList.map((song, index) => (
+            <PlaylistTableRow
+              key={song.title}
+              {...song.songDetails}
+              onDoubleClick={(event) => handleDoubleClick(event, index)}>
+              {ourPlaylist && <DeleteCheckboxTableCell checked={selected.includes(song.id)} song={song} />}
+              <PlaylistTableCell songDetails={song.songDetails}>
+                {song.title}
+              </PlaylistTableCell>
+              <PlaylistTableCell songDetails={song.songDetails} align="right">
+                {song.artists}
+              </PlaylistTableCell>
+              <PlaylistTableCell songDetails={song.songDetails} align="right">
+                {song.album}
+              </PlaylistTableCell>
+              <PlaylistTableCell songDetails={song.songDetails} align="right">
+                {mstominsecs(song.duration)}
+              </PlaylistTableCell>
+            </PlaylistTableRow>
+          ))}
+        </TableBody>
+    );
+  }, [handleDoubleClick, mstominsecs, ourPlaylist, selected, songList]);
+
+  const MemoizedTable = useMemo(() => (
+    <TableContainer id="playlist_songs-table-container">
+      <Table aria-label="playlist song table">
+        {MemoizedTableHead}
+        {MemoizedTableBody}
+      </Table>
+    </TableContainer>
+  ), [MemoizedTableBody, MemoizedTableHead]);
+
+  const MemoizedBody = useMemo(() => (
     <div className="playlist_page-wrapper">
-      <PlaylistContextMenu playSongByIndex={handleSongPlayed} />
-      <Snackbar open={snackbarState.open} autoHideDuration={3000} onClose={handleHideSnackbar}>
-        <MuiAlert
-          onClose={handleHideSnackbar}
-          severity={snackbarState.severity}
-          elevation={6}
-          variant="filled">
-          {snackbarState.message}
-        </MuiAlert>
-      </Snackbar>
+      <PlaylistContextMenu
+        playSongByIndex={handleSongPlayed}
+        refreshPlaylist={getSongs} />
+      {MemoizedSnackBar}
       <EditPlaylistModal
         open={editModalOpen}
         playlist={playlist}
-        onClose={() => setEditModalOpen(false)}
+        onClose={handleModalClose}
         onSubmit={handleSubmitEdit} 
       />
       <div className="playlist_banner">
@@ -280,65 +355,14 @@ function PlaylistPage() {
           )}
         </div>
       </div>
-      <TableContainer id="playlist_songs-table-container">
-        <Table aria-label="playlist song table">
-          <TableHead>
-            <TableRow>
-              {ourPlaylist && (
-                <StyledTableCell align='center' width='1'>
-                  <IconButton align='center' aria-label="delete"
-                    onClick={handleDeleteClicked}>
-                    <DeleteIcon />
-                  </IconButton>
-                </StyledTableCell>
-              )}
-              <StyledTableCell component="th" scope="col">TITLE</StyledTableCell>
-              <StyledTableCell component="th" scope="col" align="right">ARTIST</StyledTableCell>
-              <StyledTableCell component="th" scope="col" align="right">ALBUM</StyledTableCell>
-              <StyledTableCell component="th" scope="col" align="right">DURATION</StyledTableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody checkboxSelection>
-            {songList.map((song, index) => {
-              const songDetails = {
-                songId: song.songId,
-                songName: song.title,
-                playlistIndex: index,
-              };
-
-              return (
-                <StyledTableRow
-                  className="playlist_song-row"
-                  key={song.title}
-                  {...songDetails}
-                  onDoubleClick={() => handleSongPlayed(index)}>
-                  {ourPlaylist && <DeleteCheckboxTableCell song={song} />}
-                  <StyledTableCell
-                  {...songDetails}>
-                    {song.title}
-                  </StyledTableCell>
-                  <StyledTableCell
-                  align="right"
-                  {...songDetails}>
-                    {song.artists}
-                  </StyledTableCell>
-                  <StyledTableCell
-                  align="right"
-                  {...songDetails}>
-                    {song.album}
-                  </StyledTableCell>
-                  <StyledTableCell
-                  align="right"
-                  {...songDetails}>
-                    {mstominsecs(song.duration)}
-                  </StyledTableCell>
-                </StyledTableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      {MemoizedTable}
     </div>
+  ), [MemoizedSnackBar, MemoizedTable, durationMs, editModalOpen, following, getSongs,
+    handleEditPlaylist, handleModalClose, handleSongPlayed, handleSubmitEdit,
+    handleToggleFollow, msToHourMins, ourPlaylist, playlist, songList.length]);
+
+  return playlist.id ? (
+    MemoizedBody
   ) : (
     <Redirect to="/" />
   );
