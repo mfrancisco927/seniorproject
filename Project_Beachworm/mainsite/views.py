@@ -94,11 +94,10 @@ def saveSong(results):
                         track_image = 'https://imgur.com/a/RMIhpXF'
  
                     if not db_track.exists():
-
                         trackEntry = Song(
                             song_id = results['items'][i]['id'],
                             title = results['items'][i]['name'],
-                            album = results['items'][i]['album']['name'],
+                            artists = results['items'][i]['artists'][0]['name'],
                             danceability = float(track_features[i]['danceability']),
                             energy = float(track_features[i]['energy']),
                             key = float(track_features[i]['key']),
@@ -114,6 +113,7 @@ def saveSong(results):
                             time_signature = int(track_features[i]['time_signature']),
                             img_640 = track_image,
                         )
+                        
                         trackEntry.save()
                         for artist in results['items'][i]['artists']:
                             # print(artist['name'])
@@ -354,6 +354,7 @@ class Search(APIView):
             #return public playlists whose name, description or creator's name contains query
             #search by owner's username - get list of user ids whose usernames match qstring, then filter for playlists owned by users in that set
             query_no_whitespace = str(query['q']).replace(' ', '')
+            print(query_no_whitespace)
             pl_users = list(User.objects.filter(username__icontains=query_no_whitespace, is_active=True).values_list('id', flat=True))
             playlists1 = Playlist.objects.filter(owner__in=pl_users, is_public=True)
             #search by playlist name or description
@@ -824,7 +825,8 @@ class ModifyPlaylist(APIView):
              return Response({"modify_playlist" : "error: form data incorrect"}, status=status.HTTP_404_NOT_FOUND)
 
         playlist.save()
-        return Response(status=status.HTTP_200_OK)
+        serializer = PlaylistSerializer(playlist)
+        return Response(status=status.HTTP_200_OK, data=serializer.data)
 
     def delete(self, request, playlist_id):
         try:

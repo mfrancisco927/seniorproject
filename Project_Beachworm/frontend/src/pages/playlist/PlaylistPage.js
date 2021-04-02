@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
-import { withStyles, makeStyles } from '@material-ui/core/styles';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { withStyles } from '@material-ui/core/styles';
 import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
+import SettingsIcon from '@material-ui/icons/Settings';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import { Checkbox } from '@material-ui/core';
 import Table from '@material-ui/core/Table';
@@ -12,57 +13,104 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import { getPlaylistSongs, followPlaylist, unfollowPlaylist, deleteSongFromPlaylist } from '../../api/playlistApi';
 import { getPlaylists } from './../../api/userApi';
+import { getRecommendationsByPlaylist } from './../../api/recommendationApi';
 import { useAuth } from './../../hooks/authHooks';
-import { useHistory } from 'react-router-dom';
+import { useSpotifySdk } from './../../hooks/spotifyHooks';
+import EditPlaylistModal from './EditPlaylistModal';
+import PlaylistContextMenu from './PlaylistContextMenu';
+import { useHistory, Redirect } from 'react-router-dom';
+import MuiAlert from '@material-ui/lab/Alert';
+import Snackbar from '@material-ui/core/Snackbar';
 import DefaultImage from './../images/genres/placeholder.png';
-import './PlaylistPage.css';
+import './PlaylistPage.scss';
 
-function PlaylistPage(props) {
+function PlaylistPage() {
   const auth = useAuth();
   const history = useHistory();
+  const spotify = useRef(useSpotifySdk());
   const { playlist: statePlaylist } = history.location.state || {};
-  const [playlist, setPlaylist] = useState(statePlaylist);
+  const [playlist, setPlaylist] = useState(statePlaylist || {});
   const [songList, setSongList] = useState([]);
-  
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const [following, setFollowing] = useState(false);
   const [selected, setSelected] = useState([]);
+  const [snackbarState, setSnackbarState] = useState({ open: false, message: null, severity: null });
+  const ourPlaylist = playlist.owner_id === auth.id;
 
-  const updateFollowing = async () => {
-    await getPlaylists(auth.id).then(data => {
-      setFollowing(data.favorite_playlists.includes(playlist.id));
+  const showAlert = (message, severity) => {
+    setSnackbarState({
+      open: true,
+      message: message,
+      severity: severity,
     })
-  }
+  };
 
-  const getSongs = async () => {
-    // console.log('acquiring songs');
+  const getSongs = useCallback(async () => {
     await getPlaylistSongs(playlist.id).then(data => {
       const songs = data;
       const tempList = [];
-      Object.entries(songs).forEach(songKV =>
+      Object.entries(songs).forEach(songKV => {
         tempList.push({
           id: songKV[0],
+          songId: songKV[1].song_id,
           title: songKV[1].title,
           artists: songKV[1].artists,
           album: 'under construction :)',
-          duration: mstominsecs(songKV[1].duration_ms),
-        }),   
-      )
+          duration: songKV[1].duration_ms,
+        });
+      });
       setSongList(tempList);
       console.log('Loaded song data for playlist ' + playlist.title);
-      // console.log(playlist)      
     })
-  };
+  }, [playlist.id, playlist.title]);
+
   useEffect(() => {
-    if (auth.id) {
+    if (auth.id && playlist.id) {
+      const updateFollowing = async () => {
+        await getPlaylists(auth.id).then(data => {
+          setFollowing(data.favorite_playlists.includes(playlist.id));
+        });
+      };
+      
       updateFollowing();
       getSongs();
     }
-  }, []);
+  }, [auth.id, getSongs, playlist]);
   
-  function mstominsecs(ms){
-    var mins = Math.floor(ms/60000);
-    var secs = ((ms % 60000) / 1000).toFixed(0);
-    return mins + ":" + (secs < 10 ? '0' : '') + secs;
+  const msToHourMinSecondsMillis = (ms) => {
+    const MS_PER_SEC = 1000;
+    const SEC_PER_MIN = 60;
+    const MIN_PER_HOUR = 60;
+
+    const MS_PER_MIN = MS_PER_SEC * SEC_PER_MIN;
+    const MS_PER_HOUR = MIN_PER_HOUR * MS_PER_MIN;
+
+    const totalSeconds = Math.floor(ms / MS_PER_SEC);
+    const totalMinutes = Math.floor(ms / MS_PER_MIN);
+    const totalHours = Math.floor(ms / MS_PER_HOUR);
+
+    const millis = ms % MS_PER_SEC;
+    const seconds = totalSeconds % SEC_PER_MIN;
+    const minutes = totalMinutes % MIN_PER_HOUR;
+
+    return [totalHours, minutes, seconds, millis];
+  }
+
+  const mstominsecs = (ms) => {
+    const [, min, sec, ] = msToHourMinSecondsMillis(ms);
+    return `${min}:${sec < 10 ? '0' + sec : sec}`;
+  }
+
+  const msToHourMins = (ms) => {
+    const [hours, min] = msToHourMinSecondsMillis(ms);
+    const componentArray = [];
+    if (hours) {
+      componentArray.push(hours + (hours > 1 ? ' hours' : ' hour'))
+    }
+    if (min) {
+      componentArray.push(min + ' min')
+    }
+    return componentArray.join(', ');
   }
 
   const handleDeleteClicked = async () =>{
@@ -89,125 +137,211 @@ function PlaylistPage(props) {
   const StyledTableCell = withStyles((theme) => ({
     head: {
       color: theme.palette.common.white,
-      fontSize: 30,
+      fontSize: '1.25em',
     },
     body: {
       color: theme.palette.common.white,
-      fontSize: 20,
+      fontSize: '1em',
+      padding: theme.spacing(0.5),
     },
   }))(TableCell);
   
   const StyledTableRow = withStyles((theme) => ({
     root: {
       '&:nth-of-type(odd)': {
-        backgroundColor: theme.palette.action.hover,
+        backgroundColor: 'rgba(0, 0, 0, 0.1)',
+      },
+      '&:active': {
+        backgroundColor: 'rgba(0, 0, 0, 0.25)',
+      },
+      '&:hover': {
+        backgroundColor: 'rgba(0, 0, 0, 0.25)',
       },
     },
   }))(TableRow);
 
-  const useStyles = makeStyles((theme) => ({
-    button: {
-      color: theme.palette.common.grey,
-      background: theme.palette.common.white,
-      backgroundColor: theme.palette.common.white,
-      borderRadius: 100,
-    },
-  }));
+  const durationMs = songList.length ? songList.map(x => x.duration).reduce((prevSum, next) => (prevSum + next)) : 0;
 
-  const classes = useStyles();
+  const handleEditPlaylist = () => {
+    setEditModalOpen(true);
+  };
 
-  return (
-    <div>
-      <table>
-        <tr>
-          <td>
-            <img 
-            src={DefaultImage}
-            height="250px"
-            width="250px"
-            alt={'Playlist ' + playlist.title}></img>
-          </td>
-          <td>
-            <table>
-              <tr>
-                <td style={{fontSize: '35px'}}>PLAYLIST</td>
-              </tr>
-              <tr>
-                <td style={{fontSize: '50px'}}>{playlist.title}</td>
-              </tr>
-              <tr>
-                <td style={{fontSize: '30px'}}>{playlist.description}</td>
-              </tr>
-              <tr>
-                <td style={{fontSize: '30px'}}>{'USER ID: ' + playlist.owner_id}</td>
-              </tr>
-              <tr>
-                <td style={{fontSize: '30px'}}>37 songs, 2 hours 25 minutes</td>
-                <td>
-                  <ToggleButton className={classes.button}
-                    value='follow'
-                    selected={following}
-                    onChange={() => {
-                      if(following){
-                        unfollowPlaylist(playlist.id, playlist.owner_id);
-                      } else { 
-                        followPlaylist(playlist.id, playlist.owner_id);
-                      }
-                      setFollowing(!following);
-                    }}
-                    >
-                    {following ? "Following" : "Follow"}
-                  </ToggleButton>
-                  </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-      </table>
-      <TableContainer className="tablecontainer">
-        <Table aria-label="customized table">
+  const handleSubmitEdit = (updatedPlaylist) => {
+    setPlaylist({...playlist, ...updatedPlaylist});
+  }
+
+  const handleHideSnackbar = () => {
+    setSnackbarState({...snackbarState, open: false});
+  }
+
+  const handleToggleFollow = async () => {
+    const callback = following ? unfollowPlaylist : followPlaylist; 
+    await callback(playlist.id, playlist.owner_id).then(() => {
+      showAlert(`${following ? 'Unfollowed' : 'Followed'} playlist!`, 'success');
+      setFollowing(!following);
+    }, () => {
+      showAlert(`Error trying to ${following ? 'unfollow' : 'follow'} playlist.`, 'error');
+    })
+  }
+
+  const handleSongPlayed = useCallback((index) => {
+    const playSong = async (index) => {
+      // mapping required because spotify hook expects the key 'id' to hold the song id
+      const mappedSongs = songList.map(song => ({...song, name: song.title, id: song.songId}));
+      console.log('Starting ' + mappedSongs[index].title + ' from playlist page');
+  
+      spotify.current.play(mappedSongs[index]);
+      spotify.current.setContextPlayQueue({
+        name: 'Playlist_' + playlist.id,
+        songs: mappedSongs.slice(index + 1),
+        getMoreSongs: () => getRecommendationsByPlaylist(playlist.id),
+      });
+    };
+
+    playSong(index);
+  }, [songList, playlist.id]);
+
+  const DeleteCheckboxTableCell = (props) => {
+    const {song} = props;
+    return (
+      <StyledTableCell align="center">
+        <Checkbox color='default' 
+        checked={selected.includes(song.id)}
+        onChange={(e) => {
+          if(e.target.checked){
+            setSelected([...selected, song.id]);
+          } else {
+            const index = selected.indexOf(song.id);
+            setSelected([...selected.slice(0, index), ...selected.slice(index+1)]);
+          }}
+        } />
+      </StyledTableCell>
+    )
+  };
+
+  // const [body, setBody] = useState(null);
+
+  // useEffect(() => {
+  //   setBody();
+  // }, [editModalOpen, following, ourPlaylist, playlist, selected,  // eslint-disable-line react-hooks/exhaustive-deps
+  //   snackbarState.message, snackbarState.open, snackbarState.severity, songList])
+
+  return playlist.id ? (
+    <div className="playlist_page-wrapper">
+      <PlaylistContextMenu playSongByIndex={handleSongPlayed} />
+      <Snackbar open={snackbarState.open} autoHideDuration={3000} onClose={handleHideSnackbar}>
+        <MuiAlert
+          onClose={handleHideSnackbar}
+          severity={snackbarState.severity}
+          elevation={6}
+          variant="filled">
+          {snackbarState.message}
+        </MuiAlert>
+      </Snackbar>
+      <EditPlaylistModal
+        open={editModalOpen}
+        playlist={playlist}
+        onClose={() => setEditModalOpen(false)}
+        onSubmit={handleSubmitEdit} 
+      />
+      <div className="playlist_banner">
+        <img 
+          src={DefaultImage}
+          height="250px"
+          width="250px"
+          alt={'Playlist ' + playlist.title}
+        />
+        <div className="playlist_description">
+          <p>PLAYLIST</p>
+          <span className="playlist_title-header">
+            <span className="playlist_name">
+              {playlist.title}
+            </span>
+            {ourPlaylist ? (
+              <SettingsIcon
+              className={"edit-playlist_settings-icon"}
+              onClick={handleEditPlaylist} />
+            ) : (
+              <ToggleButton className="playlist_toggle-follow" id="toggle-follow-btn"
+                value='follow'
+                selected={following}
+                onChange={handleToggleFollow}
+                >
+                {following ? "Following" : "Follow"}
+              </ToggleButton>
+            )}
+          </span>
+          <p><em>{playlist.description}</em></p>
+          <p>{'USER ID: ' + playlist.owner_id}</p>
+          {durationMs !== 0 && (
+            <p>
+              {`${songList.length} songs, ${msToHourMins(durationMs)}`}
+            </p>
+          )}
+        </div>
+      </div>
+      <TableContainer id="playlist_songs-table-container">
+        <Table aria-label="playlist song table">
           <TableHead>
             <TableRow>
-              <StyledTableCell align='left' width='1'>
-                <IconButton align='left' aria-label="delete"
-                  onClick={handleDeleteClicked}>
-                  <DeleteIcon />
-                </IconButton>
-              </StyledTableCell>
-              <StyledTableCell>TITLE</StyledTableCell>
-              <StyledTableCell align="right">ARTIST</StyledTableCell>
-              <StyledTableCell align="right">ALBUM</StyledTableCell>
-              <StyledTableCell align="right">DURATION</StyledTableCell>
+              {ourPlaylist && (
+                <StyledTableCell align='center' width='1'>
+                  <IconButton align='center' aria-label="delete"
+                    onClick={handleDeleteClicked}>
+                    <DeleteIcon />
+                  </IconButton>
+                </StyledTableCell>
+              )}
+              <StyledTableCell component="th" scope="col">TITLE</StyledTableCell>
+              <StyledTableCell component="th" scope="col" align="right">ARTIST</StyledTableCell>
+              <StyledTableCell component="th" scope="col" align="right">ALBUM</StyledTableCell>
+              <StyledTableCell component="th" scope="col" align="right">DURATION</StyledTableCell>
             </TableRow>
           </TableHead>
           <TableBody checkboxSelection>
-            {songList.map((song) => (
-              <StyledTableRow key={song.title}>
-                <Checkbox color='default' 
-                checked={selected.includes(song.id)}
-                onChange={(e) => {
-                  if(e.target.checked){
-                    setSelected([...selected, song.id]);
-                  } else {
-                    const index = selected.indexOf(song.id);
-                    setSelected([...selected.slice(0, index), ...selected.slice(index+1)]);
-                  }}
-                }>
-                </Checkbox>
-                <StyledTableCell component="th" scope="songList" width='200'>
-                  {song.title}
-                </StyledTableCell>
-                <StyledTableCell align="right">{song.artists}</StyledTableCell>
-                <StyledTableCell align="right">{song.album}</StyledTableCell>
-                <StyledTableCell align="right">{song.duration}</StyledTableCell>
-              </StyledTableRow>
-            ))}
+            {songList.map((song, index) => {
+              const songDetails = {
+                songId: song.songId,
+                songName: song.title,
+                playlistIndex: index,
+              };
+
+              return (
+                <StyledTableRow
+                  className="playlist_song-row"
+                  key={song.title}
+                  {...songDetails}
+                  onDoubleClick={() => handleSongPlayed(index)}>
+                  {ourPlaylist && <DeleteCheckboxTableCell song={song} />}
+                  <StyledTableCell
+                  {...songDetails}>
+                    {song.title}
+                  </StyledTableCell>
+                  <StyledTableCell
+                  align="right"
+                  {...songDetails}>
+                    {song.artists}
+                  </StyledTableCell>
+                  <StyledTableCell
+                  align="right"
+                  {...songDetails}>
+                    {song.album}
+                  </StyledTableCell>
+                  <StyledTableCell
+                  align="right"
+                  {...songDetails}>
+                    {mstominsecs(song.duration)}
+                  </StyledTableCell>
+                </StyledTableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>
     </div>
+  ) : (
+    <Redirect to="/" />
   );
-
 }
 
 export default PlaylistPage;

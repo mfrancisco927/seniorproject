@@ -84,4 +84,3 @@ class UserPlaylistPlay(BaseModel):
   radio = models.ForeignKey(Radio, on_delete=models.CASCADE)
   listened_at = models.DateTimeField(auto_now_add=True)
 
-

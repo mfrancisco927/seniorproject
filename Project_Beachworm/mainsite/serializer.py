@@ -1,6 +1,7 @@
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from .models import Playlist
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
@@ -31,9 +32,12 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-        
 class ChangePasswordSerializer(serializers.Serializer):
     model = User
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)   
 
+class PlaylistSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Playlist
+        fields = ['id', 'title', 'description', 'is_public', 'owner', 'songs']
