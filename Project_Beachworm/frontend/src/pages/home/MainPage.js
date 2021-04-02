@@ -47,7 +47,7 @@ function MainPage() {
             getItems={ () => data.artists}
             onItemClick={artist => loader.loadArtistRadio(artist)}
             getImageCallback={(item) => {
-              if(item.images.length != 0){
+              if(item.images.length !== 0){
                   return item.images[0].url;
                 }else{
                   return 'https://media.pitchfork.com/photos/5a71df0d85ed77242d8f1252/1:1/w_320/jpegmafiaveteran.jpg';

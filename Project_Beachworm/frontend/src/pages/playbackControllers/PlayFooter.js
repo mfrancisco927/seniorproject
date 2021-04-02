@@ -267,7 +267,7 @@ function PlayFooter() {
                 currentTrack={currentTrack}
                 scrollProps={scrollProps} />
             </div>
-            <div className={mobileClassName('play-footer_playback-controls')}>
+            <div className={mobileClassName(isMobile, 'play-footer_playback-controls')}>
                 <WrappedSeekBar
                   {...mobileProps}
                   duration={currState && currState.duration}
@@ -279,7 +279,7 @@ function PlayFooter() {
                   handleSkip={handleSkip}
                   handleToggle={handleToggle}
                   isPlaying={isPlaying} />
-                <div className={mobileClassName('play-footer_volume-row')}>
+                <div className={mobileClassName(isMobile, 'play-footer_volume-row')}>
                   <AddToPlaylistButton 
                     {...mobileProps}
                     addPlaylistAnchorRef={addPlaylistAnchorRef}

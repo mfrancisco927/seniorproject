@@ -53,8 +53,8 @@ function PlaylistPage() {
           id: songKV[0],
           songId: songKV[1].song_id,
           title: songKV[1].title,
-          artists: songKV[1].artists,
-          album: 'under construction :)',
+          artists: songKV[1].artists.join(', '),
+          album: songKV[1].album,
           duration: songKV[1].duration_ms,
           songDetails: {
             songId: songKV[1].song_id,
