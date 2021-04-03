@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { Fragment, useRef, useState } from 'react';
 import { useAuth } from './../../hooks/authHooks';
 import LoadingImage from '../loading.svg';
 import useRadioLoaders from '../../hooks/radioLoaders';
@@ -9,6 +9,7 @@ import './SearchPage.css';
 import { useHistory } from 'react-router';
 
 function SearchPage(props) {
+
     const { searchItem, searchData } = props;
     const history = useHistory();
     const auth = useAuth();
@@ -24,6 +25,7 @@ function SearchPage(props) {
     const handleUserClick = (user) => {
         //TODO: Imlement this
     }
+
 
     let element;
     if (searchData) {
@@ -102,9 +104,40 @@ function SearchPage(props) {
 }
 
 function Results(props) {
-    const {name, getItems, getImageCallback, getTitle, getSubtitle, defaultText, loading, onItemClick, loggedIn } = props;
-    const MAX_ITEMS_SHOWN = 4;
+    const {name, getItems, getImageCallback, getTitle, getSubtitle, defaultText, 
+            loading, onItemClick, loggedIn } = props;
+    const ORIGINAL_SHOW_VALUE = 4;
+    const [ maxItemsShown, setMaxItemsShown] = useState(ORIGINAL_SHOW_VALUE);
     const items = !loading && getItems();
+    const targetElement = useRef({});
+    const [expanded, setExpanded] = useState(false);
+
+    const handleShowMore = () => {      
+        console.log(targetElement.current)
+        let allResultDivs = document.getElementsByClassName('results-wrapper');
+        let allWrapperDivs = document.getElementsByClassName('shrink-result-wrapper')
+
+        for( let i = 0; i < allResultDivs.length ; i++){
+            allResultDivs[i].classList.add("disabled");
+        }
+        targetElement.current.classList.remove("disabled");
+
+        setTimeout( () => {
+            for( let i = 0; i < allResultDivs.length ; i++){
+                allWrapperDivs[i].classList.add("disabled");
+            }
+            targetElement.current.classList.add("enabled");
+            targetElement.current.parentNode.classList.remove("disabled");
+            targetElement.current.parentNode.classList.add("enabled");
+            setExpanded(!expanded);
+            setMaxItemsShown(100)  
+        },1000)
+
+    }
+
+    const handleShowLess = () => {
+
+    }
     
     // if still loading, show loading icon. otherwise, show empty results.
     const body = (
@@ -112,7 +145,7 @@ function Results(props) {
             {!loading ? (
                 <div className='results_items-wrapper'> 
                     {items.length ? (
-                        items.slice(0, Math.min(items.length, MAX_ITEMS_SHOWN)).map((item) => (
+                        items.slice(0, Math.min(items.length, maxItemsShown)).map((item) => (
                             <div className='result'>
                                 <div className="result_image-wrapper" onClick={() => onItemClick(item)}>
                                     
@@ -140,19 +173,31 @@ function Results(props) {
             ) : (
                 <img className='loading-image' src={LoadingImage} alt="Loading"/>
             )}
-            {items && (items.length > MAX_ITEMS_SHOWN) && (
-                <button className='result_show-more'>
-                    Show More
-                </button>
-            )}
+            {items && (items.length > ORIGINAL_SHOW_VALUE) && 
+                ( expanded ?
+                (
+                    <button className='result_show-more' onClick={() => handleShowLess()}>
+                        Show less
+                    </button>
+                )
+                :
+                (
+                    <button className='result_show-more' onClick={() => handleShowMore()}>
+                        Show More
+                    </button>
+                )
+                )
+            }
         </Fragment>
     );
 
-    const wrapperClassName = 'results_wrapper' + (loggedIn ? ' results_wrapper__user' : ' results_wrapper__guest');
+    const wrapperClassName = 'results-wrapper' + (loggedIn ? ' results_wrapper__user' : ' results_wrapper__guest');
     return (
-        <div className={wrapperClassName}>
-        <h2 className='results_title'>{name}</h2>
-            {body}
+        <div className='shrink-result-wrapper'>
+            <div className={wrapperClassName} ref={targetElement}>
+            <h2 className='results_title'>{name}</h2>
+                {body}
+            </div>
         </div>
     )
 }
