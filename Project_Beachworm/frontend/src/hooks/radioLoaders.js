@@ -34,6 +34,7 @@ export default function useRadioLoaders() {
 
   const loadSongRadio = (song, redirect=true) => {
     const getSongBasedSongs = async () => await getRecommendationsBySong(song.id).then(result => {
+      result.items = [ song, ...result.items];
       return result.items;
     }, standardReject);
 

@@ -132,8 +132,6 @@
       width: 20%;
       margin: 2%;
     }
-
-
   }
 
   /* Smaller Screen Size */
@@ -149,8 +147,8 @@
     }
   }
 
-  /* Phone Screen Size */  
-  @media screen and (max-width: 1000px) {
+  /* Phone Screen Size and small browsers */  
+  @media screen and (max-width: 960px) {
     .shrink-result-wrapper {
       width: 100%;
       margin: 2% 5%;
@@ -160,8 +158,7 @@
       margin: 2%;
     }
     .disabled.shrink-result-wrapper{
-      transition-property: height, width;
-      transition-duration: 0s;
+      transition: all 0s;
     }
   }
   
@@ -177,6 +174,8 @@
 
   .disabled.results-wrapper{
     opacity: 0%;
+    height: 0%;
+    width: 0%;
   }
 
   .results-wrapper {

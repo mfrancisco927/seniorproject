@@ -3,6 +3,7 @@ import { useAuth } from './../../hooks/authHooks';
 import LoadingImage from '../loading.svg';
 import useRadioLoaders from '../../hooks/radioLoaders';
 import PersonIcon from '@material-ui/icons/Person';
+import useWindowDimensions from './../../hooks/responsiveHooks';
 
 
 import './SearchPage.css';
@@ -96,7 +97,7 @@ function SearchPage(props) {
     }
 
     return (
-        <div className='search-page-wrapper'>
+        <div id='search-page-wrapper' className='search-page-wrapper'>
             {element}
         </div>
     )
@@ -133,9 +134,9 @@ function Results(props) {
             setMaxItemsShown(100);
         },1000)
 
-        // setTimeout( () => {
-        //     window.location.hash = `#${name}`; //Sets users view to where the box is
-        // },1500)
+        setTimeout( () => {
+            window.location.hash = `search-page-wrapper`; //Sets users view to where the box is
+        },2050)
 
     }
 
@@ -154,6 +155,7 @@ function Results(props) {
         setExpanded(!expanded);
         setMaxItemsShown(ORIGINAL_SHOW_VALUE)  
 
+        window.location.hash = `search-page-wrapper`; //Sets users view to where the box is
 
     }
     

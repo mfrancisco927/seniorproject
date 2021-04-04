@@ -25,7 +25,7 @@ const baseUrl = 'http://127.0.0.1:8000/api/';
 
 const axiosInstance = axios.create({
     baseURL: baseUrl,
-    timeout: 20000,
+    timeout: 40000,
     headers: {
         'Content-Type': 'application/json',
         'accept': 'application/json',
