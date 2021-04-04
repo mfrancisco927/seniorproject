@@ -130,8 +130,12 @@ function Results(props) {
             targetElement.current.parentNode.classList.remove("disabled");
             targetElement.current.parentNode.classList.add("enabled");
             setExpanded(!expanded);
-            setMaxItemsShown(100)  
+            setMaxItemsShown(100);
         },1000)
+
+        // setTimeout( () => {
+        //     window.location.hash = `#${name}`; //Sets users view to where the box is
+        // },1500)
 
     }
 
@@ -207,7 +211,7 @@ function Results(props) {
 
     const wrapperClassName = 'results-wrapper' + (loggedIn ? ' results_wrapper__user' : ' results_wrapper__guest');
     return (
-        <div className='shrink-result-wrapper'>
+        <div className='shrink-result-wrapper' id={name}>
             <div className={wrapperClassName} ref={targetElement}>
             <h2 className='results_title'>{name}</h2>
                 {body}

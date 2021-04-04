@@ -159,6 +159,10 @@
       width: 40%;
       margin: 2%;
     }
+    .disabled.shrink-result-wrapper{
+      transition-property: height, width;
+      transition-duration: 0s;
+    }
   }
   
   .enabled.results-wrapper{
