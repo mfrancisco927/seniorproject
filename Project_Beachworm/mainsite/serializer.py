@@ -1,6 +1,10 @@
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
+from rest_framework import exceptions
+from rest_framework_simplejwt.state import token_backend
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from django.contrib.auth.models import User
+from .models import Profile
 from .models import Playlist
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -13,6 +17,21 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         #  Note: UserID is already in the token
         # token['fav_color'] = user.fav_color
         return token
+
+class CustomTokenRefreshSerializer(TokenRefreshSerializer):
+
+    error_msg = 'No known active account with these credentials'
+
+    def validate(self, attrs):
+        token_payload = token_backend.decode(attrs['refresh'])
+        try:
+            user = Profile.objects.get(user=token_payload['user_id'])
+        except:
+            raise exceptions.AuthenticationFailed(
+                self.error_msg, 'no active account'
+            )
+
+        return super().validate(attrs)
 
 class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=True)

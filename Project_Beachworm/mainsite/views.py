@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework import permissions, status, generics
 from rest_framework.views import APIView
 from rest_framework_simplejwt import authentication
@@ -38,6 +38,9 @@ HOME_RECOMMENDATION_NUMBER = 7
 class ObtainTokenPairWithAdditionalInfo(TokenObtainPairView):
         permission_classes = (permissions.AllowAny,)
         serializer_class = MyTokenObtainPairSerializer
+
+class CustomTokenRefreshView(TokenRefreshView):
+    serializer_class = CustomTokenRefreshSerializer
 
 class UserCreate(APIView):
     permission_classes = (permissions.AllowAny,)
@@ -1107,10 +1110,10 @@ class HomeRecommendations(APIView):
         # Use songs -> rec artists -> rec genres
         # if profile exists, curate songs against profile
         if profile:
-            curated_recommendations = curateSongs(profile, recommendations,10)
+            curated_recommendations = curateSongs(profile, recommendations,35)
         # if profile does not exist (guest), just curate songs 
         else:
-            curated_recommendations = curateSongs(None, recommendations,10)
+            curated_recommendations = curateSongs(None, recommendations,35)
         curated_artists = artistsFromSongs(curated_recommendations)
         curated_genres = genresFromArtists(curated_artists, HOME_RECOMMENDATION_NUMBER)
 
