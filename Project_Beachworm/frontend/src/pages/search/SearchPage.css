@@ -11,7 +11,7 @@
   }
 
   .profile_icon {
-    font-size: 7em !important;
+    width: 100%;
   } 
 
   .results_items-wrapper {
@@ -95,11 +95,12 @@
     display: flex;
     flex-direction: column;
     width: 100%;
+    height: 100%;
     margin: 0 2%;
     background: rgba(51, 51, 51, 0.308);
     border-radius: 3%;
     align-self: stretch;			
-    transition-property: background-color, opacity, margin;
+    transition-property: background-color, width, height, opacity, margin;
     transition-duration: 1s;
   }
   
@@ -174,8 +175,6 @@
 
   .disabled.results-wrapper{
     opacity: 0%;
-    height: 0%;
-    width: 0%;
   }
 
   .results-wrapper {

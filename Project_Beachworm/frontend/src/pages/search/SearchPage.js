@@ -24,7 +24,7 @@ function SearchPage(props) {
     };
 
     const handleUserClick = (user) => {
-        //TODO: Imlement this
+        history.push(`/profile/${user.id}`)
     }
 
 
@@ -173,7 +173,7 @@ function Results(props) {
                                     <img className="result_image"
                                         src={getImageCallback(item)}
                                         alt={getTitle(item)}/> : 
-                                        <PersonIcon className='profile_icon'></PersonIcon>}
+                                        <PersonIcon style={{fontSize: 120}} className='profile_icon'></PersonIcon>}
                                     
                                 </div>
                                 <h3 className="result_title" onClick={() => onItemClick(item)}>
