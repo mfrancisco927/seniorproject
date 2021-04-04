@@ -51,13 +51,9 @@ function SignInForm () {
         auth.signOut(updateTokenVars);
     }
 
-    const validateForm = () => {
+    const validateForm = (email, username, password) => {
         if(password !== confirmPassword){
-            alert('Passwords do not match')
             console.log('password validation fail')
-        } else if (!validator.isEmail(email)) {
-            alert('Please enter a valid email address')
-            console.log('email validation fail')
         } else {
             createNewUser(email, username, password);
         }
@@ -106,7 +102,7 @@ function SignInForm () {
         <div className="loginBox">
         <h1>Sign Up</h1>
 
-        <form onSubmit={''}>
+        <form onSubmit={() => createNewUser(email, username, password)}>
             <TextField
                 name="username"
                 floatingLabelText="user name"
@@ -115,6 +111,7 @@ function SignInForm () {
             />
             <br />
             <TextField
+                type="email"
                 name="email"
                 floatingLabelText="email"
                 value={email}
@@ -122,6 +119,7 @@ function SignInForm () {
             />
             <br />
             <TextField
+                type="password"
                 name="password"
                 floatingLabelText="password"
                 value={password}
@@ -129,13 +127,14 @@ function SignInForm () {
             />
             <br />
             <TextField
+                type="password"
                 name="pwconfirm"
                 floatingLabelText="confirm password"
                 value={confirmPassword}
                 onChange={handleChange(setConfirmPassword)}
             />
             <br />
-            <StyledButton type='submit' onClick={validateForm}>
+            <StyledButton type='submit' onClick={console.log('clicked!')}>
                 SUBMIT
             </StyledButton>
 
