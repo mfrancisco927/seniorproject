@@ -24,6 +24,7 @@ function SignInForm () {
     const [access, setAccess] = useState(localStorage.getItem('access_token'))
     const [refresh, setRefresh] = useState(localStorage.getItem('refresh_token'))
     const [error, setErrorText] = useState('');
+    const [signinup, setSignInUp] = useState(false);
 
     const handleChange = (stateSetter) => {
         console.log(email + ' ' + username + ' ' + password);
@@ -59,7 +60,8 @@ function SignInForm () {
         }
     };
 
-    const createNewUser = (email, username, password) => {
+    const createNewUser = (event, email, username, password) => {
+        event.preventDefault();
         createUser(email, username, password).then(value => {
             console.log(value);
             signInUser();
@@ -69,7 +71,8 @@ function SignInForm () {
         });
     };
 
-    const signInUser = () => {
+    const signInUser = (event, username, password) => {
+        event.preventDefault();
         auth.signIn(username, password).then(value => {
             updateTokenVars();
             spotify.clearAll();
@@ -91,60 +94,92 @@ function SignInForm () {
           color: 'white',
           height: 48,
           padding: '0 30px',
+          margin: 15,
           boxShadow: '0 3px 5px 2px rgba(255, 105, 135, .3)',
         },
         label: {
           textTransform: 'capitalize',
         },
       })(Button);
+        return (
+            signinup ? (
+            <body className="signinup-wrapper">
+                <div className="loginBox">
+                <h1>Sign Up</h1>
+                <form onSubmit={(event) => createNewUser(event, email, username, password)}>
+                    <TextField
+                        name="username"
+                        floatingLabelText="username"
+                        value={username}
+                        onChange={handleChange(setUsername)}
+                    />
+                    <br />
+                    <TextField
+                        type="email"
+                        name="email"
+                        floatingLabelText="email"
+                        value={email}
+                        onChange={handleChange(setEmail)}
+                    />
+                    <br />
+                    <TextField
+                        type="password"
+                        name="password"
+                        floatingLabelText="password"
+                        value={password}
+                        onChange={handleChange(setPassword)}
+                    />
+                    <br />
+                    <TextField
+                        type="password"
+                        name="pwconfirm"
+                        floatingLabelText="confirm password"
+                        value={confirmPassword}
+                        onChange={handleChange(setConfirmPassword)}
+                    />
+                    <br />
+                    <StyledButton type='submit' onClick={console.log('clicked!')}>
+                        SUBMIT
+                    </StyledButton>
+                    <StyledButton onClick={() => setSignInUp(!signinup)}>
+                        SIGN IN
+                    </StyledButton>
 
-    return (
-        <div className="loginBox">
-        <h1>Sign Up</h1>
+                </form>
+                </div>
+            </body>
+            ) : (
+            <body className="signinup-wrapper">
+                <div className="loginBox">
+                <h1>Sign In</h1>
 
-        <form onSubmit={() => createNewUser(email, username, password)}>
-            <TextField
-                name="username"
-                floatingLabelText="user name"
-                value={username}
-                onChange={handleChange(setUsername)}
-            />
-            <br />
-            <TextField
-                type="email"
-                name="email"
-                floatingLabelText="email"
-                value={email}
-                onChange={handleChange(setEmail)}
-            />
-            <br />
-            <TextField
-                type="password"
-                name="password"
-                floatingLabelText="password"
-                value={password}
-                onChange={handleChange(setPassword)}
-            />
-            <br />
-            <TextField
-                type="password"
-                name="pwconfirm"
-                floatingLabelText="confirm password"
-                value={confirmPassword}
-                onChange={handleChange(setConfirmPassword)}
-            />
-            <br />
-            <StyledButton type='submit' onClick={console.log('clicked!')}>
-                SUBMIT
-            </StyledButton>
-
-        </form>
-        <p>
-            Aleady have an account? <br />
-            <a href="/">Log in here</a>
-        </p>
-        </div>
-    );
+                <form onSubmit={(event) => signInUser(event, username, password)}>
+                    <TextField
+                        name="username"
+                        floatingLabelText="username"
+                        value={username}
+                        onChange={handleChange(setUsername)}
+                    />
+                    <br />
+                    <TextField
+                        type="password"
+                        name="password"
+                        floatingLabelText="password"
+                        value={password}
+                        onChange={handleChange(setPassword)}
+                    />
+                    <br />
+                    <StyledButton type='submit' onClick={console.log('clicked!')}>
+                        SUBMIT
+                    </StyledButton>
+                    <StyledButton onClick={() => setSignInUp(!signinup)}>
+                        SIGN UP
+                    </StyledButton>
+                </form>
+                </div>
+            </body>
+            )
+        ); 
 }
 
 export default SignInForm;
