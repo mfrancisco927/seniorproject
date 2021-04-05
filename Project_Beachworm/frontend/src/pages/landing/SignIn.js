@@ -81,85 +81,96 @@ function SignInForm () {
         },
       })(Button);
 
-        
+    const FullWidthButton = withStyles({
+        root: {
+            margin: '0 auto 2em',
+            padding: 0,
+            width: '75%',
+        }
+    })(StyledButton);
+
     return (
-        signinup ? (
         <div className="signinup-wrapper">
             <div className="loginBox">
-                <h1>Sign Up</h1>
-                <form onSubmit={(event) => createNewUser(event, email, username, password)}>
-                    <TextField
-                        name="username"
-                        floatingLabelText="username"
-                        value={username}
-                        onChange={handleChange(setUsername)}
-                    />
-                    <br />
-                    <TextField
-                        type="email"
-                        name="email"
-                        floatingLabelText="email"
-                        value={email}
-                        onChange={handleChange(setEmail)}
-                    />
-                    <br />
-                    <TextField
-                        type="password"
-                        name="password"
-                        floatingLabelText="password"
-                        value={password}
-                        onChange={handleChange(setPassword)}
-                    />
-                    <br />
-                    <TextField
-                        type="password"
-                        name="pwconfirm"
-                        floatingLabelText="confirm password"
-                        value={confirmPassword}
-                        onChange={handleChange(setConfirmPassword)}
-                    />
-                    <br />
-                    <StyledButton type="submit">
-                        SUBMIT
-                    </StyledButton>
-                    <StyledButton onClick={() => setSignInUp(!signinup)}>
-                        SIGN IN
-                    </StyledButton>
-
-                </form>
+                {signinup ? (
+                    <>
+                        <h1>Sign Up</h1>
+                        <form
+                        className="login-form"
+                        onSubmit={(event) => createNewUser(event, email, username, password)}>
+                            <TextField
+                                name="username"
+                                floatingLabelText="username"
+                                value={username}
+                                onChange={handleChange(setUsername)}
+                            />
+                            <br />
+                            <TextField
+                                type="email"
+                                name="email"
+                                floatingLabelText="email"
+                                value={email}
+                                onChange={handleChange(setEmail)}
+                            />
+                            <br />
+                            <TextField
+                                type="password"
+                                name="password"
+                                floatingLabelText="password"
+                                value={password}
+                                onChange={handleChange(setPassword)}
+                            />
+                            <br />
+                            <TextField
+                                type="password"
+                                name="pwconfirm"
+                                floatingLabelText="confirm password"
+                                value={confirmPassword}
+                                onChange={handleChange(setConfirmPassword)}
+                            />
+                            <br />
+                            <StyledButton type="submit">
+                                SUBMIT
+                            </StyledButton>
+                            <StyledButton onClick={() => setSignInUp(!signinup)}>
+                                SIGN IN
+                            </StyledButton>
+                            <FullWidthButton onClick={() => history.push('/home')}>START GUEST SESSION</FullWidthButton>
+                        </form>
+                    </>
+                ) : (
+                    <>
+                        <h1>Sign In</h1>
+                        <form
+                        className="signup-form"
+                        onSubmit={(event) => signInUser(event, username, password)}>
+                            <TextField
+                                name="username"
+                                floatingLabelText="username"
+                                value={username}
+                                onChange={handleChange(setUsername)}
+                            />
+                            <br />
+                            <TextField
+                                type="password"
+                                name="password"
+                                floatingLabelText="password"
+                                value={password}
+                                onChange={handleChange(setPassword)}
+                            />
+                            <br />
+                            <StyledButton type="submit">
+                                SUBMIT
+                            </StyledButton>
+                            <StyledButton onClick={() => setSignInUp(!signinup)}>
+                                SIGN UP
+                            </StyledButton>
+                            <FullWidthButton onClick={() => history.push('/home')}>START GUEST SESSION</FullWidthButton>
+                        </form>
+                    </>
+                )}
             </div>
         </div>
-        ) : (
-        <div className="signinup-wrapper">
-            <div className="loginBox">
-                <h1>Sign In</h1>
-
-                <form onSubmit={(event) => signInUser(event, username, password)}>
-                    <TextField
-                        name="username"
-                        floatingLabelText="username"
-                        value={username}
-                        onChange={handleChange(setUsername)}
-                    />
-                    <br />
-                    <TextField
-                        type="password"
-                        name="password"
-                        floatingLabelText="password"
-                        value={password}
-                        onChange={handleChange(setPassword)}
-                    />
-                    <br />
-                    <StyledButton type="submit">
-                        SUBMIT
-                    </StyledButton>
-                    <StyledButton onClick={() => setSignInUp(!signinup)}>
-                        SIGN UP
-                    </StyledButton>
-                </form>
-            </div>
-        </div>
-        )
     ); 
 }
 

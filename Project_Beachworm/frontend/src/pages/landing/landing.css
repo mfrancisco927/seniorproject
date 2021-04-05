@@ -23,6 +23,11 @@ form {
   background-color: #FFA380;
 }
 
+.login-form, .signup-form {
+  width: 60%;
+  margin: 0 auto;
+}
+
 @media screen and (max-width: 550px) {
   .loginBox {
     width: 85%;
