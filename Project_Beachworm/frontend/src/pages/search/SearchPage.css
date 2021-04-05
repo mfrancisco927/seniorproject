@@ -28,6 +28,8 @@
   
   .result {
     width: 35%;
+    transition-property: width;
+    transition-duration: .75s;
   }
 
   .result_image-wrapper {
@@ -142,6 +144,7 @@
     width: 29%;
   }
 
+<<<<<<< HEAD
 
   @media screen and (max-width: 1440px) {
     .results_wrapper {
@@ -163,3 +166,10 @@
       margin: 2%;
     }
   }
+=======
+  .enabled .result{
+    width: 20%;
+    margin: 2%;
+  }
+
+>>>>>>> 794ee6a... Got show more and show less mostly working

@@ -137,6 +137,20 @@ function Results(props) {
 
     const handleShowLess = () => {
 
+        let allResultDivs = document.getElementsByClassName('results-wrapper');
+        let allWrapperDivs = document.getElementsByClassName('shrink-result-wrapper');
+        for( let i = 0; i < allResultDivs.length ; i++){
+            allResultDivs[i].classList.remove("disabled");
+        }
+        for( let i = 0; i < allResultDivs.length ; i++){
+            allWrapperDivs[i].classList.remove("disabled");
+        }
+        targetElement.current.classList.remove("enabled");
+        targetElement.current.parentNode.classList.remove("enabled");
+        setExpanded(!expanded);
+        setMaxItemsShown(ORIGINAL_SHOW_VALUE)  
+
+
     }
     
     // if still loading, show loading icon. otherwise, show empty results.
