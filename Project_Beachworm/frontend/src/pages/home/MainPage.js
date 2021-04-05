@@ -2,13 +2,11 @@ import { useState, useEffect, Fragment, useRef } from 'react';
 import './MainPage.css';
 import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
 import ArrowForwardIosIcon from '@material-ui/icons/ArrowForwardIos';
-import { useAuth } from './../../hooks/authHooks';
 import { getHomeRecommendations } from './../../api/recommendationApi';
 import LoadingImage from '../loading.svg';
 import useRadioLoaders from '../../hooks/radioLoaders';
 
 function MainPage() {
-  const auth = useAuth();
   const loader = useRadioLoaders();
   const [data, setData] = useState({});
   const [loaded, setLoaded] = useState(false);
@@ -20,7 +18,7 @@ function MainPage() {
         setLoaded(true);
       }
     );
-  }, [auth.id])
+  }, [])
 
   return (
     <Fragment>

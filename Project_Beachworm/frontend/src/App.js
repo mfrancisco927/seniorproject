@@ -98,6 +98,14 @@ function App() {
     '/landing': 'Sign in',
   });
 
+  const WrappedHome = () => (
+    <RequireSpotifyAuthForLoggedInOnly>
+      <RequireSeedsChosen>
+        <MainPage />
+      </RequireSeedsChosen>
+    </RequireSpotifyAuthForLoggedInOnly>
+  );
+
   return (
     <div className={'page-wrapper' + (showFooter ? ' page-wrapper__footer' : ' page-wrapper__no-footer')}>
       {/* pages marked TEMP will not be accessible via nav-bar in production, but through some other context */}
@@ -135,21 +143,13 @@ function App() {
           </PrivateRoute>
           <Route path='/' exact>
             {(auth.id !== null) ? (
-              <RequireSpotifyAuth>
-                <RequireSeedsChosen>
-                  <MainPage />
-                </RequireSeedsChosen>
-              </RequireSpotifyAuth>
+              <WrappedHome />
             ) : (
               <Landing />
             )}
           </Route>
           <Route path='/home'>
-            <RequireSpotifyAuthForLoggedInOnly>
-              <RequireSeedsChosen>
-                <MainPage />
-              </RequireSeedsChosen>
-            </RequireSpotifyAuthForLoggedInOnly>
+            <WrappedHome />
           </Route>
           <Route path='*'>
             <PageNotFound />
