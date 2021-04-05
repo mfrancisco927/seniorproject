@@ -3,7 +3,7 @@ import { useAuth } from './../../hooks/authHooks';
 import LoadingImage from '../loading.svg';
 import useRadioLoaders from '../../hooks/radioLoaders';
 import PersonIcon from '@material-ui/icons/Person';
-import useWindowDimensions from './../../hooks/responsiveHooks';
+import { useWindowDimensions } from './../../hooks/responsiveHooks';
 
 
 import './SearchPage.css';
@@ -83,7 +83,6 @@ function SearchPage(props) {
                             loggedIn={auth.id !== null}/>}
                         <Results name="Users"
                             getItems={() => searchData.users}
-                            getImageCallback={console.log('')}
                             getTitle={item => item.username}
                             getSubtitle={() => ''}
                             onItemClick={handleUserClick}
@@ -134,9 +133,9 @@ function Results(props) {
             setMaxItemsShown(100);
         },1000)
 
-        setTimeout( () => {
-            window.location.hash = `search-page-wrapper`; //Sets users view to where the box is
-        },2050)
+        // setTimeout( () => {
+        //     window.location.hash = `search-page-wrapper`; //Sets users view to where the box is
+        // },2050)
 
     }
 
