@@ -24,6 +24,7 @@
     "react-scripts": "4.0.3",
     "react-transition-group": "^4.4.1",
     "typeface-pt-sans": "^1.1.13",
+    "validator": "^13.5.2",
     "web-vitals": "^1.1.0"
   },
   "scripts": {
