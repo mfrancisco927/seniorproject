@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { ProvideAuth } from './hooks/authHooks';
 import { ProvideSpotify } from './hooks/spotifyHooks';
+import { ApiInterceptor } from './api/axiosApi';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
@@ -11,9 +12,11 @@ ReactDOM.render(
   <React.StrictMode>
     <ProvideAuth>
       <Router>
-        <ProvideSpotify>
-          <App />
-        </ProvideSpotify>
+        <ApiInterceptor>
+          <ProvideSpotify>
+            <App />
+          </ProvideSpotify>
+        </ApiInterceptor>
       </Router>
     </ProvideAuth>
   </React.StrictMode>,

@@ -50,7 +50,7 @@ function App() {
   // wrapper that dynamically sets the show footer status for each page
   const WithFooter = (props) => {
     const path = useLocation().pathname;
-    setShowFooter(footerPages.some(page => path.match(page)) && auth.user !== null);
+    setShowFooter(footerPages.some(page => path.match(page)) && auth.id !== null);
     return (
       <Fragment>
         {props.children}
@@ -80,7 +80,7 @@ function App() {
 
     return (
       <span>
-        <button onClick={handleSignOut} disabled={!auth.user}>Log out</button>
+        <button onClick={handleSignOut} disabled={auth.id === null}>Log out {auth.id !== null && `(id ${auth.id})`}</button>
         {stations.map(genre => (
           <button onClick={() => loaders.loadGenreRadio(genre)}>{genre.name} radio</button>
         ))}
@@ -88,18 +88,20 @@ function App() {
     );
   }
 
+  const navList = (auth.id !== null) ? ({
+    '/': 'Home',
+    '/explore': 'Explore',
+    '/profile': 'Profile',
+  }) : ({
+    '/home': 'Home',
+    '/explore': 'Explore',
+    '/landing': 'Sign in',
+  });
+
   return (
     <div className={'page-wrapper' + (showFooter ? ' page-wrapper__footer' : ' page-wrapper__no-footer')}>
       {/* pages marked TEMP will not be accessible via nav-bar in production, but through some other context */}
-      <Navbar submitSearch={submitSearch} menuList={{
-        '/landing': 'Landing [TEMP]',
-        '/': 'Home',
-        '/questionnaire1': 'Questionnaire [TEMP]',
-        '/explore': 'Explore',
-        '/profile': 'Profile',
-        '/playlist': 'Playlist [TEMP]',
-        '/spotify-auth': 'Spotify Auth [TEMP]',
-      }}/>
+      <Navbar submitSearch={submitSearch} menuList={navList}/>
       <WithFooter>
         <DebugButtons />
         <Switch>
@@ -132,6 +134,17 @@ function App() {
             <SpotifyAuth />
           </PrivateRoute>
           <Route path='/' exact>
+            {(auth.id !== null) ? (
+              <RequireSpotifyAuth>
+                <RequireSeedsChosen>
+                  <MainPage />
+                </RequireSeedsChosen>
+              </RequireSpotifyAuth>
+            ) : (
+              <Landing />
+            )}
+          </Route>
+          <Route path='/home'>
             <RequireSpotifyAuthForLoggedInOnly>
               <RequireSeedsChosen>
                 <MainPage />
@@ -153,11 +166,17 @@ function App() {
 // information passed into history.location.state to redirect the user back
 function PrivateRoute({ children, ...rest }) {
   const auth = useAuth();
+  const unlikelyUser = auth.id === null && !auth.tokens.refresh;
+
+  if (unlikelyUser) {
+    console.log('User tried to access private route. Redirecting to landing.');
+  }
+
   return (
     <Route
       {...rest}
       render={({ location }) =>
-        auth.user ? (
+        !unlikelyUser ? (
           children
         ) : (
           <Redirect
@@ -183,7 +202,7 @@ function RequireSeedsChosen({ children }) {
 
   // if we're not logged in, just return children right away
   return (
-    (!auth.id || (hasGenreSeeds && hasArtistSeeds)) ? (
+    (auth.id === null || (hasGenreSeeds && hasArtistSeeds)) ? (
       children
     ) : (
       <Redirect to={{
@@ -231,7 +250,7 @@ function RequireSpotifyAuthForLoggedInOnly({ children }) {
 // if the user is signed in, display the children. if not, display nothing at all.
 function AuthorizedOrHidden({ children }) {
   const auth = useAuth();
-  return auth.user ? children : null;
+  return auth.id !== null ? children : null;
 }
 
 export default App;

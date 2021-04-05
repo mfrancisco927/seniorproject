@@ -28,7 +28,7 @@ function Explore() {
     const dislikedSongs = useRef(null);
     const ctxQueue = spotify.getContextPlayQueue();
     const contextQueueName = ctxQueue && ctxQueue.name;
-    const signedIn = !!auth.user;
+    const signedIn = auth.id !== null;
     const [snackbarState, setSnackbarState] = useState({ open: false, message: null, severity: null });
 
     const loadLikeDislikes = useCallback(async () => {
@@ -67,7 +67,7 @@ function Explore() {
         });
         return Promise.resolve(returnedSongs);
       });
-    }, [auth.user, signedIn]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [auth.id, signedIn]); // eslint-disable-line react-hooks/exhaustive-deps
     // disabled warning because we don't want to refresh this on spotify change
 
     // on mount, get the songs we need and add them to the queue.

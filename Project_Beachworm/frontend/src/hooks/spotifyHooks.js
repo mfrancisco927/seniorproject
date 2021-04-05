@@ -12,7 +12,7 @@ export function useSpotifySdk() {
 
 export function ProvideSpotify({ children }) {
   const auth = useAuth();
-  const signedIn = !!auth.user;
+  const signedIn = auth.id !== null;
   const deviceIdRef = useRef(null);
   const [, setPlayerLoaded] = useState(false);
   const [, setPlayerSelected] = useState(false);
@@ -93,8 +93,12 @@ export function ProvideSpotify({ children }) {
     onPlayerRequestAccessToken: (async () => {
       if (auth.spotifyToken) {
         return auth.spotifyToken;
-      } else if (auth.user) {
-        return await auth.refreshSpotifyAuth();
+      } else if (auth.id !== null) {
+        return await auth.refreshSpotifyAuth().then(x => {
+          return x;
+        }, () => {
+          return Promise.resolve(null);
+        });
       } else {
         return null;
       }

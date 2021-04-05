@@ -1,4 +1,5 @@
-import { useContext, createContext, useState, useEffect } from "react";
+import { useContext, createContext, useState, useEffect, useCallback } from "react";
+import { useHistory } from 'react-router-dom';
 import { signIn as apiSignIn, refreshSpotifyToken }  from './../api/authenticationApi';
 import { getCurrentUser, getUserSeeds }  from './../api/userApi';
 import axiosInstance from './../api/axiosApi';
@@ -23,54 +24,20 @@ export function useAuth() {
 }
 
 function useProvideAuth() {
-  const [user, setUser] = useState(localStorage.getItem('access_token'));
+  const [tokens, setTokens] = useState({ refresh: localStorage.getItem('refresh_token'), access: null });
   const [id, setId] = useState(null);
   const [spotifyToken, setSpotifyToken] = useState(null);
   const [hasSeeds, setHasSeeds] = useState({ artist: false, genre: false });
   const [hasAuthenticatedSpotify, setHasAuthenticatedSpotify] = useState(null);
 
-  useEffect(() => {
-    const updateUser = async () => {
-      if (user) {
-        console.log('New auth detected. Fetching current user details');
-        await getCurrentUser().then(value => {
-          setId(value.user_id);
-          return Promise.resolve(value);
-        }, (_reject) =>{
-          console.log('Couldn\'t find curr user');
-        }).then(async _value => {
-          // now attempt to set questionnaire status
-          await getUserSeeds().then(value => {
-            const numArtistSeeds = value.artists.length;
-            const numGenreSeeds = value.genres.length;
-            setHasSeeds({
-              artist: numArtistSeeds > 0,
-              genre: numGenreSeeds > 0,
-            });
-            console.log(`User has ${numArtistSeeds} artist seeds and ${numGenreSeeds} genre seeds.`);
-          }, _reject => {
-            console.log('Could not retrieve user seeds');
-          });
-        }).then(async _value => {
-          console.log('Current user successfully pulled, attempting to get initial Spotify access token.');
-          // have successful user, so should also have spotify token
-          await refreshSpotifyAuth().then(() => {
-            console.log('Spotify access token successfully retrieved.');
-          }, () => {
-            console.log('Failed to retrieve Spotify access token.');
-          });
-        });
-      }
-    };
-
-    updateUser();
-  }, [user]);
+  const history = useHistory();
 
   const signIn = (user, pass, cb) => {
     console.log('Attempting sign in for user ' + user);
-    return apiSignIn(user, pass).then(_result => {
+    return apiSignIn(user, pass).then(result => {
       console.log('Sign in successful');
-      setUser(user);
+      axiosInstance.defaults.headers['Authorization'] = `JWT ${result.access}`;
+      setTokens({ refresh: result.refresh, access: result.access });
       if (cb) {
         cb();
       }
@@ -78,22 +45,76 @@ function useProvideAuth() {
     });
   };
 
-  const signOut = cb => {
-    if (id) {
-      localStorage.removeItem('refresh_token');
-      localStorage.removeItem('access_token');
-      setUser(null);
-      setId(null);
-      setSpotifyToken(null);
-      setHasAuthenticatedSpotify(false);
-      setHasSeeds({artist: false, genre: false});
-      axiosInstance.defaults.headers['Authorization'] = null;
-      if (cb) {
-        cb();
-      }
-      console.log('Signed out of user number ' + id);
+  const signOut = useCallback(cb => {
+    localStorage.removeItem('refresh_token');
+    delete axiosInstance.defaults.headers['Authorization'];
+    setTokens({ refresh: null, access: null });
+    setId(null);
+    setSpotifyToken(null);
+    setHasAuthenticatedSpotify(false);
+    setHasSeeds({ artist: false, genre: false });
+    if (cb) {
+      cb();
     }
-  };
+    console.log('Signed out');
+  }, []);
+
+  useEffect(() => {
+    const updateUser = async () => {
+      if (tokens.refresh) {
+        if (!tokens.access) {
+          // if we have a refresh token but no access token, try to refresh one
+          console.log('No access token stored. Attempting to retrieve with refresh token.');
+          return axiosInstance.post('/token/refresh/', {refresh: tokens.refresh})
+          .then(response => {
+              console.log('Successfully retrieved access token.');
+              const newRefresh = response.data.refresh;
+              const newAccess = response.data.access;
+              axiosInstance.defaults.headers['Authorization'] = "JWT " + newAccess;
+              localStorage.setItem('refresh_token', newRefresh);
+              setTokens({ refresh: newRefresh, access: newAccess, });
+          }, () => {
+            signOut();
+            history.push('/');
+          });
+        } else {
+          // if we have a refresh token and an access token
+          console.log('New auth detected. Fetching current user details');
+          await getCurrentUser().then(value => {
+            setId(value.user_id);
+            return Promise.resolve(value);
+          }, (_reject) =>{
+            console.log('Couldn\'t find curr user, not sure why. Forcing a sign out.');
+            signOut();
+          }).then(async _value => {
+            // now attempt to set questionnaire status
+            await getUserSeeds().then(value => {
+              const numArtistSeeds = value.artists.length;
+              const numGenreSeeds = value.genres.length;
+              setHasSeeds({
+                artist: numArtistSeeds > 0,
+                genre: numGenreSeeds > 0,
+              });
+              console.log(`User has ${numArtistSeeds} artist seeds and ${numGenreSeeds} genre seeds.`);
+            }, _reject => {
+              console.log('Could not retrieve user seeds');
+            });
+          }).then(async _value => {
+            console.log('Current user successfully pulled, attempting to get initial Spotify access token.');
+            // have successful user, so should also have spotify token
+            await refreshSpotifyAuth().then(() => {
+              console.log('Spotify access token successfully retrieved.');
+            }, () => {
+              console.log('Failed to retrieve Spotify access token.');
+              return Promise.resolve();
+            });
+          });
+        }
+      }
+    };
+
+    updateUser();
+  }, [history, signOut, tokens]);
 
   const refreshSpotifyAuth = () => {
     return refreshSpotifyToken().then(result => {
@@ -108,12 +129,13 @@ function useProvideAuth() {
     }, _reject => {
       setHasAuthenticatedSpotify(false);
       console.log('Access token failed to refresh')
+      return Promise.reject();
     });
   };
 
   return {
-    user,
     id,
+    tokens,
     signIn,
     signOut,
     refreshSpotifyAuth,
