@@ -35,6 +35,7 @@ function PlaylistPage() {
   const [selected, setSelected] = useState([]);
   const [snackbarState, setSnackbarState] = useState({ open: false, message: null, severity: null });
   const ourPlaylist = playlist.owner_id === auth.id;
+  const isLikedSongs = playlist.id === 'liked';
 
   const showAlert = (message, severity) => {
     setSnackbarState({
@@ -56,6 +57,7 @@ function PlaylistPage() {
           artists: songKV[1].artists.join(', '),
           album: songKV[1].album,
           duration: songKV[1].duration_ms,
+          // added: new Date(songKV[1].updated_at), // this is currently wrong, since it's the updated date of the SONG and not the playlist_song
           songDetails: {
             songId: songKV[1].song_id,
             songName: songKV[1].title,
@@ -63,6 +65,12 @@ function PlaylistPage() {
           }
         });
       });
+      // in place sort, order by adding date
+      // tempList.sort((a, b) => {
+      //   if (a.added < b.added) return -1;
+      //   if (a.added > b.added) return 1;
+      //   return 0;
+      // });
       setSongList(tempList);
       console.log('Loaded song data for playlist ' + playlist.title);
     });
@@ -255,7 +263,7 @@ function PlaylistPage() {
   const MemoizedTableHead = useMemo(() => (
     <TableHead>
       <TableRow>
-        {ourPlaylist && (
+        {(ourPlaylist && !isLikedSongs) && (
           <PlaylistHeaderTableCell align="center" width="1">
             <IconButton align='center' aria-label="delete"
               onClick={handleDeleteClicked}>
@@ -269,7 +277,7 @@ function PlaylistPage() {
         <PlaylistHeaderTableCell align="right">DURATION</PlaylistHeaderTableCell>
       </TableRow>
     </TableHead>
-  ), [handleDeleteClicked, ourPlaylist]);
+  ), [handleDeleteClicked, isLikedSongs, ourPlaylist]);
 
   const MemoizedTableBody = useMemo(() => {
     return (
@@ -279,7 +287,7 @@ function PlaylistPage() {
               key={song.title}
               {...song.songDetails}
               onDoubleClick={(event) => handleDoubleClick(event, index)}>
-              {ourPlaylist && <DeleteCheckboxTableCell checked={selected.includes(song.id)} song={song} />}
+              {(ourPlaylist && !isLikedSongs) && <DeleteCheckboxTableCell checked={selected.includes(song.id)} song={song} />}
               <PlaylistTableCell songDetails={song.songDetails}>
                 {song.title}
               </PlaylistTableCell>
@@ -296,7 +304,7 @@ function PlaylistPage() {
           ))}
         </TableBody>
     );
-  }, [handleDoubleClick, mstominsecs, ourPlaylist, selected, songList]);
+  }, [handleDoubleClick, isLikedSongs, mstominsecs, ourPlaylist, selected, songList]);
 
   const MemoizedTable = useMemo(() => (
     <TableContainer id="playlist_songs-table-container">
@@ -333,7 +341,7 @@ function PlaylistPage() {
               {playlist.title}
             </span>
             {ourPlaylist ? (
-              <SettingsIcon
+              !isLikedSongs && <SettingsIcon
               className={"edit-playlist_settings-icon"}
               onClick={handleEditPlaylist} />
             ) : (
@@ -357,9 +365,8 @@ function PlaylistPage() {
       </div>
       {MemoizedTable}
     </div>
-  ), [MemoizedSnackBar, MemoizedTable, durationMs, editModalOpen, following, getSongs,
-    handleEditPlaylist, handleModalClose, handleSongPlayed, handleSubmitEdit,
-    handleToggleFollow, msToHourMins, ourPlaylist, playlist, songList.length]);
+  ), [MemoizedSnackBar, MemoizedTable, durationMs, editModalOpen, following, getSongs, handleEditPlaylist, handleModalClose,
+    handleSongPlayed, handleSubmitEdit, handleToggleFollow, isLikedSongs, msToHourMins, ourPlaylist, playlist, songList.length]);
 
   return playlist.id ? (
     MemoizedBody

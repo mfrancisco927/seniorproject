@@ -28,7 +28,6 @@ function ProfilePage(){
   const [ selectedTabIndex, setSelectedTabIndex ] = useState(0);
   const profileId = useParams().profileId || auth.id;
   const viewingSelf = Number(profileId) === auth.id;
-  
 
   const updateTargetData = useCallback(async () => {
     if (!auth.id) {
@@ -82,13 +81,22 @@ function ProfilePage(){
     );
   }
 
-  const loadLikedSongsPlaylist = () => {
-    // TODO: when playlist page is done, load up the liked songs within it here
-  };
-
   const handlePlaylistClick = (playlist) => {
+    console.log(playlist)
     history.push('/playlist', {
       playlist: playlist,
+    });
+  }
+
+  const handleLikedSongsClick = () => {
+    history.push('/playlist', {
+      playlist: {
+        id: 'liked',
+        title: 'Liked Songs',
+        description: 'All of your liked songs',
+        owner_id: auth.id,
+        is_public: false,
+      },
     });
   }
 
@@ -99,7 +107,7 @@ function ProfilePage(){
   const likedSongsElement = (
     <ImageSquare
     src={DEFAULT_IMAGE_URL}
-    onClick={loadLikedSongsPlaylist}>
+    onClick={handleLikedSongsClick}>
       {'Liked songs'}
     </ImageSquare>
   );
