@@ -11,6 +11,8 @@
   }
 
   .profile_icon {
+    transform: scale(1.8);
+    height: auto;
     width: 100%;
   } 
 

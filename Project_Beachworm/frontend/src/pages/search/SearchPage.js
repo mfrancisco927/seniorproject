@@ -173,7 +173,7 @@ function Results(props) {
                                     <img className="result_image"
                                         src={getImageCallback(item)}
                                         alt={getTitle(item)}/> : 
-                                        <PersonIcon style={{fontSize: 120}} className='profile_icon'></PersonIcon>}
+                                        <PersonIcon  className='profile_icon'></PersonIcon>}
                                     
                                 </div>
                                 <h3 className="result_title" onClick={() => onItemClick(item)}>
