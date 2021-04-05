@@ -754,18 +754,54 @@ class SongHistory(APIView):
         
 class PlaylistSongs(APIView):
     def get(self, request, playlist_id):
-        try:
-            playlist= Playlist.objects.get(pk=playlist_id)
-        except:
-           return Response({"playlist_songs" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
-        
-        songs= list(playlist.songs.all().values())
-        result = {}
-        for i in range((len(songs))):
-            result[i]=songs[i]
-            song = Song.objects.get(song_id = songs[i]['song_id'])
-            result[i]['artists'] = list(song.artists.values_list('artist_name', flat=True))
-        return Response(data = result , status=status.HTTP_200_OK)
+        if playlist_id != 'liked' and playlist_id != 'disliked':
+            try:
+                playlist= Playlist.objects.get(pk=playlist_id)
+            except:
+                return Response({"playlist_songs" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
+            
+            songs= list(playlist.songs.all().values())
+            result = {}
+            for i in range((len(songs))):
+                result[i]=songs[i]
+                song = Song.objects.get(song_id = songs[i]['song_id'])
+                result[i]['artists'] = list(song.artists.values_list('artist_name', flat=True))
+            return Response(data = result , status=status.HTTP_200_OK)
+
+        else:
+            # Get requestor's profile
+            try : 
+                profile = Profile.objects.get(user=self.request.user.id)
+            except:
+                return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Return liked songs
+            if playlist_id == 'liked':
+                try:
+                    liked_songs = list(profile.liked_songs.all().values())
+                except:
+                    return Response({'error': 'error retrieving songs'}, status=status.HTTP_404_NOT_FOUND)
+
+                result = {}
+                for i in range(len(liked_songs)):
+                    result[i] = liked_songs[i]
+                    song = Song.objects.get(song_id = liked_songs[i]['song_id'])
+                    result[i]['artists'] = list(song.artists.values_list('artist_name', flat=True))
+                return Response(data = result, status=status.HTTP_200_OK)
+
+            # Return disliked songs
+            if playlist_id == 'disliked':
+                try:
+                    disliked_songs = list(profile.disliked_songs.all().values())
+                except:
+                    return Response({'error': 'error retrieving songs'}, status=status.HTTP_404_NOT_FOUND)
+
+                result = {}
+                for i in range(len(disliked_songs)):
+                    result[i] = disliked_songs[i]
+                    song = Song.objects.get(song_id = disliked_songs[i]['song_id'])
+                    result[i]['artists'] = list(song.artists.values_list('artist_name', flat=True))
+                return Response(data = result, status=status.HTTP_200_OK)
 
     def post(self, request, playlist_id):
         query = self.request.query_params
