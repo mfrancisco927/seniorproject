@@ -792,14 +792,14 @@ class PlaylistSongs(APIView):
             # Return disliked songs
             if playlist_id == 'disliked':
                 try:
-                    liked_songs = list(profile.disliked_songs.all().values())
+                    disliked_songs = list(profile.disliked_songs.all().values())
                 except:
                     return Response({'error': 'error retrieving songs'}, status=status.HTTP_404_NOT_FOUND)
 
                 result = {}
-                for i in range(len(liked_songs)):
-                    result[i] = liked_songs[i]
-                    song = Song.objects.get(song_id = liked_songs[i]['song_id'])
+                for i in range(len(disliked_songs)):
+                    result[i] = disliked_songs[i]
+                    song = Song.objects.get(song_id = disliked_songs[i]['song_id'])
                     result[i]['artists'] = list(song.artists.values_list('artist_name', flat=True))
                 return Response(data = result, status=status.HTTP_200_OK)
 
