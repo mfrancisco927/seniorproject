@@ -1,10 +1,13 @@
 import SignIn from './SignIn';
+import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
+import "./landing.css";
 
 function Landing() {
-    return <div>
-        <h2>Landing!</h2>
-        <SignIn />
-    </div>
+    return (
+        <MuiThemeProvider>
+            <SignIn />
+        </MuiThemeProvider>
+    )
 }
 
 export default Landing;
