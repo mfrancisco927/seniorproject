@@ -3,12 +3,11 @@ import axiosInstance from './axiosApi';
 const baseUri = '/playlists';
 
 const playlistSongs = (playlistId) => baseUri + '/' + playlistId + '/songs/';
-const playlistPostSong = (playlistId, songId) => baseUri + '/' + playlistId + '/songs?id=' + songId + '/';
 const playlistDeleteSong = (playlistId, songId) => baseUri + '/' + playlistId + '/songs/';
 const playlistPutSettings = (playlistId) => baseUri + '/' + playlistId + '/';
 const playlistDeletePlaylist = (playlistId) => baseUri + '/' + playlistId + '/';
-const playlistFollowPlaylist = (playlistId, userId) => '/users' + '/' + userId + '/followed-playlists/' + playlistId + '/';
-const playlistUnfollowPlaylist = (playlistId, userId) => '/users' + '/' + userId + '/followed-playlists/' + playlistId + '/';
+const playlistFollowPlaylist = (playlistId, userId) => '/users/' + userId + '/followed-playlists/' + playlistId + '/';
+const playlistUnfollowPlaylist = (playlistId, userId) => '/users/' + userId + '/followed-playlists/' + playlistId + '/';
 
 export async function getPlaylistSongs(playlistId) {
   const recEndpoint = playlistSongs(playlistId);

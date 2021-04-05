@@ -93,8 +93,8 @@ function SongRow(props){
 
   const checkForOverflow = () => {
     
-    const {scrollWidth, clientWidth} = songBoxRef.current;
-    const hasOverFlow = scrollWidth > clientWidth;
+    // const {scrollWidth, clientWidth} = songBoxRef.current;
+    // const hasOverFlow = scrollWidth > clientWidth;
 
   }
 
@@ -111,9 +111,9 @@ function SongRow(props){
                   <ArrowBackIosIcon fontSize='large' className='pan pan-left' onClick={() => moveRow('left')} />
                 <div className='songs-wrapper' ref={songBoxRef}>
                 { 
-                  getItems().slice(0,Math.min(MAX_ITEMS_SHOWN, getItems().length)).map((item) => {
+                  getItems().slice(0,Math.min(MAX_ITEMS_SHOWN, getItems().length)).map((item, index) => {
                     return (
-                      <div className='song-wrapper'  onClick={ () => onItemClick(item)}>
+                      <div className='song-wrapper' key={`wrapper-index-${index}`} onClick={ () => onItemClick(item)}>
                           <img className='song-img' src={getImageCallback(item)} alt='hello!'/> 
                           { getTitle(item) }
                           { getSubtitle(item) }

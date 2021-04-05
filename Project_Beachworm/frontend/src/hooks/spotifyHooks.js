@@ -127,17 +127,6 @@ export function ProvideSpotify({ children }) {
     onPlayerError: (playerError => console.error(playerError))
   };
 
-  return (
-    <sdkContext.Provider value={useProvideSdk()}>
-      {/* remove the player from the hierarchy if there's no user logged in */}
-      {signedIn ? (
-        <WebPlaybackReact {...webPlaybackSdkProps} ref={(e) => e ? setPlayerRef(e.webPlaybackInstance) : setPlayerRef(e)}>
-          {children}
-        </WebPlaybackReact>
-      ) : children}
-    </sdkContext.Provider>
-  );
-
   function useProvideSdk() {
     const [contextPlayQueue, setContextPlayQueue] = useState({ 'name': undefined, 'songs': [], 'getMoreSongs': undefined });
     const [userPlayQueue, setUserPlayQueue] = useState([]);
@@ -473,4 +462,15 @@ export function ProvideSpotify({ children }) {
       disconnect: disconnect,
     };
   }
+
+  return (
+    <sdkContext.Provider value={useProvideSdk()}>
+      {/* remove the player from the hierarchy if there's no user logged in */}
+      {signedIn ? (
+        <WebPlaybackReact {...webPlaybackSdkProps} ref={(e) => e ? setPlayerRef(e.webPlaybackInstance) : setPlayerRef(e)}>
+          {children}
+        </WebPlaybackReact>
+      ) : children}
+    </sdkContext.Provider>
+  );
 }

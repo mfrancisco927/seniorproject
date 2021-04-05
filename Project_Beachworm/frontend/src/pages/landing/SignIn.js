@@ -19,7 +19,7 @@ function SignInForm () {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [error, setError] = useState(null);
+    const [, setError] = useState(null); // re-add error once using, just removed for warning removal
     const [signinup, setSignInUp] = useState(false);
 
     const handleChange = (stateSetter) => {
@@ -27,13 +27,13 @@ function SignInForm () {
         return (event) => stateSetter(event.target.value);
     };
 
-    const validateForm = (email, username, password) => {
-        if(password !== confirmPassword){
-            console.log('password validation fail')
-        } else {
-            createNewUser(email, username, password);
-        }
-    };
+    // const validateForm = (email, username, password) => {
+    //     if(password !== confirmPassword){
+    //         console.log('password validation fail')
+    //     } else {
+    //         createNewUser(email, username, password);
+    //     }
+    // };
 
     const createNewUser = (event, email, username, password) => {
         event.preventDefault();
@@ -103,6 +103,7 @@ function SignInForm () {
                                 floatingLabelText="username"
                                 value={username}
                                 onChange={handleChange(setUsername)}
+                                variant="filled"
                             />
                             <br />
                             <TextField
@@ -111,6 +112,7 @@ function SignInForm () {
                                 floatingLabelText="email"
                                 value={email}
                                 onChange={handleChange(setEmail)}
+                                variant="filled"
                             />
                             <br />
                             <TextField
@@ -119,6 +121,7 @@ function SignInForm () {
                                 floatingLabelText="password"
                                 value={password}
                                 onChange={handleChange(setPassword)}
+                                variant="filled"
                             />
                             <br />
                             <TextField
@@ -127,6 +130,7 @@ function SignInForm () {
                                 floatingLabelText="confirm password"
                                 value={confirmPassword}
                                 onChange={handleChange(setConfirmPassword)}
+                                variant="filled"
                             />
                             <br />
                             <StyledButton type="submit">
@@ -149,6 +153,7 @@ function SignInForm () {
                                 floatingLabelText="username"
                                 value={username}
                                 onChange={handleChange(setUsername)}
+                                variant="filled"
                             />
                             <br />
                             <TextField
@@ -157,6 +162,7 @@ function SignInForm () {
                                 floatingLabelText="password"
                                 value={password}
                                 onChange={handleChange(setPassword)}
+                                variant="filled"
                             />
                             <br />
                             <StyledButton type="submit">
