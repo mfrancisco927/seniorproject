@@ -86,46 +86,93 @@
     margin: 1em;
   }
 
-  /* based on screen size, show 1, 2, 3, or 4 items per line */
+  .search-page-wrapper{
+    width: 100%;
+  }
+
+  /* based on screen size, show 1, 2 or 3 */
+  .results-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 0 2%;
+    background: rgba(51, 51, 51, 0.308);
+    border-radius: 3%;
+    align-self: stretch;			
+    transition-property: background-color, opacity, margin;
+    transition-duration: 1s;
+  }
+  
+  .shrink-result-wrapper{
+    display: flex;
+    justify-content: center;
+    width: 25%;
+  }
+
+  .enabled.shrink-result-wrapper{
+    transition-property: height, width, padding;
+    transition-duration: 1s;
+  }
+
+  .results_wrapper__guest {
+    width: 29%;
+  }
+
+
+  /* Full Screen Size */
+  @media screen and (max-width: 1920px) {
+    .shrink-result-wrapper {
+      width: 25%;
+      margin: 2%;
+      height: 50%;
+    }
+  
+    /*Fixing the size of the images in the search page*/
+    .enabled .result{
+      width: 20%;
+      margin: 2%;
+    }
+
+
+  }
+
+  /* Smaller Screen Size */
   @media screen and (max-width: 1440px) {
     .shrink-result-wrapper {
       width: 40%;
       margin: 2%;
     }
-  }
-  
-  @media screen and (max-width: 600px) {
-    .shrink-result-wrapper {
-      width: 100%;
-      margin: 2% 5%;
-    }
-  }
-  
-  @media screen and (min-width: 1441px) {
-    .shrink-result-wrapper {
+
+    .enabled .result{
       width: 25%;
       margin: 2%;
     }
   }
-  .shrink-result-wrapper{
-    display: flex;
-    justify-content: center;
-    width: 25%;
-    transition-property: height, width, padding;
-    transition-duration: 1s;
+
+  /* Phone Screen Size */  
+  @media screen and (max-width: 1000px) {
+    .shrink-result-wrapper {
+      width: 100%;
+      margin: 2% 5%;
+    }    
+    .enabled .result{
+      width: 40%;
+      margin: 2%;
+    }
+  }
+  
+  .enabled.results-wrapper{
+    width: 100%;
+    height: 100%;
   }
 
-  .enabled{
+  .enabled.shrink-result-wrapper{
     width: 90%;
     height: 90%;
   }
 
-  .disabled{
+  .disabled.results-wrapper{
     opacity: 0%;
-    width:0%;
-    height:0%;
-    margin: 0%;
-    padding: 0%;
   }
 
   .results-wrapper {
@@ -143,33 +190,3 @@
   .results_wrapper__guest {
     width: 29%;
   }
-
-<<<<<<< HEAD
-
-  @media screen and (max-width: 1440px) {
-    .results_wrapper {
-      width: 40%;
-      margin: 2%;
-    }
-  }
-  
-  @media screen and (max-width: 600px) {
-    .results_wrapper {
-      width: 100%;
-      margin: 2% 5%;
-    }
-  }
-  
-  @media screen and (min-width: 1441px) {
-    .results_wrapper {
-      width: 25%;
-      margin: 2%;
-    }
-  }
-=======
-  .enabled .result{
-    width: 20%;
-    margin: 2%;
-  }
-
->>>>>>> 794ee6a... Got show more and show less mostly working
