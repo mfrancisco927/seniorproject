@@ -1,51 +1,23 @@
 
 form {
     width: 100%;
+}
+  .signinup-wrapper {
+    background-image: 
+    linear-gradient(to top,rgba(248, 11, 78, 0.70), rgba(233, 111, 86, 0.70), rgba(232, 218, 146, 0.70), rgba(111, 222, 239, 0.70)),
+    url('beachwrm.png');
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
   }
-  
   .loginBox {
     width: 30%;
     text-align: center;
     position: relative;
     left: 50%;
     transform: translate(-50%, 20%);
-    padding: 20px;
-    background-color: rgb(128, 236, 173);
-  }
-  
-  .signUpSubmit {
-    margin: 25px 0 15px 0;
-    background: 'linear-gradient(45deg, #FE6B8B 30%, #FF8E53 90%)';
-    border: 0;
-    color: 'white';
-    height: 48;
-    padding: '0 30px';
-  }
-  
-  .pwStrRow {
-    width: 63%;
-    text-align: left;
-    margin: auto;
-    padding: 0;
-    font-size: 12px;
-  }
-  
-  .pwStrWeak {
-    display: inline-block;
-    position: relative;
-    left: 0;
-    padding: 0;
-    margin: 0;
-    color: gray;
-  }
-  
-  .pwStrStrong {
-    display: inline-block;
-    position: relative;
-    left: 77%;
-    padding: 0;
-    margin: 0;
-    color: gray;
+    padding: 26px;
+    background-color: #FFA380;
   }
   
   @media screen and (max-width: 550px) {
