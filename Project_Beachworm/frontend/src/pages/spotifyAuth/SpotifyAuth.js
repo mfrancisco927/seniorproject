@@ -37,9 +37,16 @@ const SpotifyAuth = () => {
 
     // prioritize attempting spotify auth
     if (!error && code && Number(state) === auth.id && !auth.hasAuthenticatedSpotify) {
-      console.log('attempting to store spotify auth');
+      console.log('Attempting to store spotify auth token.');
       storeSpotifyAuth(code, state).then(result => {
         auth.setSpotifyToken(result.access_token);
+
+        const redirectTarget = localStorage.getItem(REDIRECT_STORAGE_ITEM_TAG);
+        if (redirectTarget) {
+          console.log('Redirecting user to previous page');
+          history.push(redirectTarget);
+          localStorage.removeItem(REDIRECT_STORAGE_ITEM_TAG);
+        }
       }, _reject => {
         // do nothing on reject, just to avoid errors
         console.log('Failed to store spotify token!');
@@ -51,17 +58,7 @@ const SpotifyAuth = () => {
       // store our redirect in local storage, since we'll lose state on the spotify page redirect=
       localStorage.setItem(REDIRECT_STORAGE_ITEM_TAG, redirect);
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // if we're authenticated and have somewhere to redirect, redirect the user there
-  useEffect(() => {
-    const redirectTarget = localStorage.getItem(REDIRECT_STORAGE_ITEM_TAG);
-    if (auth.hasAuthenticatedSpotify && redirectTarget) {
-      console.log('Redirecting user to previous page');
-      history.push(redirectTarget);
-      localStorage.removeItem(REDIRECT_STORAGE_ITEM_TAG);
-    }
-  }, [auth.hasAuthenticatedSpotify, history])
+  }, [auth, history, location.search, redirect]);
 
   const refresh = () => {
     refreshSpotifyToken().then(async result => {
