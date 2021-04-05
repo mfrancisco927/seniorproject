@@ -88,18 +88,20 @@ function App() {
     );
   }
 
+  const navList = (auth.id !== null) ? ({
+    '/': 'Home',
+    '/explore': 'Explore',
+    '/profile': 'Profile',
+  }) : ({
+    '/home': 'Home',
+    '/explore': 'Explore',
+    '/landing': 'Sign in',
+  });
+
   return (
     <div className={'page-wrapper' + (showFooter ? ' page-wrapper__footer' : ' page-wrapper__no-footer')}>
       {/* pages marked TEMP will not be accessible via nav-bar in production, but through some other context */}
-      <Navbar submitSearch={submitSearch} menuList={{
-        '/landing': 'Landing [TEMP]',
-        '/': 'Home',
-        '/questionnaire1': 'Questionnaire [TEMP]',
-        '/explore': 'Explore',
-        '/profile': 'Profile',
-        '/playlist': 'Playlist [TEMP]',
-        '/spotify-auth': 'Spotify Auth [TEMP]',
-      }}/>
+      <Navbar submitSearch={submitSearch} menuList={navList}/>
       <WithFooter>
         <DebugButtons />
         <Switch>
@@ -132,6 +134,17 @@ function App() {
             <SpotifyAuth />
           </PrivateRoute>
           <Route path='/' exact>
+            {(auth.id !== null) ? (
+              <RequireSpotifyAuth>
+                <RequireSeedsChosen>
+                  <MainPage />
+                </RequireSeedsChosen>
+              </RequireSpotifyAuth>
+            ) : (
+              <Landing />
+            )}
+          </Route>
+          <Route path='/home'>
             <RequireSpotifyAuthForLoggedInOnly>
               <RequireSeedsChosen>
                 <MainPage />
@@ -183,7 +196,7 @@ function RequireSeedsChosen({ children }) {
 
   // if we're not logged in, just return children right away
   return (
-    (!auth.id || (hasGenreSeeds && hasArtistSeeds)) ? (
+    (auth.id === null || (hasGenreSeeds && hasArtistSeeds)) ? (
       children
     ) : (
       <Redirect to={{
