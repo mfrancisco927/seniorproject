@@ -1,7 +1,6 @@
 import React from "react";
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { refreshToken } from './../../api/authenticationApi';
 import { createUser } from './../../api/userApi';
 import { useAuth } from './../../hooks/authHooks';
 import { useSpotifySdk } from './../../hooks/spotifyHooks';
@@ -9,8 +8,7 @@ import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import TextField from "material-ui/TextField";
 import "./landing.css";
-const validator = require("validator");
-
+// import validator from 'validator';
 
 function SignInForm () {
     const auth = useAuth();
@@ -21,36 +19,13 @@ function SignInForm () {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [access, setAccess] = useState(localStorage.getItem('access_token'))
-    const [refresh, setRefresh] = useState(localStorage.getItem('refresh_token'))
-    const [error, setErrorText] = useState('');
+    const [error, setError] = useState(null);
     const [signinup, setSignInUp] = useState(false);
 
     const handleChange = (stateSetter) => {
-        console.log(email + ' ' + username + ' ' + password);
+        // console.log(email + ' ' + username + ' ' + password);
         return (event) => stateSetter(event.target.value);
-        
     };
-
-    const updateTokenVars = () => {
-        setAccess(localStorage.getItem('access_token'));
-        setRefresh(localStorage.getItem('refresh_token'));
-    }
-
-    const refreshTokens = () => {
-        refreshToken().then(value => {
-            setErrorText();
-        }).catch(reason => {
-            console.log('Token refresh failed with reason: ', reason)
-            setErrorText(reason);
-        });
-        
-        updateTokenVars();
-    }
-
-    const deleteTokens = () => {
-        auth.signOut(updateTokenVars);
-    }
 
     const validateForm = (email, username, password) => {
         if(password !== confirmPassword){
@@ -63,26 +38,30 @@ function SignInForm () {
     const createNewUser = (event, email, username, password) => {
         event.preventDefault();
         createUser(email, username, password).then(value => {
-            console.log(value);
-            signInUser();
-            alert('Created user with username ' + username +  ' and password ' + password)
+            console.log('Created new user', value);
+            signInUser(null, username, password);
+            // alert('Created user with username ' + username +  ' and password ' + password)
         }).catch(reason => {
             console.log('new user rejected', reason);
         });
     };
 
     const signInUser = (event, username, password) => {
-        event.preventDefault();
-        auth.signIn(username, password).then(value => {
-            updateTokenVars();
+        if (event) {
+            event.preventDefault();
+        }
+
+        auth.signIn(username, password).then(() => {
             spotify.clearAll();
-            setErrorText();
+            setError();
             if (redirect) {
-              history.replace(redirect);
+                history.replace(redirect);
+            } else {
+                history.push('/home');
             }
         }).catch(reason => {
             console.log('Sign in failed with reason ', reason)
-            setErrorText(reason);
+            setError(reason);
         });
     }
 
@@ -101,10 +80,12 @@ function SignInForm () {
           textTransform: 'capitalize',
         },
       })(Button);
-        return (
-            signinup ? (
-            <body className="signinup-wrapper">
-                <div className="loginBox">
+
+        
+    return (
+        signinup ? (
+        <div className="signinup-wrapper">
+            <div className="loginBox">
                 <h1>Sign Up</h1>
                 <form onSubmit={(event) => createNewUser(event, email, username, password)}>
                     <TextField
@@ -138,7 +119,7 @@ function SignInForm () {
                         onChange={handleChange(setConfirmPassword)}
                     />
                     <br />
-                    <StyledButton type='submit' onClick={console.log('clicked!')}>
+                    <StyledButton type="submit">
                         SUBMIT
                     </StyledButton>
                     <StyledButton onClick={() => setSignInUp(!signinup)}>
@@ -146,11 +127,11 @@ function SignInForm () {
                     </StyledButton>
 
                 </form>
-                </div>
-            </body>
-            ) : (
-            <body className="signinup-wrapper">
-                <div className="loginBox">
+            </div>
+        </div>
+        ) : (
+        <div className="signinup-wrapper">
+            <div className="loginBox">
                 <h1>Sign In</h1>
 
                 <form onSubmit={(event) => signInUser(event, username, password)}>
@@ -169,17 +150,17 @@ function SignInForm () {
                         onChange={handleChange(setPassword)}
                     />
                     <br />
-                    <StyledButton type='submit' onClick={console.log('clicked!')}>
+                    <StyledButton type="submit">
                         SUBMIT
                     </StyledButton>
                     <StyledButton onClick={() => setSignInUp(!signinup)}>
                         SIGN UP
                     </StyledButton>
                 </form>
-                </div>
-            </body>
-            )
-        ); 
+            </div>
+        </div>
+        )
+    ); 
 }
 
 export default SignInForm;

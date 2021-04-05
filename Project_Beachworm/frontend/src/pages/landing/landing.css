@@ -1,28 +1,31 @@
-
 form {
     width: 100%;
 }
-  .signinup-wrapper {
-    background-image: 
-    linear-gradient(to top,rgba(248, 11, 78, 0.70), rgba(233, 111, 86, 0.70), rgba(232, 218, 146, 0.70), rgba(111, 222, 239, 0.70)),
-    url('beachwrm.png');
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    background-size: cover;
-  }
+
+.signinup-wrapper {
+  width: 100%;
+  height: 100%;
+  background-image: 
+  linear-gradient(to top,rgba(248, 11, 78, 0.70), rgba(233, 111, 86, 0.70), rgba(232, 218, 146, 0.70), rgba(111, 222, 239, 0.70)),
+  url('beachwrm.png');
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: cover;
+}
+
+.loginBox {
+  width: 30%;
+  text-align: center;
+  position: relative;
+  left: 50%;
+  transform: translate(-50%, 10vh);
+  padding: 26px;
+  background-color: #FFA380;
+}
+
+@media screen and (max-width: 550px) {
   .loginBox {
-    width: 30%;
-    text-align: center;
-    position: relative;
-    left: 50%;
-    transform: translate(-50%, 20%);
-    padding: 26px;
-    background-color: #FFA380;
+    width: 85%;
   }
-  
-  @media screen and (max-width: 550px) {
-    .loginBox {
-      width: 85%;
-    }
-  }
+}
   

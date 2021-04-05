@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { storeSpotifyAuth, refreshSpotifyToken } from './../../api/authenticationApi';
 import { useLocation } from 'react-router-dom';
@@ -27,6 +27,16 @@ const SpotifyAuth = () => {
   const spotifyAuthLink = `
     ${spotifyEndpoint}?client_id=${clientId}&response_type=code&scope=${scopes_encoded}&redirect_uri=${redirectUri}&state=${auth.id}
   `;
+  
+  const redirectTarget = redirect || localStorage.getItem(REDIRECT_STORAGE_ITEM_TAG);
+
+  const redirectToProperLocation = useCallback(() => {
+    if (redirectTarget) {
+      console.log('Redirecting user to previous page at ' + redirectTarget);
+      history.push(redirectTarget);
+      localStorage.removeItem(REDIRECT_STORAGE_ITEM_TAG);
+    }
+  }, [history, redirectTarget]);
 
   // on page load, if we have a code, try to store and redeem it
   useEffect(() => {
@@ -40,13 +50,7 @@ const SpotifyAuth = () => {
       console.log('Attempting to store spotify auth token.');
       storeSpotifyAuth(code, state).then(result => {
         auth.setSpotifyToken(result.access_token);
-
-        const redirectTarget = localStorage.getItem(REDIRECT_STORAGE_ITEM_TAG);
-        if (redirectTarget) {
-          console.log('Redirecting user to previous page');
-          history.push(redirectTarget);
-          localStorage.removeItem(REDIRECT_STORAGE_ITEM_TAG);
-        }
+        redirectToProperLocation();
       }, _reject => {
         // do nothing on reject, just to avoid errors
         console.log('Failed to store spotify token!');
@@ -55,10 +59,15 @@ const SpotifyAuth = () => {
     } else if (error) {
       setError(true);
     } else if (redirect) {
-      // store our redirect in local storage, since we'll lose state on the spotify page redirect=
-      localStorage.setItem(REDIRECT_STORAGE_ITEM_TAG, redirect);
+      // store our redirect in local storage, since we'll lose state on the spotify page redirect
+      if (!auth.hasAuthenticatedSpotify) {
+        localStorage.setItem(REDIRECT_STORAGE_ITEM_TAG, redirect);
+      } else {
+        redirectToProperLocation();
+      }
     }
-  }, [auth, history, location.search, redirect]);
+  }, [auth, history, location.search, redirect, redirectToProperLocation]);
+
 
   const refresh = () => {
     refreshSpotifyToken().then(async result => {

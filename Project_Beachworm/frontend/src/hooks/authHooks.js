@@ -28,7 +28,8 @@ function useProvideAuth() {
   const [id, setId] = useState(null);
   const [spotifyToken, setSpotifyToken] = useState(null);
   const [hasSeeds, setHasSeeds] = useState({ artist: false, genre: false });
-  const [hasAuthenticatedSpotify, setHasAuthenticatedSpotify] = useState(null);
+  const [isFullyLoaded, setIsFullyLoaded] = useState(false);
+  const [hasAuthenticatedSpotify, setHasAuthenticatedSpotify] = useState(false);
 
   const history = useHistory();
 
@@ -52,6 +53,7 @@ function useProvideAuth() {
     setId(null);
     setSpotifyToken(null);
     setHasAuthenticatedSpotify(false);
+    setIsFullyLoaded(false);
     setHasSeeds({ artist: false, genre: false });
     if (cb) {
       cb();
@@ -109,6 +111,8 @@ function useProvideAuth() {
               return Promise.resolve();
             });
           });
+
+          setIsFullyLoaded(true);
         }
       }
     };
@@ -145,6 +149,7 @@ function useProvideAuth() {
       setHasAuthenticatedSpotify(true);
     },
     setHasSeeds,
+    isFullyLoaded,
     hasAuthenticatedSpotify,
     hasSeeds,
   };

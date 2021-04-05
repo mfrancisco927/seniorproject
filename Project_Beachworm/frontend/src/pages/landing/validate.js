@@ -1,4 +1,4 @@
-const validator = require("validator");
+import validator from 'validator';
 
 const validateSignUpForm = payload => {
   const errors = {};

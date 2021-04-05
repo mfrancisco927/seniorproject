@@ -202,7 +202,7 @@ function RequireSeedsChosen({ children }) {
 
   // if we're not logged in, just return children right away
   return (
-    (auth.id === null || (hasGenreSeeds && hasArtistSeeds)) ? (
+    (auth.id === null || !auth.isFullyLoaded || (hasGenreSeeds && hasArtistSeeds)) ? (
       children
     ) : (
       <Redirect to={{
@@ -221,7 +221,7 @@ function RequireSpotifyAuth({ children }) {
   const location = useLocation();
 
   return (
-    auth.hasAuthenticatedSpotify ? (
+    (auth.hasAuthenticatedSpotify || !auth.isFullyLoaded) ? (
       children
     ) : (
       <Redirect to={{
