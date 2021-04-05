@@ -133,7 +133,9 @@ function App() {
             <ProfilePage />
           </PrivateRoute>
           <PrivateRoute path='/playlist'>
-            <PlaylistPage />
+            <RequireSpotifyAuth>
+              <PlaylistPage />
+            </RequireSpotifyAuth>
           </PrivateRoute>
           <Route path='/search'>
             <SearchPage searchItem={searchText} searchData={searchData} />
