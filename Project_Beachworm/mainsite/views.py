@@ -718,16 +718,15 @@ class SongHistory(APIView):
     #get a user's song history formatted as a playlist
     def get(self, request):
         user_history = list(UserSongPlay.objects.filter(user=self.request.user.id).order_by('listened_at').values_list('song_id', flat=True))
-        params = Q(song_id=user_history[0])
-        for i in range(1, len(user_history)):
-            params.add(Q(song_id=user_history[i]), Q.OR)
-        songs = list(Song.objects.filter(params).values())
-        results = {}
-        for i in range((len(songs))):
-            results[i]=songs[i]
+        #get a list of song objects with duplicates, and add artists
+        songs = {}
+        for i in range (len(user_history)):
+            song = list(Song.objects.filter(song_id=user_history[i]).values())
+            songs[i] = song[0]
             song = Song.objects.get(song_id = songs[i]['song_id'])
-            results[i]['artists'] = list(song.artists.values_list('artist_name', flat=True))
-        return Response(data = results , status=status.HTTP_200_OK)
+            songs[i]['artists'] = list(song.artists.values_list('artist_name', flat=True))
+        print(songs)
+        return Response(data = songs , status=status.HTTP_200_OK)
 
     def post(self, request):
         HISTORY_MAX = 100 #track last 100 songs a user played
