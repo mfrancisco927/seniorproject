@@ -15,6 +15,10 @@ import os
 from datetime import timedelta
 import environ
 
+# Initalize environment variables
+env = environ.Env()
+env.read_env()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -26,10 +30,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'xg1y&64@qzdxew-4%-+#g*0viir7%=0&mdy3uwfcptnt*pnan$'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env('DEBUG') == 'true'
 
-ALLOWED_HOSTS = []
 
+LOCAL_API_IP = env('LOCAL_API_IP')
+DEBUG_HOSTS = ['.localhost', '127.0.0.1', '[::1]'] # default debug hosts
+if (DEBUG and LOCAL_API_IP):
+    DEBUG_HOSTS.append(LOCAL_API_IP)
+
+# Set host urls which may access the server
+ALLOWED_HOSTS = DEBUG_HOSTS if DEBUG else []
 
 # Application definition
 
@@ -132,6 +142,7 @@ CORS_ALLOWED_ORIGINS = [ #ADDED BY ISAAC
     "http://localhost:8000",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:8000",
+    env('SITE_URL'),
 ]
 
 # Customized JWT settings
@@ -158,7 +169,3 @@ REST_FRAMEWORK = {
 'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),  # 
 }
-
-# Initalize environment variables
-env = environ.Env()
-environ.Env.read_env()

@@ -4,7 +4,10 @@ import { useAuth } from './../hooks/authHooks';
 import { createBrowserHistory } from 'history';
 
 console.log('Initializing axios api');
-const baseUrl = 'http://127.0.0.1:8000/api/';
+
+const baseUrl = `${process.env.REACT_APP_API_URL}/api/`;
+
+console.log('API located at ' + baseUrl);
 
 // // from Django tutorial webpage
 // function getCookie(name) {

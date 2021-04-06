@@ -3,10 +3,10 @@ import ReactDOM from 'react-dom';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { ProvideAuth } from './hooks/authHooks';
 import { ProvideSpotify } from './hooks/spotifyHooks';
-import { ApiInterceptor } from './api/axiosApi';
-import './index.css';
+import { ApiInterceptor } from './api/axiosApi
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import './index.css';
 
 ReactDOM.render(
   <React.StrictMode>
