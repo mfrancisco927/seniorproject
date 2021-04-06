@@ -715,15 +715,21 @@ class ArtistRecommendations(APIView):
             return Response({'error:': 'artist invalid or missing'}, status=status.HTTP_400_BAD_REQUEST)
       
 class SongHistory(APIView):
-    #get a user's song history
+    #get a user's song history formatted as a playlist
     def get(self, request):
-        user_history = list(UserSongPlay.objects.filter(user=self.request.user.id).order_by('listened_at').values())
-        results = {}
-        results['history'] = user_history
-        return Response(data = user_history , status=status.HTTP_200_OK)
+        user_history = list(UserSongPlay.objects.filter(user=self.request.user.id).order_by('listened_at').values_list('song_id', flat=True))
+        #get a list of song objects with duplicates, and add artists
+        songs = {}
+        for i in range (len(user_history)):
+            song = list(Song.objects.filter(song_id=user_history[i]).values())
+            songs[i] = song[0]
+            song = Song.objects.get(song_id = songs[i]['song_id'])
+            songs[i]['artists'] = list(song.artists.values_list('artist_name', flat=True))
+        print(songs)
+        return Response(data = songs , status=status.HTTP_200_OK)
 
     def post(self, request):
-        HISTORY_MAX = 10 #set to 10 for testing purposes, change to 100 when deployed
+        HISTORY_MAX = 100 #track last 100 songs a user played
         query = self.request.query_params
         user_history = UserSongPlay.objects.filter(user=self.request.user.id).order_by('listened_at')
         profile = Profile.objects.filter(user=self.request.user.id).first()

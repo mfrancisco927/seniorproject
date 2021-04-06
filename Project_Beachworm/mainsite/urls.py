@@ -59,6 +59,8 @@ urlpatterns = [
     path('api/playlists/<playlist_id>/songs/', PlaylistSongs.as_view(), name='playlist_songs'),
     path('api/users/<user_id>/followed-playlists/<playlist_id>/', FollowPlaylist.as_view(), name='follow_playlist'),
     path('api/playlists/<playlist_id>/', ModifyPlaylist.as_view(), name='modify_playlist'),
+    #returns users listening history formatted as a playlist, use GET
+    path('api/playlists/history/songs/', SongHistory.as_view(), name='user_history_playlist'),
     #path('api/playlists/<playlist_id>/<playlist_song_id>/', DeletePlaylistSongs.as_view(), name='edit_playlist_songs'),
 
     #Song Endpoints
