@@ -1356,3 +1356,20 @@ class Deactivate(APIView):
             return Response({'error': msg}, status=status.HTTP_400_BAD_REQUEST)
         user.save()
         return Response({'success': msg}, status=status.HTTP_200_OK)
+
+class PlaylistCopy(APIView):
+    def post(self, request, playlist_id):
+        user_id = self.request.user.id
+        profile = Profile.objects.get(user=user_id)
+        playlist= Playlist.objects.get(pk=playlist_id)
+        songs= list(playlist.songs.all().values_list('song_id', flat=True))
+        new_title =  str(playlist.title) + ' (Copy)'
+        new_playlist = Playlist(title=new_title, is_public=playlist.is_public, description=playlist.description, owner=profile)
+        new_playlist.save()
+        for i in range((len(songs))):
+            song = Song.objects.get(song_id = songs[i])
+            new_playlist.songs.add(song)
+        new_playlist.save()
+        msg = 'Created playlist ' + str(new_playlist.id) + ' from playlist ' + str(playlist.id)
+        return Response({'success' : msg}, status=status.HTTP_200_OK)
+
