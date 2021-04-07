@@ -725,7 +725,6 @@ class SongHistory(APIView):
             songs[i] = song[0]
             song = Song.objects.get(song_id = songs[i]['song_id'])
             songs[i]['artists'] = list(song.artists.values_list('artist_name', flat=True))
-        print(songs)
         return Response(data = songs , status=status.HTTP_200_OK)
 
     def post(self, request):
@@ -1029,7 +1028,7 @@ class Getprofile(APIView):
         print(followers)
         following = list(profile.following.filter(user__is_active=True).values())
         following = clean_profiles(following)
-        #playlists that a user follows but does not own
+        #playlists that this user follows but does not own
         favorite_playlists = list(profile.favorite_playlists.filter(~Q(owner=profile), owner__user__is_active=True, is_public=True).values())
         #public playlists owned by this user
         public_playlists = list(Playlist.objects.filter(owner=profile, is_public=True).values()) 
