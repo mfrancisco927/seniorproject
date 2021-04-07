@@ -374,7 +374,7 @@ class Search(APIView):
             results['playlists'] = {}
             results['playlists']['items'] = playlists
             #add users to results
-            users = list(User.objects.filter(username__icontains=query_no_whitespace).values())
+            users = list(User.objects.filter(username__icontains=query_no_whitespace, is_active=True).values())
             users = clean_users(users)
             results['users'] =  users
             # print(users)
@@ -725,7 +725,6 @@ class SongHistory(APIView):
             songs[i] = song[0]
             song = Song.objects.get(song_id = songs[i]['song_id'])
             songs[i]['artists'] = list(song.artists.values_list('artist_name', flat=True))
-        print(songs)
         return Response(data = songs , status=status.HTTP_200_OK)
 
     def post(self, request):
@@ -1019,17 +1018,18 @@ class Getprofile(APIView):
     #permission_classes = (permissions.AllowAny,)
     #for viewing profiles of other users
     def get(self, request, user_id):
-        user = User.objects.filter(id=user_id).first()
+        user = User.objects.filter(id=user_id, is_active=True).first()
         if user == None:
             return Response({'error:', 'user not found'}, status=status.HTTP_404_NOT_FOUND)
         username = str(User.objects.get(id=user_id))
         profile = Profile.objects.get(user=user_id)
-        followers = list(Profile.objects.filter(following=user_id).values())
+        followers = list(Profile.objects.filter(following=user_id, user__is_active=True).values())
         followers = clean_profiles(followers)
-        following = list(profile.following.values())
+        print(followers)
+        following = list(profile.following.filter(user__is_active=True).values())
         following = clean_profiles(following)
-        #playlists that a user follows but does not own
-        favorite_playlists = list(profile.favorite_playlists.filter(~Q(owner=profile)).values())
+        #playlists that this user follows but does not own
+        favorite_playlists = list(profile.favorite_playlists.filter(~Q(owner=profile), owner__user__is_active=True, is_public=True).values())
         #public playlists owned by this user
         public_playlists = list(Playlist.objects.filter(owner=profile, is_public=True).values()) 
         results = {'user_id' : int(user_id), 'username' : str(username), 'following' : following, 'followers' : followers, 
@@ -1040,7 +1040,7 @@ class FollowToggle(APIView):
     #follow another user
     def post(self, request, profile):
         sending_user = self.request.user.id
-        target_user = User.objects.filter(id=profile).first()
+        target_user = User.objects.filter(id=profile, is_active=True).first()
         sending_user_profile = Profile.objects.get(user=sending_user)
         following = list(sending_user_profile.following.values_list('user', flat=True))
         #if sending_user already follows target user, return error
@@ -1342,5 +1342,17 @@ class GetUserSeeds(APIView):
     
         return Response(data=response_json, status=status.HTTP_200_OK)
         
-
-        
+class Deactivate(APIView):
+    def post(self, request):
+        user_id = self.request.user.id
+        user = User.objects.get(id=user_id)
+        print(user)
+        print(user.is_active)
+        if user.is_active == True:
+            user.is_active = False
+            msg = 'deactivated user ' + str(user)
+        else:
+            msg = str(user_id) + ' is already deactivated'
+            return Response({'error': msg}, status=status.HTTP_400_BAD_REQUEST)
+        user.save()
+        return Response({'success': msg}, status=status.HTTP_200_OK)
