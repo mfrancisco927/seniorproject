@@ -29,7 +29,7 @@ urlpatterns = [
     path('api/spotify/store-credential/', SpotifyStore.as_view(), name='spotify-store-initial'),
     path('api/spotify/refresh-token/', SpotifyRefresh.as_view(), name='spotify-refresh-token'),
     path('api/user/current/', GetUser.as_view(), name='get_current_user'),
-
+    path('api/user/deactivate/', Deactivate.as_view(), name='deactivate'),
     path('api/search/', Search.as_view(), name='search'),
     # Initial user creation recommendation seed endpoints
     path('api/recommendation/obtain-genres/', Genre.as_view(), name='genre-obtain'),
