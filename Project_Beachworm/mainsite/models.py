@@ -41,6 +41,7 @@ class Profile(BaseModel):
   disliked_songs = models.ManyToManyField(Song, related_name='profile_disliked', blank=True)
   favorite_playlists = models.ManyToManyField("Playlist", related_name='profile_favorite_playlists', blank=True)
   refresh_token = models.TextField(default="None")
+  image = models.ImageField(blank=True, null=True)
 
 
 @receiver(post_save, sender=User)
@@ -59,6 +60,7 @@ class Playlist(BaseModel):
   is_public = models.BooleanField(default=True)
   owner = models.ForeignKey(Profile, on_delete=models.CASCADE)
   songs = models.ManyToManyField(Song, blank=True)
+  image = models.ImageField(blank=True, null=True)
 
 class Radio(BaseModel):
   name = models.TextField()

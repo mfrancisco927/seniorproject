@@ -18,6 +18,10 @@ from django.urls import path, include
 from . import views
 from rest_framework_simplejwt import views as jwt_views
 from .views import *
+from django.conf import settings
+from django.conf.urls.static import static
+
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,6 +34,7 @@ urlpatterns = [
     path('api/spotify/refresh-token/', SpotifyRefresh.as_view(), name='spotify-refresh-token'),
     path('api/user/current/', GetUser.as_view(), name='get_current_user'),
     path('api/user/deactivate/', Deactivate.as_view(), name='deactivate'),
+    path('api/user/image/', UserImage.as_view(), name='user-image'),
     path('api/search/', Search.as_view(), name='search'),
     # Initial user creation recommendation seed endpoints
     path('api/recommendation/obtain-genres/', Genre.as_view(), name='genre-obtain'),
@@ -59,6 +64,7 @@ urlpatterns = [
     path('api/playlists/<playlist_id>/songs/', PlaylistSongs.as_view(), name='playlist_songs'),
     path('api/users/<user_id>/followed-playlists/<playlist_id>/', FollowPlaylist.as_view(), name='follow_playlist'),
     path('api/playlists/<playlist_id>/', ModifyPlaylist.as_view(), name='modify_playlist'),
+    path('api/playlists/<playlist_id>/image/', PlaylistImage.as_view(), name='playlist-image'),
     #returns users listening history formatted as a playlist, use GET
     path('api/playlists/history/songs/', SongHistory.as_view(), name='user_history_playlist'),
     #path('api/playlists/<playlist_id>/<playlist_song_id>/', DeletePlaylistSongs.as_view(), name='edit_playlist_songs'),
@@ -69,3 +75,6 @@ urlpatterns = [
     path('api/history/<user_id>/dislikes/<song_id>/', DislikeSong.as_view(), name='song_dislike'),
     
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

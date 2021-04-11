@@ -22,6 +22,7 @@ import random
 import datetime
 from datetime import timezone
 from django.db.models import Q
+from rest_framework.parsers import FileUploadParser
 
 env = environ.Env()
 CLIENT_ID = env('CLIENT_ID')
@@ -1372,4 +1373,50 @@ class PlaylistCopy(APIView):
         new_playlist.save()
         msg = 'Created playlist ' + str(new_playlist.id) + ' from playlist ' + str(playlist.id)
         return Response({'success' : msg}, status=status.HTTP_200_OK)
+
+class UserImage(APIView):
+    parser_class = (FileUploadParser,)
+
+    def post(self, request, *args, **kwargs):
+        try: 
+            user_id = self.request.user.id
+            profile = Profile.objects.get(user=user_id)
+        except:
+            return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+
+        image_serializer = ProfileImageSerializer(profile, data=request.data, partial=True)
+
+        if image_serializer.is_valid():
+            image_serializer.save()
+            return Response(image_serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(image_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class PlaylistImage(APIView):
+    parser_class = (FileUploadParser,)
+
+    def post(self, request, playlist_id):
+        try: 
+            user_id = self.request.user.id
+            profile = Profile.objects.get(user=user_id)
+            playlist= Playlist.objects.get(pk=playlist_id)
+        except:
+            return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+        if profile != playlist.owner:
+            return Response({'error': 'requestor is not playlist owner'}, status=status.HTTP_400_BAD_REQUEST)  
+
+        image_serializer = PlaylistImageSerializer(playlist, data=request.data, partial=True)
+
+        if image_serializer.is_valid():
+            image_serializer.save()
+            return Response(image_serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(image_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        
+
+        
+
 
