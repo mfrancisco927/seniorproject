@@ -1034,7 +1034,7 @@ class Getprofile(APIView):
         #public playlists owned by this user
         public_playlists = list(Playlist.objects.filter(owner=profile, is_public=True).values()) 
         results = {'user_id' : int(user_id), 'username' : str(username), 'following' : following, 'followers' : followers, 
-                'favorite_playlists' : favorite_playlists, 'public_playlists' : public_playlists}
+                'favorite_playlists' : favorite_playlists, 'public_playlists' : public_playlists, 'image' : str(profile.image)}
         return Response(data=results, status=status.HTTP_200_OK)
 
 class FollowToggle(APIView):
@@ -1414,6 +1414,14 @@ class PlaylistImage(APIView):
             return Response(image_serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(image_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def get(self, request, playlist_id):
+        try: 
+            playlist = Playlist.objects.get(pk=playlist_id)
+        except:
+            return Response({'error': 'playlist does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({'image': str(playlist.image)}, status=status.HTTP_200_OK)
 
         
 
