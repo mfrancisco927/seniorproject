@@ -60,3 +60,13 @@ class PlaylistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Playlist
         fields = ['id', 'title', 'description', 'is_public', 'owner', 'songs']
+
+class ProfileImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = "__all__"
+
+class PlaylistImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Playlist
+        fields = "__all__"

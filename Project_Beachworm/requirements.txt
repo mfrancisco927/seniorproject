@@ -16,3 +16,4 @@ six==1.15.0
 spotipy==2.17.1
 sqlparse==0.3.0
 urllib3==1.26.3
+Pillow==8.2.0

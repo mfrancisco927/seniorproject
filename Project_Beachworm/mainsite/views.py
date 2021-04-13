@@ -22,6 +22,7 @@ import random
 import datetime
 from datetime import timezone
 from django.db.models import Q
+from rest_framework.parsers import FileUploadParser
 
 env = environ.Env()
 CLIENT_ID = env('CLIENT_ID')
@@ -1032,8 +1033,13 @@ class Getprofile(APIView):
         favorite_playlists = list(profile.favorite_playlists.filter(~Q(owner=profile), owner__user__is_active=True, is_public=True).values())
         #public playlists owned by this user
         public_playlists = list(Playlist.objects.filter(owner=profile, is_public=True).values()) 
+        # get image if exists:
+        if profile.image:
+            imagepath = str(profile.image)
+        else:
+            imagepath = None 
         results = {'user_id' : int(user_id), 'username' : str(username), 'following' : following, 'followers' : followers, 
-                'favorite_playlists' : favorite_playlists, 'public_playlists' : public_playlists}
+                'favorite_playlists' : favorite_playlists, 'public_playlists' : public_playlists, 'image' : imagepath}
         return Response(data=results, status=status.HTTP_200_OK)
 
 class FollowToggle(APIView):
@@ -1372,4 +1378,62 @@ class PlaylistCopy(APIView):
         new_playlist.save()
         msg = 'Created playlist ' + str(new_playlist.id) + ' from playlist ' + str(playlist.id)
         return Response({'success' : msg}, status=status.HTTP_200_OK)
+
+class UserImage(APIView):
+    parser_class = (FileUploadParser,)
+
+    def post(self, request, *args, **kwargs):
+        try: 
+            user_id = self.request.user.id
+            profile = Profile.objects.get(user=user_id)
+        except:
+            return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+
+        image_serializer = ProfileImageSerializer(profile, data=request.data, partial=True)
+
+        if image_serializer.is_valid():
+            image_serializer.save()
+            return Response(image_serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(image_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class PlaylistImage(APIView):
+    parser_class = (FileUploadParser,)
+
+    def post(self, request, playlist_id):
+        try: 
+            user_id = self.request.user.id
+            profile = Profile.objects.get(user=user_id)
+            playlist= Playlist.objects.get(pk=playlist_id)
+        except:
+            return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+        if profile != playlist.owner:
+            return Response({'error': 'requestor is not playlist owner'}, status=status.HTTP_400_BAD_REQUEST)  
+
+        image_serializer = PlaylistImageSerializer(playlist, data=request.data, partial=True)
+
+        if image_serializer.is_valid():
+            image_serializer.save()
+            return Response(image_serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(image_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    # def get(self, request, playlist_id):
+    #     try: 
+    #         playlist = Playlist.objects.get(pk=playlist_id)
+    #     except:
+    #         return Response({'error': 'playlist does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+
+        
+    #     if playlist.image:
+    #         return Response({'image': str(playlist.image)}, status=status.HTTP_200_OK)
+    #     else:
+    #         return Response({'image' : None}, status=status.HTTP_404_NOT_FOUND)
+
+        
+
+        
+
 
