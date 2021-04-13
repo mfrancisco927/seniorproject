@@ -1033,8 +1033,13 @@ class Getprofile(APIView):
         favorite_playlists = list(profile.favorite_playlists.filter(~Q(owner=profile), owner__user__is_active=True, is_public=True).values())
         #public playlists owned by this user
         public_playlists = list(Playlist.objects.filter(owner=profile, is_public=True).values()) 
+        # get image if exists:
+        if profile.image:
+            imagepath = str(profile.image)
+        else:
+            imagepath = None 
         results = {'user_id' : int(user_id), 'username' : str(username), 'following' : following, 'followers' : followers, 
-                'favorite_playlists' : favorite_playlists, 'public_playlists' : public_playlists, 'image' : str(profile.image)}
+                'favorite_playlists' : favorite_playlists, 'public_playlists' : public_playlists, 'image' : imagepath}
         return Response(data=results, status=status.HTTP_200_OK)
 
 class FollowToggle(APIView):
@@ -1421,7 +1426,11 @@ class PlaylistImage(APIView):
         except:
             return Response({'error': 'playlist does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({'image': str(playlist.image)}, status=status.HTTP_200_OK)
+        
+        if playlist.image:
+            return Response({'image': str(playlist.image)}, status=status.HTTP_200_OK)
+        else:
+            return Response({'image' : None}, status=status.HTTP_404_NOT_FOUND)
 
         
 
