@@ -1420,17 +1420,17 @@ class PlaylistImage(APIView):
         else:
             return Response(image_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    def get(self, request, playlist_id):
-        try: 
-            playlist = Playlist.objects.get(pk=playlist_id)
-        except:
-            return Response({'error': 'playlist does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+    # def get(self, request, playlist_id):
+    #     try: 
+    #         playlist = Playlist.objects.get(pk=playlist_id)
+    #     except:
+    #         return Response({'error': 'playlist does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
         
-        if playlist.image:
-            return Response({'image': str(playlist.image)}, status=status.HTTP_200_OK)
-        else:
-            return Response({'image' : None}, status=status.HTTP_404_NOT_FOUND)
+    #     if playlist.image:
+    #         return Response({'image': str(playlist.image)}, status=status.HTTP_200_OK)
+    #     else:
+    #         return Response({'image' : None}, status=status.HTTP_404_NOT_FOUND)
 
         
 
