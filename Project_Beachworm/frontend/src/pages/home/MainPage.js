@@ -7,6 +7,7 @@ import LoadingImage from '../loading.svg';
 import useRadioLoaders from '../../hooks/radioLoaders';
 import { useWindowDimensions, SCREEN_SIZE } from './../../hooks/responsiveHooks';
 import debounce from 'lodash.debounce'
+import Values from 'values.js'
 
 
 function MainPage() {
@@ -15,6 +16,13 @@ function MainPage() {
   const [loaded, setLoaded] = useState(false);
   const { width } = useWindowDimensions();
   const isMobile = width <= SCREEN_SIZE.SMALL;
+  const possStyles = {
+    colors: [ '#d60d0d', '#2348ad', '#8f138d', '#0ec23e', '#e69020'
+            ],
+    fonts : [ 'Caveat','Sofia','Bebas Neue'
+            ]
+            //, 'Abril Fatface', 'Bebas Neue', 'Teko', 'Recursive'
+  }
 
   useEffect(() => {
     getHomeRecommendations().then((data) => {
@@ -24,9 +32,22 @@ function MainPage() {
       }
     );
   }, [])
+  const getStyleRandom = () =>{
+    let randColorString = possStyles.colors[Math.floor( Math.random() * possStyles.colors.length)]
+    let colorObj = new Values(randColorString);
+    let shadedColor = colorObj.shade(70).hexString();
+    console.log(shadedColor);
+    let cssString = `linear-gradient(150deg, ${randColorString} 30%, ${shadedColor})`
+    
+    let font = possStyles.fonts[Math.floor( Math.random() * possStyles.colors.length)];
+    let returned = {'background':cssString, 'font-family': font}
+
+    return returned;
+  }
 
   return !isMobile? (
     <Fragment>
+      <link rel="stylesheet" href={`https://fonts.googleapis.com/css?family=${possStyles.fonts.join('|')}`}></link>
       <div className='song-page-wrapper'>
       { !loaded ? 
         (<div className='loading-img-wrapper'><img className='loading-img' src={LoadingImage} alt='Loading'/></div> ):
@@ -37,7 +58,7 @@ function MainPage() {
             onItemClick={song => loader.loadSongRadio(song)}
             getImageCallback={(item) => {
               if(item.album.images.length !== 0){
-                  return item.album.images[0].url;
+                return <img src={item.album.images[0].url} className='song-img' alt='Track goes here' />
                 }else{
                   return 'https://media.pitchfork.com/photos/5a71df0d85ed77242d8f1252/1:1/w_320/jpegmafiaveteran.jpg';
               }
@@ -51,7 +72,7 @@ function MainPage() {
             onItemClick={artist => loader.loadArtistRadio(artist)}
             getImageCallback={(item) => {
               if(item.images.length !== 0){
-                  return item.images[0].url;
+                return <img src={item.images[0].url} className='song-img' alt='artist goes here' />
                 }else{
                   return 'https://media.pitchfork.com/photos/5a71df0d85ed77242d8f1252/1:1/w_320/jpegmafiaveteran.jpg';
               }
@@ -66,7 +87,9 @@ function MainPage() {
               id: item,
               name: item,
             })}
-            getImageCallback={ item => 'https://media.pitchfork.com/photos/5a71df0d85ed77242d8f1252/1:1/w_320/jpegmafiaveteran.jpg'}
+            getImageCallback={ (item) => {
+              return <div className='song-img genre-box' style={getStyleRandom()}>{item}</div>
+            }}
             getTitle={ (item) => {return (<h2 className='artist-title'>{item}</h2>)}}
             getSubtitle={ item => ''}
               />
@@ -140,7 +163,7 @@ function SongRow(props){
 
   const [hasOverflow, setHasOverflow] = useState(true);
   const [canScrollLeft, setcanScrollLeft] = useState(true);
-  const [canScrollRight, setcanScrollRight] = useState(true);
+  const [canScrollRight, setcanScrollRight] = useState(true); 
 
 
   const moveRow = (distance) => {
@@ -165,7 +188,7 @@ function SongRow(props){
       setcanScrollLeft(false);
       setcanScrollRight(false);
     }else{
-      checkForOverflow(); 
+      checkForScrollPosition(); 
     }
   }
 
@@ -174,7 +197,6 @@ function SongRow(props){
 
   useEffect( () => {
 
-    checkForOverflow();
 
     songBoxRef.current.addEventListener(
       'scroll',
@@ -182,8 +204,11 @@ function SongRow(props){
         checkForScrollPosition,
         25
       ),
+    )    
+    songBoxRef.current.addEventListener(
+      'load',
+      checkForOverflow,
     )
-    //Add event listener on "scroll??"
   }, [])
 
   useEffect( () => {
@@ -200,7 +225,7 @@ function SongRow(props){
                   getItems().slice(0,Math.min(MAX_ITEMS_SHOWN, getItems().length)).map((item, index) => {
                     return (
                       <div className='song-wrapper' key={`wrapper-index-${index}`} onClick={ () => onItemClick(item)}>
-                          <img className='song-img' src={getImageCallback(item)} alt='hello!'/> 
+                          { getImageCallback(item) }
                           { getTitle(item) }
                           { getSubtitle(item) }
                       </div>
