@@ -6,6 +6,8 @@ import { getHomeRecommendations } from './../../api/recommendationApi';
 import LoadingImage from '../loading.svg';
 import useRadioLoaders from '../../hooks/radioLoaders';
 import { useWindowDimensions, SCREEN_SIZE } from './../../hooks/responsiveHooks';
+import debounce from 'lodash.debounce'
+
 
 function MainPage() {
   const loader = useRadioLoaders();
@@ -135,34 +137,64 @@ function SongRow(props){
   const MAX_ITEMS_SHOWN = 10;
   const { width } = useWindowDimensions();
   const isMobile = width <= SCREEN_SIZE.SMALL;
-  
-  const moveRow = (direction) => {
-    if(direction === 'left'){
-      songBoxRef.current.scrollLeft -= 200;
-    }else if(direction === 'right'){        
-      songBoxRef.current.scrollLeft += 200;
-    }
-    checkForOverflow();
+
+  const [hasOverflow, setHasOverflow] = useState(true);
+  const [canScrollLeft, setcanScrollLeft] = useState(true);
+  const [canScrollRight, setcanScrollRight] = useState(true);
+
+
+  const moveRow = (distance) => {
+    songBoxRef.current.scrollBy({ left: distance, behavior: 'smooth' });
+  }
+
+  const checkForScrollPosition = () => {
+    const {scrollLeft, scrollWidth, clientWidth} = songBoxRef.current;
+    setcanScrollLeft(scrollLeft > 0);
+    setcanScrollRight(scrollLeft !== scrollWidth - clientWidth);
+    console.log(songBoxRef.current, `Can scroll Left? ${canScrollLeft}, Can scroll Right? ${canScrollRight}`)
   }
 
   const checkForOverflow = () => {
-    
-    // const {scrollWidth, clientWidth} = songBoxRef.current;
-    // const hasOverFlow = scrollWidth > clientWidth;
+    const {scrollWidth, clientWidth} = songBoxRef.current;
+    const overflow = scrollWidth > clientWidth;
 
+    setHasOverflow(overflow)
+    console.log(songBoxRef.current)
+    console.log(hasOverflow)
+    if(!overflow){
+      setcanScrollLeft(false);
+      setcanScrollRight(false);
+    }else{
+      checkForOverflow(); 
+    }
   }
 
-  //TODO: Implement Disabling the buttons when they cant be used
+  //TODO: BUG -> For some reason, on the initial render, things just aren't set to the correct values
+  //             aka: hasOverflow, canScrollRight, and canScrollLeft are all false on initial render
+
+  useEffect( () => {
+
+    checkForOverflow();
+
+    songBoxRef.current.addEventListener(
+      'scroll',
+      debounce(
+        checkForScrollPosition,
+        25
+      ),
+    )
+    //Add event listener on "scroll??"
+  }, [])
 
   useEffect( () => {
     checkForOverflow();
-  }, [])
+  }, [width])
 
     return !isMobile? (
       <div className='group-wrapper' >
           <div className='group-header'><h2>{title}</h2></div>
               <div className='songs-buttons-wrapper'>
-                  <ArrowBackIosIcon fontSize='large' className='pan pan-left' onClick={() => moveRow('left')} />
+                  <ArrowBackIosIcon fontSize='large' className='pan pan-left' color={!canScrollLeft? 'disabled' : ''} onClick={() => moveRow(width * -0.3)} />
                 <div className='songs-wrapper' ref={songBoxRef}>
                 { 
                   getItems().slice(0,Math.min(MAX_ITEMS_SHOWN, getItems().length)).map((item, index) => {
@@ -176,7 +208,7 @@ function SongRow(props){
                   })
                 }
                 </div>
-                <ArrowForwardIosIcon fontSize='large' className='pan pan-right' onClick={() => moveRow('right')}/>
+                <ArrowForwardIosIcon fontSize='large' disabled={!canScrollRight} color={!canScrollRight? 'disabled' : ''}  className='pan pan-right' onClick={() => moveRow(width * 0.3)}/>
 
               
             </div>

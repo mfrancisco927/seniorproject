@@ -16,6 +16,7 @@
     "axios": "^0.21.1",
     "eslint": "^7.23.0",
     "form-data": "^2.3.3",
+    "lodash.debounce": "^4.0.8",
     "material-ui": "^0.20.2",
     "node-sass": "^5.0.0",
     "react": "^16.14.0",
