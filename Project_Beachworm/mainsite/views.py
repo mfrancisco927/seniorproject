@@ -837,10 +837,11 @@ class PlaylistSongs(APIView):
            return Response({"edit_playlist_songs" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
         
         songs= list(playlist.songs.all().values())
-        # print(songs[int(query['id'])]['song_id'])
+        # print(songs[int(query['id'])]['song_id']) pk=songs[int(query['id'])]['song_id']
         if playlist.owner.user.id == self.request.user.id:
             try:
-                song= Song.objects.get(pk=songs[int(query['id'])]['song_id'])
+                song= Song.objects.get(songplaylist__id=query['id'])
+                print(song)
             except:
                 return Response({"edit_playlist_songs" : "error: song does not exist"}, status=status.HTTP_404_NOT_FOUND)
                 

@@ -59,7 +59,7 @@ class Playlist(BaseModel):
   description = models.TextField(blank=True)
   is_public = models.BooleanField(default=True)
   owner = models.ForeignKey(Profile, on_delete=models.CASCADE)
-  songs = models.ManyToManyField(Song, blank=True)
+  songs = models.ManyToManyField(Song, blank=True, through="SongPlaylist")
   image = models.ImageField(blank=True, null=True)
 
 class Radio(BaseModel):
@@ -85,3 +85,7 @@ class UserPlaylistPlay(BaseModel):
   radio = models.ForeignKey(Radio, on_delete=models.CASCADE)
   listened_at = models.DateTimeField(auto_now_add=True)
 
+class SongPlaylist(BaseModel):
+  song = models.ForeignKey(Song, on_delete=models.CASCADE)
+  Playlist = models.ForeignKey(Playlist, on_delete=models.CASCADE)
+  id = models.AutoField(primary_key=True)
