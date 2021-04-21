@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import Slider from '@material-ui/core/Slider';
 import { VolumeUp, VolumeDown, VolumeMute, VolumeOff } from '@material-ui/icons';
 import { useSpotifySdk } from './../../hooks/spotifyHooks';
@@ -14,8 +15,8 @@ function VolumeSlider(props) {
     scaleAndSetVolume(newValue);
   }
   
-  const getVolumeIcon = () => {
-    const handleMuteClick = () => {
+  const VolumeIcon = () => {
+    const handleMuteClick = useCallback(() => {
       if (muted) {
         spotify.setMuted(false);
         scaleAndSetVolume(volume);
@@ -23,7 +24,7 @@ function VolumeSlider(props) {
         spotify.setMuted(true);
         scaleAndSetVolume(0);
       }
-    }
+    }, []);
 
     if (volume === 0 || muted) {
       return <VolumeOff className="volume-slider_icon" onClick={handleMuteClick} />;
@@ -46,7 +47,7 @@ function VolumeSlider(props) {
 
   return (
     <div className="volume-slider_wrapper">
-      {showIcon && getVolumeIcon()}
+      {showIcon && <VolumeIcon />}
       <Slider
         className={"volume-slider_slider" + (showIcon ? "" : "volume-slider_slider__no-icon")}
         value={muted ? 0 : volume}

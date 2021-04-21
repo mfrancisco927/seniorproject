@@ -79,6 +79,7 @@ function AddToPlaylistPopover(props) {
   const updatePlaylists = useCallback(async () => {
     await getCurrentUser().then(result => {
       setPlaylists(result.users_playlists);
+      console.log('Updated playlists for popover');
     }, () => {
       console.log('Failed to get playlists for playlist popover. Closing popover early');
       onClose();

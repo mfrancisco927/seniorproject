@@ -7,10 +7,9 @@ import AddToPlaylistPopover from './../playlist/AddToPlaylistPopover';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import PauseIcon from '@material-ui/icons/Pause';
 import PlaylistAddIcon from '@material-ui/icons/PlaylistAdd';
-// import FavoriteIcon from '@material-ui/icons/Favorite'; // removing favorite feature for now
 import { IconButton } from '@material-ui/core';
 
-import './FloatingToolbar.css';
+import './FloatingToolbar.scss';
 
 // should have: seek, volume, add to playlist, volume, pause/play
 function FloatingToolbar(props) {
@@ -24,17 +23,9 @@ function FloatingToolbar(props) {
   const [ addToPlaylistOpen, setAddToPlaylistOpen ] = useState(false);
   const [ anchorRef, setAnchorRef ] = useState(null);
 
-  const handlePlay = () => {
-    spotify.togglePlay();
-  }
-
-  const handlePlaylistAdd = () => {
-    setAddToPlaylistOpen(true);
-  }
-
-  const closePopover = useCallback(
-    () => setAddToPlaylistOpen(false),
-  [setAddToPlaylistOpen]);
+  const handlePlay = useCallback(() => spotify.togglePlay(), [spotify]);
+  const handlePlaylistAdd = useCallback(() => setAddToPlaylistOpen(true), []);
+  const closePopover = useCallback(() => setAddToPlaylistOpen(false), []);
 
   return (
     <div className="floating-toolbar">
