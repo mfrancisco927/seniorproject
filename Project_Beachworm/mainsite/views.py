@@ -762,17 +762,19 @@ class PlaylistSongs(APIView):
     def get(self, request, playlist_id):
         if playlist_id != 'liked' and playlist_id != 'disliked':
             try:
-                playlist= Playlist.objects.get(pk=playlist_id)
+                playlist = Playlist.objects.get(pk=playlist_id)
             except:
                 return Response({"playlist_songs" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
             
-            songs= list(playlist.songs.all().values())
-            result = {}
-            for i in range((len(songs))):
-                result[i]=songs[i]
-                song = Song.objects.get(song_id = songs[i]['song_id'])
-                result[i]['artists'] = list(song.artists.values_list('artist_name', flat=True))
-            return Response(data = result , status=status.HTTP_200_OK)
+            playlist_songs = SongPlaylist.objects.filter(Playlist__id=playlist_id).values()
+            
+            for i in range(len(playlist_songs)):
+                song = Song.objects.get(song_id=playlist_songs[i]['song_id'])
+                song_data = SongSerializer(song).data
+                song_data['artists'] = list(song.artists.values_list('artist_name', flat=True))
+                playlist_songs[i]['song'] = song_data
+
+            return Response(data=playlist_songs, status=status.HTTP_200_OK)
 
         else:
             # Get requestor's profile
@@ -781,33 +783,20 @@ class PlaylistSongs(APIView):
             except:
                 return Response({'error': 'user does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Return liked songs
-            if playlist_id == 'liked':
+            # Return liked or disliked songs
+            if playlist_id == 'liked' or playlist_id == 'disliked':
                 try:
-                    liked_songs = list(profile.liked_songs.all().values())
+                    relevant_song_cursor = profile.liked_songs if playlist_id == 'liked' else profile.disliked_songs
+                    relevant_songs = list(relevant_song_cursor.all().values())
                 except:
                     return Response({'error': 'error retrieving songs'}, status=status.HTTP_404_NOT_FOUND)
 
-                result = {}
-                for i in range(len(liked_songs)):
-                    result[i] = liked_songs[i]
-                    song = Song.objects.get(song_id = liked_songs[i]['song_id'])
-                    result[i]['artists'] = list(song.artists.values_list('artist_name', flat=True))
-                return Response(data = result, status=status.HTTP_200_OK)
-
-            # Return disliked songs
-            if playlist_id == 'disliked':
-                try:
-                    disliked_songs = list(profile.disliked_songs.all().values())
-                except:
-                    return Response({'error': 'error retrieving songs'}, status=status.HTTP_404_NOT_FOUND)
-
-                result = {}
-                for i in range(len(disliked_songs)):
-                    result[i] = disliked_songs[i]
-                    song = Song.objects.get(song_id = disliked_songs[i]['song_id'])
-                    result[i]['artists'] = list(song.artists.values_list('artist_name', flat=True))
-                return Response(data = result, status=status.HTTP_200_OK)
+                for i in range(len(relevant_songs)):
+                    song = Song.objects.get(song_id=relevant_songs[i]['song_id'])
+                    song_data = SongSerializer(song).data
+                    song_data['artists'] = list(song.artists.values_list('artist_name', flat=True))
+                    relevant_songs[i]['song'] = song_data
+                return Response(data=relevant_songs, status=status.HTTP_200_OK)
 
     def post(self, request, playlist_id):
         query = self.request.query_params
@@ -841,7 +830,6 @@ class PlaylistSongs(APIView):
         if playlist.owner.user.id == self.request.user.id:
             try:
                 song= Song.objects.get(songplaylist__id=query['id'])
-                print(song)
             except:
                 return Response({"edit_playlist_songs" : "error: song does not exist"}, status=status.HTTP_404_NOT_FOUND)
                 

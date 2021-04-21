@@ -36,6 +36,7 @@ function PlaylistPage() {
   const [snackbarState, setSnackbarState] = useState({ open: false, message: null, severity: null });
   const ourPlaylist = playlist.owner_id === auth.id;
   const isLikedSongs = playlist.id === 'liked';
+  const isHistorySongs = playlist.id === 'history';
 
   const showAlert = (message, severity) => {
     setSnackbarState({
@@ -49,28 +50,32 @@ function PlaylistPage() {
     await getPlaylistSongs(playlist.id).then(data => {
       const songs = data;
       const tempList = [];
-      Object.entries(songs).forEach((songKV, index) => {
+      Object.entries(songs).map(songKV => songKV[1]).forEach(playlistSong => {
+        const song = playlistSong.song;
         tempList.push({
-          id: songKV[0],
-          songId: songKV[1].song_id,
-          title: songKV[1].title,
-          artists: songKV[1].artists.join(', '),
-          album: songKV[1].album,
-          duration: songKV[1].duration_ms,
-          // added: new Date(songKV[1].updated_at), // this is currently wrong, since it's the updated date of the SONG and not the playlist_song
+          id: playlistSong.id,
+          songId: song.song_id,
+          title: song.title,
+          artists: song.artists.join(', '),
+          album: song.album,
+          duration: song.duration_ms,
+          added: new Date(playlistSong.updated_at),
           songDetails: {
-            songId: songKV[1].song_id,
-            songName: songKV[1].title,
-            playlistIndex: index,
+            songId: song.song_id,
+            songName: song.title,
+            playlistIndex: playlistSong.id,
           }
         });
       });
       // in place sort, order by adding date
-      // tempList.sort((a, b) => {
-      //   if (a.added < b.added) return -1;
-      //   if (a.added > b.added) return 1;
-      //   return 0;
-      // });
+      // minor bug: because the back-end stores the liked and disliked as a list and not
+      // with any kind of bridging table, we're actually sorting on the SONG creation date
+      // not the like for those lists.
+      tempList.sort((a, b) => {
+        if (a.added < b.added) return -1;
+        if (a.added > b.added) return 1;
+        return 0;
+      });
       setSongList(tempList);
       console.log('Loaded song data for playlist ' + playlist.title);
     });
@@ -127,16 +132,8 @@ function PlaylistPage() {
 
   const handleDeleteClicked = useCallback(() => {
     const deleteSelected = async () => {
-      // temporary fix to deal with back-end issue with keys being indices that can change over time.
-      const shiftedSelected = selected.map(x => Number(x)).map((val, ind) => (
-        val - selected
-          .map(x => Number(x)) // convert to numbers
-          .slice(0, ind) // all items before the current index
-          .filter(x => x < val) // only keep indices that will cause a shift
-          .length // count them
-      ));
-      console.log('deleting indices', shiftedSelected);
-      for (let id of shiftedSelected) { // change to selected after back-end fixed
+      console.log('Deleting PlaylistSong entries with IDs', selected);
+      for (let id of selected) { // change to selected after back-end fixed
         await deleteSongFromPlaylist(playlist.id, id).then(() => {
           console.log('Deleted playlist_song with id ' + id);
         }, () => {
@@ -263,7 +260,7 @@ function PlaylistPage() {
   const MemoizedTableHead = useMemo(() => (
     <TableHead>
       <TableRow>
-        {(ourPlaylist && !isLikedSongs) && (
+        {(ourPlaylist && !isLikedSongs && !isHistorySongs) && (
           <PlaylistHeaderTableCell align="center" width="1">
             <IconButton align='center' aria-label="delete"
               onClick={handleDeleteClicked}>
@@ -275,9 +272,10 @@ function PlaylistPage() {
         <PlaylistHeaderTableCell align="right">ARTIST</PlaylistHeaderTableCell>
         <PlaylistHeaderTableCell align="right">ALBUM</PlaylistHeaderTableCell>
         <PlaylistHeaderTableCell align="right">DURATION</PlaylistHeaderTableCell>
+        <PlaylistHeaderTableCell align="right">{isHistorySongs ? 'LISTENED' : 'ADDED'}</PlaylistHeaderTableCell>
       </TableRow>
     </TableHead>
-  ), [handleDeleteClicked, isLikedSongs, ourPlaylist]);
+  ), [handleDeleteClicked, isLikedSongs, isHistorySongs, ourPlaylist]);
 
   const MemoizedTableBody = useMemo(() => {
     return (
@@ -287,7 +285,7 @@ function PlaylistPage() {
               key={song.title}
               {...song.songDetails}
               onDoubleClick={(event) => handleDoubleClick(event, index)}>
-              {(ourPlaylist && !isLikedSongs) && <DeleteCheckboxTableCell checked={selected.includes(song.id)} song={song} />}
+              {(ourPlaylist && !isLikedSongs && !isHistorySongs) && <DeleteCheckboxTableCell checked={selected.includes(song.id)} song={song} />}
               <PlaylistTableCell songDetails={song.songDetails}>
                 {song.title}
               </PlaylistTableCell>
@@ -300,11 +298,14 @@ function PlaylistPage() {
               <PlaylistTableCell songDetails={song.songDetails} align="right">
                 {mstominsecs(song.duration)}
               </PlaylistTableCell>
+              <PlaylistTableCell songDetails={song.songDetails} align="right">
+                {song.added.toLocaleDateString("en-US", {year: 'numeric', month: 'long', day: 'numeric'})}
+              </PlaylistTableCell>
             </PlaylistTableRow>
           ))}
         </TableBody>
     );
-  }, [handleDoubleClick, isLikedSongs, mstominsecs, ourPlaylist, selected, songList]);
+  }, [handleDoubleClick, isHistorySongs, isLikedSongs, mstominsecs, ourPlaylist, selected, songList]);
 
   const MemoizedTable = useMemo(() => (
     <TableContainer id="playlist_songs-table-container">

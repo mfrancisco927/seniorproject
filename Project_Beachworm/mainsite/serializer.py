@@ -4,8 +4,7 @@ from rest_framework import exceptions
 from rest_framework_simplejwt.state import token_backend
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from django.contrib.auth.models import User
-from .models import Profile
-from .models import Playlist
+from .models import Profile, Playlist, Song
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
@@ -55,6 +54,11 @@ class ChangePasswordSerializer(serializers.Serializer):
     model = User
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)   
+
+class SongSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Song
+        fields = "__all__"
 
 class PlaylistSerializer(serializers.ModelSerializer):
     class Meta:
