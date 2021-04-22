@@ -1,8 +1,9 @@
 const BEM_MODIFIER_DELIMITER = '__';
 const BEM_ELEMENT_DELIMETER = '_';
 
-const stringSpacesToArray = (spacedClasses) => spacedClasses.split(' ');
+export const stringSpacesToArray = (spacedClasses) => spacedClasses.split(' ');
 export const removeDupes = array => [...new Set(array)];
+export const removeDupesWithNesting = array => removeDupes(stringSpacesToArray(array.join(' ')))
 
 /*
  * Creates a function which applies (or does not apply) a BEM modifier to a class when a given
@@ -19,7 +20,7 @@ export const removeDupes = array => [...new Set(array)];
 export const bemConditionalModifier = (conditionalName) => {
   return (condition, ...baseNames) => {
     const classes = baseNames.flat().map(x => stringSpacesToArray(x)).flat();
-    const result = condition ? bemApplyModifier(conditionalName, classes) : classes;
+    const result = condition ? stringSpacesToArray(bemApplyModifier(conditionalName, classes)) : classes;
     return removeDupes(result).join(' ');
   }
 };

@@ -6,7 +6,7 @@ import { likeSong, dislikeSong, unlikeSong, undislikeSong } from './../../api/so
 import { getCurrentUser } from './../../api/userApi';
 import { useWindowDimensions, SCREEN_SIZE } from './../../hooks/responsiveHooks';
 import { createBlockWrapper, bemConditionalModifier, bemApplyModifier,
-  bemKnownModifierApplier, removeDupes } from '../../util/bem-helpers';
+  bemKnownModifierApplier, removeDupesWithNesting } from '../../util/bem-helpers';
 
 import FloatingToolbar from './../playbackControllers/FloatingToolbar';
 import ScrollText from './../playbackControllers/ScrollText';
@@ -219,7 +219,10 @@ const PlayingWrapper = (props) => {
   const playingWrapperClass = block('playing-wrapper');
 
   return (
-    <div className={removeDupes([mobileModifier(playingWrapperClass), guestModifier(playingWrapperClass)]).join(' ')}>
+    <div className={removeDupesWithNesting([
+      mobileModifier(playingWrapperClass), 
+      guestModifier(playingWrapperClass)
+    ]).join(' ')}>
       <ReturnToExploreButton spotify={props.spotify} handleReturnExplore={props.handleReturnExplore} />
       {!props.isMobile ? (
         <FullSizePlayingWrapperContent {...props} />
