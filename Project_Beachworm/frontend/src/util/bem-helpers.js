@@ -57,11 +57,11 @@ export const bemKnownModifierApplier = (conditionalName, condition) => {
  */
 export const createBlockWrapper = (blockName) => {
   return (...classes) => {
-    // iterate over all non-empty class names specified, apply the block to each of them
+    // iterate over all class names specified, apply the block to each of them and remove duplicates
     return removeDupes(
       classes.map(x => stringSpacesToArray(x))
-        .filter(x => !!x)
-        .map(elementName => blockName + BEM_ELEMENT_DELIMETER + elementName)
+        .flat()
+        .map(elementName => elementName ? blockName + BEM_ELEMENT_DELIMETER + elementName : blockName)
     ).join(' ');
   };
 };

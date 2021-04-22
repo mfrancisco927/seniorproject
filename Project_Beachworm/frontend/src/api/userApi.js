@@ -9,6 +9,7 @@ const registerEndpointUri = baseUri + 'create/';
 const profileEndpointUri = (userId) => baseUri2 + userId + '/profile/';
 const followingEndpointUri = (targetUid) => baseUri2 + 'profile/following/' + targetUid + '/';
 const getSeedEndpointUri = baseUri + 'profile/get-seeds/';
+const deactiveAccountUri = baseUri + 'deactivate/';
 
 export async function getCurrentUser() {
   const currentUserEndpoint = currentUserEndpointUri;
@@ -98,4 +99,12 @@ export async function getUserSeeds() {
   }, (error) =>{
     return Promise.reject(error)
   })
-}
+};
+
+export async function deactivateAccount() {
+  return await axiosInstance.post(deactiveAccountUri).then(resp => {
+    return Promise.resolve(resp.data);
+  }, (error) =>{
+    return Promise.reject(error)
+  })
+};

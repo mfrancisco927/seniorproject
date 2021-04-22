@@ -74,7 +74,7 @@ export const ApiInterceptor = ({children}) => {
               } else if (responseData.access_token.includes('may have been revoked')) {
                   console.log('401 error from Spotify refresh. Access token was likely revoked.');
               }
-            } else {
+            } else if (responseData.code !== 'user_inactive') {
               console.log('401 error on API request. Attempting to retrieve new JWT access token.');
               return axiosInstance
                 .post('/token/refresh/', {refresh: auth.tokens.refresh})

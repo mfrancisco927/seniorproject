@@ -15,8 +15,6 @@ import Questionnaire2 from './pages/questionnaire/Questionnaire2.js';
 import SpotifyAuth from './pages/spotifyAuth/SpotifyAuth.js';
 import { search } from './api/searchApi';
 import { useAuth } from './hooks/authHooks';
-import { useSpotifySdk } from './hooks/spotifyHooks';
-import useRadioLoaders from './hooks/radioLoaders';
 
 // needed for Spotify SDK
 window.onSpotifyWebPlaybackSDKReady = () => {};
@@ -37,7 +35,7 @@ function App() {
       });
       history.push('/search');
     }
-  }
+  };
 
   // which pages to carry over the footer, regex matched
   const footerPages = ['^/$',
@@ -63,31 +61,6 @@ function App() {
     );
   };
 
-  const DebugButtons = () => {
-    const spotify = useSpotifySdk();
-    const loaders = useRadioLoaders();
-    const handleSignOut = () => {
-      spotify.disconnect();
-      spotify.clearAll();
-      auth.signOut();
-    };
-
-    const rock = {id: 'rock', name: 'Rock'};
-    const pop = {id: 'pop', name: 'Pop'};
-    const edm = {id: 'edm', name: 'Edm'};
-
-    const stations = [rock, pop, edm];
-
-    return (
-      <span>
-        <button onClick={handleSignOut} disabled={auth.id === null}>Log out {auth.id !== null && `(id ${auth.id})`}</button>
-        {stations.map(genre => (
-          <button onClick={() => loaders.loadGenreRadio(genre)}>{genre.name} radio</button>
-        ))}
-      </span>
-    );
-  }
-
   const navList = (auth.id !== null) ? ({
     '/': 'Home',
     '/explore': 'Explore',
@@ -109,9 +82,11 @@ function App() {
   return (
     <div className={'page-wrapper' + (showFooter ? ' page-wrapper__footer' : ' page-wrapper__no-footer')}>
       {/* pages marked TEMP will not be accessible via nav-bar in production, but through some other context */}
-      <Navbar submitSearch={submitSearch} menuList={navList}/>
+      <Navbar
+      submitSearch={submitSearch}
+      menuList={navList}
+      loggedIn={auth.id !== null} />
       <WithFooter>
-        <DebugButtons />
         <Switch>
           <Route path='/landing'>
             <Landing />
