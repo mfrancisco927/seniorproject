@@ -17,32 +17,46 @@ function MainPage() {
   const { width } = useWindowDimensions();
   const isMobile = width <= SCREEN_SIZE.SMALL;
   const possStyles = {
-    colors: [ '#d60d0d', '#2348ad', '#8f138d', '#0ec23e', '#e69020'
-            ],
-    fonts : [ 'Caveat','Sofia','Bebas Neue'
-            ]
-            //, 'Abril Fatface', 'Bebas Neue', 'Teko', 'Recursive'
+    colors: [ '#d60d0d', '#2348ad', '#8f138d', '#0ec23e', '#e69020', '#2199b8', '#d41597', '#ffe600'],
+    fonts : [ 'Caveat','Sofia','Bebas Neue', 'Abril Fatface', 'Bebas Neue', 'Teko', 'Recursive','Antonia']
   }
+  const [genreStyles, setGenreStyles] = useState([]);
 
   useEffect(() => {
     getHomeRecommendations().then((data) => {
         console.log(`Retrieved ${data.tracks.length} tracks, ${data.artists.length} artists, ${data.genres.length} genres for home page`);
         setData(data);
+        console.log('here')
+        getStyleRandom(data.genres.length)
         setLoaded(true);
       }
     );
   }, [])
-  const getStyleRandom = () =>{
-    let randColorString = possStyles.colors[Math.floor( Math.random() * possStyles.colors.length)]
-    let colorObj = new Values(randColorString);
-    let shadedColor = colorObj.shade(70).hexString();
-    console.log(shadedColor);
-    let cssString = `linear-gradient(150deg, ${randColorString} 30%, ${shadedColor})`
-    
-    let font = possStyles.fonts[Math.floor( Math.random() * possStyles.colors.length)];
-    let returned = {'background':cssString, 'font-family': font}
 
-    return returned;
+  const getStyleRandom = (numberOfGenres) =>{
+    let tempList = []
+    for(let i = 0; i < numberOfGenres; i++){
+      let randColorString = possStyles.colors[Math.floor( Math.random() * possStyles.colors.length)]
+      let colorObj = new Values(randColorString);
+      let colorString, angle, shadedColor;
+      if(Math.random() > .5){
+        shadedColor = colorObj.shade(70).hexString();
+        angle = '150deg'
+      }else{
+        shadedColor = colorObj.tint(50).hexString();
+        angle = '60deg'
+      }
+      colorString = `linear-gradient(${angle}, ${randColorString} 30%, ${shadedColor})`
+      
+      let font = possStyles.fonts[Math.floor( Math.random() * possStyles.fonts.length)];
+      tempList.push({'background': colorString, 'font-family': font})
+    }
+    tempList.unshift( {
+      'background': `linear-gradient(60deg, #a8a8a8 30%, #707070)`, 
+      'font-family': 'Antonio'
+    })
+
+    setGenreStyles(tempList)
   }
 
   return !isMobile? (
@@ -56,11 +70,11 @@ function MainPage() {
           <SongRow title='Recommended Tracks' 
             getItems={ () => data.tracks}
             onItemClick={song => loader.loadSongRadio(song)}
-            getImageCallback={(item) => {
+            getImageCallback={(item, index) => {
               if(item.album.images.length !== 0){
-                return <img src={item.album.images[0].url} className='song-img' alt='Track goes here' />
+                return <img  src={item.album.images[0].url} className='song-img' alt={item.name + ' by ' + item.artists.map(artist => artist.name).join(', ')} />
                 }else{
-                  return 'https://media.pitchfork.com/photos/5a71df0d85ed77242d8f1252/1:1/w_320/jpegmafiaveteran.jpg';
+                  return <div className='song-img genre-box' style={genreStyles[0]}>Image Missing :/</div>;
               }
             }
             }
@@ -70,11 +84,11 @@ function MainPage() {
           <SongRow title='Recommended Artists' 
             getItems={ () => data.artists}
             onItemClick={artist => loader.loadArtistRadio(artist)}
-            getImageCallback={(item) => {
+            getImageCallback={(item, index) => {
               if(item.images.length !== 0){
-                return <img src={item.images[0].url} className='song-img' alt='artist goes here' />
+                return <img src={item.images[0].url} className='song-img' alt={item.name} />
                 }else{
-                  return 'https://media.pitchfork.com/photos/5a71df0d85ed77242d8f1252/1:1/w_320/jpegmafiaveteran.jpg';
+                  return <div className='song-img genre-box' style={genreStyles[0]}>Image Missing :/</div>;
               }
             }
           } 
@@ -87,8 +101,8 @@ function MainPage() {
               id: item,
               name: item,
             })}
-            getImageCallback={ (item) => {
-              return <div className='song-img genre-box' style={getStyleRandom()}>{item}</div>
+            getImageCallback={ (item, index) => {
+              return <div className='song-img genre-box' style={genreStyles[index + 1]}>{item}</div>
             }}
             getTitle={ (item) => {return (<h2 className='artist-title'>{item}</h2>)}}
             getSubtitle={ item => ''}
@@ -165,6 +179,10 @@ function SongRow(props){
   const [canScrollLeft, setcanScrollLeft] = useState(true);
   const [canScrollRight, setcanScrollRight] = useState(true); 
 
+  // //CHANGES FOR SCROLL TESTING
+  // if(title === 'Recommended Genres'){
+  //   MAX_ITEMS_SHOWN = 2;
+  // }
 
   const moveRow = (distance) => {
     songBoxRef.current.scrollBy({ left: distance, behavior: 'smooth' });
@@ -181,9 +199,7 @@ function SongRow(props){
     const {scrollWidth, clientWidth} = songBoxRef.current;
     const overflow = scrollWidth > clientWidth;
 
-    setHasOverflow(overflow)
-    console.log(songBoxRef.current)
-    console.log(hasOverflow)
+    console.log(songBoxRef.current, `has overflow? ${overflow}`)
     if(!overflow){
       setcanScrollLeft(false);
       setcanScrollRight(false);
@@ -196,24 +212,19 @@ function SongRow(props){
   //             aka: hasOverflow, canScrollRight, and canScrollLeft are all false on initial render
 
   useEffect( () => {
-
-
     songBoxRef.current.addEventListener(
       'scroll',
       debounce(
         checkForScrollPosition,
         25
       ),
-    )    
-    songBoxRef.current.addEventListener(
-      'load',
-      checkForOverflow,
     )
   }, [])
 
   useEffect( () => {
+    console.log('scroll width changed: ', songBoxRef.current)
     checkForOverflow();
-  }, [width])
+  }, [ songBoxRef.current.clientWidth], songBoxRef.current.scrollWidth)
 
     return !isMobile? (
       <div className='group-wrapper' >
@@ -225,7 +236,7 @@ function SongRow(props){
                   getItems().slice(0,Math.min(MAX_ITEMS_SHOWN, getItems().length)).map((item, index) => {
                     return (
                       <div className='song-wrapper' key={`wrapper-index-${index}`} onClick={ () => onItemClick(item)}>
-                          { getImageCallback(item) }
+                          { getImageCallback(item, index) }
                           { getTitle(item) }
                           { getSubtitle(item) }
                       </div>
