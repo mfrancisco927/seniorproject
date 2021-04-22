@@ -811,30 +811,25 @@ class PlaylistSongs(APIView):
             except:
                 return Response({"edit_playlist_songs" : "error: song does not exist"}, status=status.HTTP_404_NOT_FOUND)
 
-            playlist.songs.add(song)
-            playlist.save()
+            SongPlaylist.objects.create(Playlist=playlist, song=song)
             return Response(status=status.HTTP_200_OK)
 
         return Response({"edit_playlist_songs" : "error: user does not own this playlist"}, status=status.HTTP_404_NOT_FOUND)
     
     def delete(self, request, playlist_id):
         query = self.request.query_params
-        # print(query)
         try:
-            playlist= Playlist.objects.get(pk=playlist_id)
+            playlist = Playlist.objects.get(pk=playlist_id)
         except:
            return Response({"edit_playlist_songs" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
         
         songs= list(playlist.songs.all().values())
-        # print(songs[int(query['id'])]['song_id']) pk=songs[int(query['id'])]['song_id']
         if playlist.owner.user.id == self.request.user.id:
             try:
-                song= Song.objects.get(songplaylist__id=query['id'])
+                SongPlaylist.objects.get(pk=query['id']).delete()
             except:
                 return Response({"edit_playlist_songs" : "error: song does not exist"}, status=status.HTTP_404_NOT_FOUND)
                 
-            playlist.songs.remove(song)
-            playlist.save()
             return Response(status=status.HTTP_200_OK)
 
         return Response({"edit_playlist_songs" : "error: user does not own this playlist"}, status=status.HTTP_404_NOT_FOUND)
