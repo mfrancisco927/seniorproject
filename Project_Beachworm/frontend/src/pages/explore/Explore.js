@@ -5,7 +5,8 @@ import { getRecommendations, getRecommendationsByGenre } from './../../api/recom
 import { likeSong, dislikeSong, unlikeSong, undislikeSong } from './../../api/songAPI';
 import { getCurrentUser } from './../../api/userApi';
 import { useWindowDimensions, SCREEN_SIZE } from './../../hooks/responsiveHooks';
-import { createBlockWrapper, bemConditionalModifier, bemKnownModifierApplier } from '../../util/bem-helpers';
+import { createBlockWrapper, bemConditionalModifier, bemApplyModifier,
+  bemKnownModifierApplier, removeDupes } from '../../util/bem-helpers';
 
 import FloatingToolbar from './../playbackControllers/FloatingToolbar';
 import ScrollText from './../playbackControllers/ScrollText';
@@ -64,7 +65,7 @@ const PreviousButton = ({spotify}) => {
 
   return (
     <IconButton
-      className={controlRowBlock('btn-control', 'btn-next-previous', 'btn-next-previous__previous')}
+      className={controlRowBlock('btn-control', bemApplyModifier('previous', 'btn-next-previous'))}
       onClick={handlePrevious}>
       <SkipPreviousRoundedIcon className={controlRowBlock('btn-next-previous_icon')} />
     </IconButton>
@@ -73,7 +74,7 @@ const PreviousButton = ({spotify}) => {
 
 const DislikeButton = ({handleDislike, alreadyDisliked}) => (
   <IconButton
-  className={controlRowBlock('btn-control', 'btn-like-dislike', 'btn-like-dislike__dislike', ...alreadyDislikedModifier(alreadyDisliked, 'btn-like-dislike'))}
+  className={controlRowBlock('btn-control', bemApplyModifier('dislike', 'btn-like-dislike'), alreadyDislikedModifier(alreadyDisliked, 'btn-like-dislike'))}
   onClick={handleDislike}>
     <ArrowDownwardRoundedIcon className={controlRowBlock('btn-like-dislike_icon')} />
   </IconButton>
@@ -81,7 +82,7 @@ const DislikeButton = ({handleDislike, alreadyDisliked}) => (
 
 const LikeButton = ({handleLike, alreadyLiked}) => (
   <IconButton 
-  className={controlRowBlock('btn-control', 'btn-like-dislike', 'btn-like-dislike__like', ...alreadyLikedModifier(alreadyLiked, 'btn-like-dislike'))}
+  className={controlRowBlock('btn-control', bemApplyModifier('like', 'btn-like-dislike'), alreadyLikedModifier(alreadyLiked, 'btn-like-dislike'))}
   onClick={handleLike}>
     <ArrowUpwardRoundedIcon className={controlRowBlock('btn-like-dislike_icon')} />
   </IconButton>
@@ -95,7 +96,7 @@ const SkipButton = ({spotify}) => {
 
   return (
     <IconButton 
-    className={controlRowBlock('btn-control', 'btn-next-previous', 'btn-next-previous__next')}
+    className={controlRowBlock('btn-control', bemApplyModifier('next', 'btn-next-previous'))}
     onClick={handleSkip}>
       <SkipNextRoundedIcon className={controlRowBlock('btn-next-previous_icon')} />
     </IconButton>
@@ -170,7 +171,7 @@ const ReturnToExploreButton = ({handleReturnExplore, spotify}) => {
 const FullSizePlayingWrapperContent = ({trackId, spotify, paused, currState, signedIn, albumImages, albumName, isMobile,
   handleLike, handleDislike, alreadyLiked, alreadyDisliked, songToShow}) => {
   const mobileModifier = bemKnownModifierApplier('mobile', isMobile);
-  const controlRowWrapperClass = mobileModifier(controlRowBlock('wrapper')).join(' ');
+  const controlRowWrapperClass = mobileModifier(controlRowBlock('wrapper'));
 
   return (
     <>
@@ -191,7 +192,7 @@ const MobilePlayingWrapperContent = ({trackId, spotify, paused, currState, signe
   handleDislike, alreadyLiked, alreadyDisliked, isMobile, songToShow}) => {
     
   const mobileModifier = bemKnownModifierApplier('mobile', isMobile);
-  const controlRowWrapperClass = mobileModifier(controlRowBlock('wrapper')).join(' ');
+  const controlRowWrapperClass = mobileModifier(controlRowBlock('wrapper'));
 
   return (
     <>
@@ -218,7 +219,7 @@ const PlayingWrapper = (props) => {
   const playingWrapperClass = block('playing-wrapper');
 
   return (
-    <div className={[...mobileModifier(playingWrapperClass), ...guestModifier(playingWrapperClass)].join(' ')}>
+    <div className={removeDupes([mobileModifier(playingWrapperClass), guestModifier(playingWrapperClass)]).join(' ')}>
       <ReturnToExploreButton spotify={props.spotify} handleReturnExplore={props.handleReturnExplore} />
       {!props.isMobile ? (
         <FullSizePlayingWrapperContent {...props} />
@@ -407,7 +408,7 @@ function Explore() {
       spotify={spotify} handleReturnExplore={handleReturnExplore} handleDislike={handleDislike} handleLike={handleLike} isMobile={isMobile}
       albumImages={albumImages} albumName={albumName} songToShow={songToShow} paused={paused} signedIn={signedIn} currState={currState} />
       {signedIn && (
-        <div className={mobileModifier(block('toolbar-wrapper')).join(' ')}>
+        <div className={mobileModifier(block('toolbar-wrapper'))}>
           <FloatingToolbar
             duration={duration_ms}
             position={position} />

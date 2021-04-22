@@ -1,7 +1,14 @@
+import { useEffect, useState, Fragment } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 import { useCallback } from 'react';
+
 import { useAuth } from './../../hooks/authHooks';
 import { getProfile, getCurrentUser, followUser, unfollowUser } from './../../api/userApi';
+
+import EditPlaylistModal from './../playlist/EditPlaylistModal';
+import TabbedGallery from './TabbedGallery';
+import { createBlockWrapper, bemApplyModifier } from '../../util/bem-helpers';
+
 import { Button } from '@material-ui/core';
 import PersonIcon from '@material-ui/icons/Person';
 import ClearIcon from '@material-ui/icons/Clear';
@@ -9,11 +16,7 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import VisibilityIcon from '@material-ui/icons/Visibility';
 import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 
-import EditPlaylistModal from './../playlist/EditPlaylistModal';
-import TabbedGallery from './TabbedGallery';
-
-import './ProfilePage.css';
-import { useEffect, useState, Fragment } from 'react';
+import './ProfilePage.scss';
 
 const DEFAULT_IMAGE_URL = 'https://images-na.ssl-images-amazon.com/images/I/51Ib3jYSStL._AC_SY450_.jpg';
 
@@ -28,6 +31,12 @@ function ProfilePage(){
   const [ selectedTabIndex, setSelectedTabIndex ] = useState(0);
   const profileId = useParams().profileId || auth.id;
   const viewingSelf = Number(profileId) === auth.id;
+
+  // CSS BEM
+  const profileBlock = createBlockWrapper('profile-header');
+  const playlistTileBlock = createBlockWrapper('playlist-tile');
+  const galleryItemBlock = createBlockWrapper('gallery-tile');
+  const followBtnBlock = createBlockWrapper('follow-button');
 
   const updateTargetData = useCallback(async () => {
     if (!auth.id) {
@@ -70,10 +79,10 @@ function ProfilePage(){
   const ImageSquare = (props) => {
     const { children, onClick, ...restProps } = props;
     return (
-      <div className="gallery-item">
-        <img className="gallery-item_img" alt="music" {...restProps} />
-        <div className="gallery-item_overlay"  onClick={onClick}>
-          <span className="gallery-item_overlay-text">
+      <div className={galleryItemBlock('')}>
+        <img className={galleryItemBlock('img')} alt="music" {...restProps} />
+        <div className={galleryItemBlock('overlay')} onClick={onClick}>
+          <span className={galleryItemBlock('overlay-text')}>
             {children}
           </span>
         </div>
@@ -136,16 +145,16 @@ function ProfilePage(){
         // the user to change name and visibility settings. maybe add some way to see
         // that it's public?
         viewingSelf ? (
-          <div className="playlist-item__with-settings">
+          <div className={bemApplyModifier('with-settings', playlistTileBlock(''))}>
             {makePlaylistSquare(playlist)}
             <SettingsIcon
-              className="playlist-item_settings-icon"
+              className={playlistTileBlock('settings-icon')}
               onClick={() => handleEditPlaylist(playlist)} />
             {playlist.is_public ? (
-              <VisibilityIcon className="playlist-item_visibility-icon playlist-item_visibility-icon__public"
+              <VisibilityIcon className={bemApplyModifier('public', playlistTileBlock('visibility-icon'))}
               onClick={() => handleEditPlaylist(playlist)} />
             ) : (
-              <VisibilityOffIcon className="playlist-item_visibility-icon playlist-item_visibility-icon__private"
+              <VisibilityOffIcon className={bemApplyModifier('private', playlistTileBlock('visibility-icon'))}
               onClick={() => handleEditPlaylist(playlist)} />
             )}
           </div>
@@ -214,30 +223,30 @@ function ProfilePage(){
   };
 
   return (
-    <div className='profile-page-wrapper'>
+    <div className={profileBlock('wrapper')}>
       {errorLoadingProfile && dataLoaded ? (
         <h1>Uh oh! The user you're looking for isn't here!</h1>
       ) : (
         <Fragment>
-          <div className="profile-header_container">
-            <PersonIcon className="profile-header_icon" />
+          <div className={profileBlock('container')}>
+            <PersonIcon className={profileBlock('icon')} />
             {viewingSelf ? (
-              <h1 className="profile-header_username profile-header_username__self">{profileData.username}</h1>
+              <h1 className={bemApplyModifier('self', profileBlock('username'))}>{profileData.username}</h1>
             ) : (
-              <div className="profile-header_interaction-wrapper">
-                <h2 className="profile-header_username">{profileData.username}</h2>
-                <Button className="profile-header_follow-button"
+              <div className={profileBlock('interaction-wrapper')}>
+                <h2 className={profileBlock('username')}>{profileData.username}</h2>
+                <Button className={profileBlock('follow-button')}
                 onClick={toggleFollow}
                 disableFocusRipple>
                   {following ? (
                     <Fragment>
-                      <ClearIcon className="follow-button_x-icon" />
-                      <span className="follow-button_text">
+                      <ClearIcon className={followBtnBlock('x-icon')} />
+                      <span className={followBtnBlock('text')}>
                         Unfollow
                       </span>
                     </Fragment>
                   ) : (
-                    <span className="follow-button_text">
+                    <span className={followBtnBlock('text')}>
                       Follow
                     </span>
                   )}

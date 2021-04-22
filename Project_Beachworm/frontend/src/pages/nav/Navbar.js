@@ -51,7 +51,7 @@ function Navbar(props) {
         <NavLink to="/landing" className={block('logo')} onClick={toggleMobileMenu}>
           BW
         </NavLink>
-        <ul className={activeMobileModifier(mobileMenuOpen, block('menu')).join(' ')}>
+        <ul className={activeMobileModifier(mobileMenuOpen, block('menu'))}>
           {           
             Object.entries(menuList).map((menuPair, index) => {
                 const href = menuPair[0];
@@ -60,7 +60,7 @@ function Navbar(props) {
                   <NavLink
                   to={href}
                   key={index}
-                  className={mobileModifier(block('links')).join(' ')}
+                  className={mobileModifier(block('links'))}
                   onClick={closeMobileMenu}>
                     {pageName}
                   </NavLink>

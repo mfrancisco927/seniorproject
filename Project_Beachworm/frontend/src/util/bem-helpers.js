@@ -2,7 +2,7 @@ const BEM_MODIFIER_DELIMITER = '__';
 const BEM_ELEMENT_DELIMETER = '_';
 
 const stringSpacesToArray = (spacedClasses) => spacedClasses.split(' ');
-const removeDupes = array => [...new Set(array)];
+export const removeDupes = array => [...new Set(array)];
 
 /*
  * Creates a function which applies (or does not apply) a BEM modifier to a class when a given
@@ -18,14 +18,31 @@ const removeDupes = array => [...new Set(array)];
  */
 export const bemConditionalModifier = (conditionalName) => {
   return (condition, ...baseNames) => {
-    const classes = baseNames.map(x => stringSpacesToArray(x)).flat();
-    const result = (condition ? (
-      [...classes, ...classes.map(name => name + BEM_MODIFIER_DELIMITER + conditionalName)]
-    ) : (
-      classes
-    ));
-    return removeDupes(result);
+    const classes = baseNames.flat().map(x => stringSpacesToArray(x)).flat();
+    const result = condition ? bemApplyModifier(conditionalName, classes) : classes;
+    return removeDupes(result).join(' ');
   }
+};
+
+/*
+ * Directly applies the modifier parameter as a modifier to each of the class
+ * names contained in baseNames.
+ */
+export const bemApplyModifier = (modifier, ...baseNames) => {
+  const classes = baseNames.flat().map(x => stringSpacesToArray(x)).flat();
+  return removeDupes([
+    ...classes, 
+    ...classes.map(name => name + BEM_MODIFIER_DELIMITER + modifier)
+  ]).join(' ');
+};
+
+/*
+ * Creates a function that directly applies the modifier parameter as a modifier to each
+ * of the class names contained in baseNames. Useful if the same modifier will be applied to
+ * several groups of classes, so that the modifier will not need to be passed repeatedly.
+ */
+export const bemApplyModifierFactory = (modifier) => {
+  return (...baseNames) => bemApplyModifier(modifier, baseNames);
 };
 
 /*
@@ -42,7 +59,7 @@ export const bemConditionalModifier = (conditionalName) => {
  */
 export const bemKnownModifierApplier = (conditionalName, condition) => {
   const conditionalWrapper = bemConditionalModifier(conditionalName);
-  return (baseNames) => conditionalWrapper(condition, baseNames);
+  return (...baseNames) => conditionalWrapper(condition, baseNames);
 };
 
 /*
@@ -59,7 +76,7 @@ export const createBlockWrapper = (blockName) => {
   return (...classes) => {
     // iterate over all class names specified, apply the block to each of them and remove duplicates
     return removeDupes(
-      classes.map(x => stringSpacesToArray(x))
+      classes.flat().map(x => stringSpacesToArray(x))
         .flat()
         .map(elementName => elementName ? blockName + BEM_ELEMENT_DELIMETER + elementName : blockName)
     ).join(' ');
