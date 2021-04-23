@@ -1,0 +1,19 @@
+.scan {
+    &_wrapper {
+        display: inline-flex;
+        padding: 0 5%;
+        max-height: 100%;
+        justify-content: center;
+        align-items: center;
+        min-width: 90%;
+
+        > * {
+            margin-left: 1em;
+            margin-right: 1em;
+        }
+    }
+
+    &_slider {
+        width: 100%;
+    }
+}

@@ -15,6 +15,7 @@ import ClearIcon from '@material-ui/icons/Clear';
 import SettingsIcon from '@material-ui/icons/Settings';
 import VisibilityIcon from '@material-ui/icons/Visibility';
 import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
+import FileCopyIcon from '@material-ui/icons/FileCopy';
 
 import './ProfilePage.scss';
 
@@ -91,7 +92,6 @@ function ProfilePage(){
   }
 
   const handlePlaylistClick = (playlist) => {
-    console.log(playlist)
     history.push('/playlist', {
       playlist: playlist,
     });
@@ -110,7 +110,11 @@ function ProfilePage(){
   }
 
   const handleEditPlaylist = (playlist) => {
-    setPlaylistModalState({open: true, playlist: playlist, });
+    setPlaylistModalState({open: true, playlist: playlist, copying: false,});
+  }
+
+  const handleCopyPlaylist = (playlist) => {
+    setPlaylistModalState({open: true, playlist: playlist, copying: true,});
   }
 
   const likedSongsElement = (
@@ -144,23 +148,34 @@ function ProfilePage(){
         // TODO: edit this one to also add a config button on the playlist that allows
         // the user to change name and visibility settings. maybe add some way to see
         // that it's public?
-        viewingSelf ? (
-          <div className={bemApplyModifier('with-settings', playlistTileBlock(''))}>
-            {makePlaylistSquare(playlist)}
-            <SettingsIcon
-              className={playlistTileBlock('settings-icon')}
-              onClick={() => handleEditPlaylist(playlist)} />
-            {playlist.is_public ? (
-              <VisibilityIcon className={bemApplyModifier('public', playlistTileBlock('visibility-icon'))}
-              onClick={() => handleEditPlaylist(playlist)} />
+          <div className={bemApplyModifier('with-buttons', playlistTileBlock(''))}>
+            {viewingSelf ? (
+              <>
+                {makePlaylistSquare(playlist)}
+                <SettingsIcon
+                  className={playlistTileBlock('settings-icon')}
+                  onClick={() => handleEditPlaylist(playlist)} />
+                {playlist.is_public ? (
+                  <VisibilityIcon className={bemApplyModifier('public', playlistTileBlock('visibility-icon'))}
+                  onClick={() => handleEditPlaylist(playlist)} />
+                ) : (
+                  <VisibilityOffIcon className={bemApplyModifier('private', playlistTileBlock('visibility-icon'))}
+                  onClick={() => handleEditPlaylist(playlist)} />
+                )}
+                <FileCopyIcon
+                className={playlistTileBlock('copy-icon')}
+                onClick={() => handleCopyPlaylist(playlist)} />
+              </>
             ) : (
-              <VisibilityOffIcon className={bemApplyModifier('private', playlistTileBlock('visibility-icon'))}
-              onClick={() => handleEditPlaylist(playlist)} />
-            )}
-          </div>
-        ) : (
-          makePlaylistSquare(playlist)
-        )
+              <>
+                {makePlaylistSquare(playlist)}
+                <FileCopyIcon
+                className={playlistTileBlock('copy-icon')}
+                onClick={() => handleCopyPlaylist(playlist)} />
+              </>
+            )
+          }
+        </div>
       ),
       emptyTabText: !viewingSelf && 'No playlists available for this user!',
       prependItems: viewingSelf && (
@@ -253,15 +268,13 @@ function ProfilePage(){
                 </Button>
               </div>
             )}
-            
           </div>
-          {viewingSelf && (
-            <EditPlaylistModal
-            open={playlistModalState.open}
-            playlist={playlistModalState.playlist}
-            onClose={() => setPlaylistModalState({...playlistModalState, open: false,})}
-            onSubmit={() => updateTargetData()}/>
-          )}
+          <EditPlaylistModal
+          open={playlistModalState.open}
+          playlist={playlistModalState.playlist}
+          copying={playlistModalState.copying}
+          onClose={() => setPlaylistModalState({...playlistModalState, open: false,})}
+          onSubmit={() => updateTargetData()}/>
           <TabbedGallery
           selectedTabIndex={selectedTabIndex}
           setSelectedTabIndex={setSelectedTabIndex}

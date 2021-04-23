@@ -6,14 +6,19 @@
     .edit-playlist_settings-icon {
         position: absolute;
         right: 0;
+        transform: translate(calc(1.5em + 100%), 12.5%);
+        font-size: 1em;
+        cursor: pointer;
+        margin-left: 0.5em;
+    }
+
+    .edit-playlist_copy-icon {
+        position: absolute;
+        right: 0;
         transform: translate(calc(0.25em + 100%), 12.5%);
         font-size: 1em;
+        cursor: pointer;
     }
-}
-
-.edit-playlist_settings-icon {
-    cursor: pointer;
-    margin-left: 0.5em;
 }
 
 #playlist_songs-table-container {

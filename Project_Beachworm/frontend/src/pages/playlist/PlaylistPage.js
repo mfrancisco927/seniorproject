@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
 import SettingsIcon from '@material-ui/icons/Settings';
+import FileCopyIcon from '@material-ui/icons/FileCopy';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import { Checkbox } from '@material-ui/core';
 import Table from '@material-ui/core/Table';
@@ -30,13 +31,13 @@ function PlaylistPage() {
   const { playlist: statePlaylist } = history.location.state || {};
   const [playlist, setPlaylist] = useState(statePlaylist || {});
   const [songList, setSongList] = useState([]);
-  const [editModalOpen, setEditModalOpen] = useState(false);
   const [following, setFollowing] = useState(false);
   const [selected, setSelected] = useState([]);
   const [snackbarState, setSnackbarState] = useState({ open: false, message: null, severity: null });
   const ourPlaylist = playlist.owner_id === auth.id;
   const isLikedSongs = playlist.id === 'liked';
   const isHistorySongs = playlist.id === 'history';
+  const [playlistModalState, setPlaylistModalState] = useState({open: false});
 
   const showAlert = (message, severity) => {
     setSnackbarState({
@@ -46,7 +47,7 @@ function PlaylistPage() {
     })
   };
 
-  const getSongs = useCallback(async () => {
+  const reloadPlaylist = useCallback(async () => {
     await getPlaylistSongs(playlist.id).then(data => {
       const songs = data;
       const tempList = [];
@@ -90,9 +91,9 @@ function PlaylistPage() {
       };
       
       updateFollowing();
-      getSongs();
+      reloadPlaylist();
     }
-  }, [auth.id, getSongs, playlist]);
+  }, [auth.id, reloadPlaylist, playlist]);
   
   const msToHourMinSecondsMillis = (ms) => {
     const MS_PER_SEC = 1000;
@@ -140,22 +141,32 @@ function PlaylistPage() {
           console.log('Failed to delete song ' + id);
         });
       }
-      await getSongs();
+      await reloadPlaylist();
       setSelected([]);
     };
 
     deleteSelected();
-  }, [getSongs, playlist.id, selected]);
+  }, [reloadPlaylist, playlist.id, selected]);
 
   const durationMs = songList.length ? songList.map(x => x.duration).reduce((prevSum, next) => (prevSum + next)) : 0;
 
-  const handleEditPlaylist = useCallback(() => setEditModalOpen(true), [setEditModalOpen]);
+  const handleEditPlaylist = useCallback(
+    () => setPlaylistModalState({...playlistModalState, open: true, copying: false, }),
+    [playlistModalState]
+  );
 
   const handleSubmitEdit = useCallback((updatedPlaylist) => {
-    setPlaylist({...playlist, ...updatedPlaylist});
+    if (updatedPlaylist) {
+      setPlaylist({...playlist, ...updatedPlaylist});
+    }
   }, [playlist]);
 
-  const handleModalClose = useCallback(() => setEditModalOpen(false), []);
+  const handleModalClose = useCallback(
+    () => {
+      setPlaylistModalState({...playlistModalState, open: false, })
+    },
+    [playlistModalState]
+  );
 
   const handleHideSnackbar = useCallback(() => {
     setSnackbarState({...snackbarState, open: false});
@@ -196,6 +207,10 @@ function PlaylistPage() {
     event.preventDefault();
     handleSongPlayed(index);
   }, [handleSongPlayed]);
+
+  const handleCopyPlaylist = (playlist) => {
+    setPlaylistModalState({open: true, playlist: playlist, copying: true,});
+  }
 
   const DeleteCheckboxTableCell = (props) => {
     const {song, checked} = props;
@@ -320,11 +335,12 @@ function PlaylistPage() {
     <div className="playlist_page-wrapper">
       <PlaylistContextMenu
         playSongByIndex={handleSongPlayed}
-        refreshPlaylist={getSongs} />
+        refreshPlaylist={reloadPlaylist} />
       {MemoizedSnackBar}
       <EditPlaylistModal
-        open={editModalOpen}
+        open={playlistModalState.open}
         playlist={playlist}
+        copying={playlistModalState.copying}
         onClose={handleModalClose}
         onSubmit={handleSubmitEdit} 
       />
@@ -354,6 +370,9 @@ function PlaylistPage() {
                 {following ? "Following" : "Follow"}
               </ToggleButton>
             )}
+            <FileCopyIcon
+            className={'edit-playlist_copy-icon'}
+            onClick={() => handleCopyPlaylist(playlist)} />
           </span>
           <p><em>{playlist.description}</em></p>
           <p>{'USER ID: ' + playlist.owner_id}</p>
@@ -366,8 +385,10 @@ function PlaylistPage() {
       </div>
       {MemoizedTable}
     </div>
-  ), [MemoizedSnackBar, MemoizedTable, durationMs, editModalOpen, following, getSongs, handleEditPlaylist, handleModalClose,
-    handleSongPlayed, handleSubmitEdit, handleToggleFollow, isLikedSongs, msToHourMins, ourPlaylist, playlist, songList.length]);
+  ), [MemoizedSnackBar, MemoizedTable, durationMs, following, reloadPlaylist,
+    handleEditPlaylist, handleModalClose, handleSongPlayed, handleSubmitEdit,
+    handleToggleFollow, isLikedSongs, msToHourMins, ourPlaylist, playlist,
+    playlistModalState.copying, playlistModalState.open, songList.length]);
 
   return playlist.id ? (
     MemoizedBody

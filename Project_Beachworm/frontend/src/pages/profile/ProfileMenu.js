@@ -6,7 +6,7 @@ import AccountCircleIcon from '@material-ui/icons/AccountCircle';
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import SettingsIcon from '@material-ui/icons/Settings';
 import { useHistory } from 'react-router-dom';
-import { useSpotifySdk } from './../../hooks/spotifyHooks';
+import { useStatelessSpotifySdk } from './../../hooks/spotifyHooks';
 import { useAuth } from './../../hooks/authHooks';
 import EditProfileModal from './EditProfileModal';
 
@@ -15,7 +15,7 @@ import './ProfileMenu.css';
 function ProfileMenu({anchorEl, open, onClose, loggedIn}) {
   const history = useHistory();
   const auth = useAuth();
-  const spotify = useSpotifySdk();
+  const spotify = useStatelessSpotifySdk();
 
   const [editProfileModalOpen, setEditProfileMenuOpen] = useState(false);
 
@@ -38,12 +38,23 @@ function ProfileMenu({anchorEl, open, onClose, loggedIn}) {
     auth.signOut();
     closeProfileModal();
     history.push('/');
-  }, [auth, closeProfileModal, history, spotify]);
+  }, [auth, closeProfileModal, history]); // eslint-disable-line react-hooks/exhaustive-deps
+  // not refreshing on spotify change, although technically should
 
   const handleSigninRedirect = useCallback(
     () => history.push('/landing'), 
     [history]
   );
+
+  const [anchorOrigin] = useState({
+    vertical: 'center',
+    horizontal: 'center',
+  });
+
+  const [transformOrigin] = useState({
+    vertical: 'top',
+    horizontal: 'center',
+  });
 
   return (
     <Menu id="profile-menu"
@@ -51,18 +62,12 @@ function ProfileMenu({anchorEl, open, onClose, loggedIn}) {
     anchorEl={anchorEl}
     open={open}
     onClose={onClose}
-    anchorOrigin={{
-      vertical: 'center',
-      horizontal: 'center',
-    }}
-    transformOrigin={{
-      vertical: 'top',
-      horizontal: 'center',
-    }}>
-        <EditProfileModal
+    anchorOrigin={anchorOrigin}
+    transformOrigin={transformOrigin}>
+        {editProfileModalOpen && <EditProfileModal
         open={editProfileModalOpen}
         onClose={closeProfileModal}
-        onLogout={handleLogout}/>
+        onLogout={handleLogout}/>}
         {loggedIn && (
           <MenuItem onClick={redirectToProfile}>
             <AccountCircleIcon className="profile-menu_icon" />

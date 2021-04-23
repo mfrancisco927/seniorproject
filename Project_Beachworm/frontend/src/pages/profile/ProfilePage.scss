@@ -84,7 +84,7 @@
 }
 
 .playlist-tile {
-    &__with-settings {
+    &__with-buttons {
         position: relative;
     }
 
@@ -102,6 +102,16 @@
         position: absolute;
         bottom: 2%;
         right: 2%;
+        color: black;
+        background-color: rgba(212, 212, 212, 0.3);
+        border-radius: 50%;
+        cursor: pointer;
+    }
+
+    &_copy-icon {
+        position: absolute;
+        bottom: 2%;
+        left: 2%;
         color: black;
         background-color: rgba(212, 212, 212, 0.3);
         border-radius: 50%;

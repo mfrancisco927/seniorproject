@@ -12,17 +12,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import { deactivateAccount } from './../../api/userApi';
-  
-function getModalStyle() {
-  const top = 50;
-  const left = 50;
-
-  return {
-    top: `${top}%`,
-    left: `${left}%`,
-    transform: `translate(-${top}%, -${left}%)`,
-  };
-}
+import './EditProfileModal.css';
 
 function EditProfileModal(props) {
   const { open, onClose, onLogout } = props;
@@ -83,9 +73,7 @@ function EditProfileModal(props) {
     }
   }));
   
-  // getModalStyle is not a pure function, we roll the style only on the first render
   const classes = useStyles();
-  const [ modalStyle ] = useState(getModalStyle);
 
   return (
     <Fragment>
@@ -121,7 +109,6 @@ function EditProfileModal(props) {
           </Dialog>
           <Fade in={open}>
             <div
-            style={modalStyle}
             className={["edit-profile-modal", classes.paper].join(' ')}>
               <h2 className={classes.header}>Profile settings</h2>
               <Button color="primary" variant="contained" onClick={() => setConfirmDeleteDialogOpen(true)}>

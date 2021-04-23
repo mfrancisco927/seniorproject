@@ -9,6 +9,7 @@ const playlistDeletePlaylist = (playlistId) => baseUri + '/' + playlistId + '/';
 const playlistFollowPlaylist = (playlistId, userId) => '/users/' + userId + '/followed-playlists/' + playlistId + '/';
 const playlistUnfollowPlaylist = (playlistId, userId) => '/users/' + userId + '/followed-playlists/' + playlistId + '/';
 const playlistImageEndpoint = (playlistId) => baseUri + '/' + playlistId + '/image/';
+const playlistCopyEndpoint = (targetId) => baseUri + '/copy/' + targetId + '/';
 
 export async function getPlaylistSongs(playlistId) {
   const recEndpoint = playlistSongs(playlistId);
@@ -82,6 +83,21 @@ export async function unfollowPlaylist(playlistId, userId) {
     return Promise.resolve(resp.data);
   }, (error) => {
     return Promise.reject(error)
+  });
+}
+
+export async function copyPlaylist(targetPlaylistId, title, description, isPublic) {
+  const recEndpoint = playlistCopyEndpoint(targetPlaylistId);
+  return await axiosInstance.post(recEndpoint, {}, {
+    params: {
+      title: title,
+      is_public: isPublic,
+      desc: description,
+    }
+  }).then((resp) => {
+    return Promise.resolve(resp.data);
+  }, (error) => {
+    return Promise.reject(error);
   });
 }
 

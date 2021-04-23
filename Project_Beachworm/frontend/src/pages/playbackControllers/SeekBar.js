@@ -1,6 +1,7 @@
 import Slider from '@material-ui/core/Slider';
 import { useSpotifySdk } from './../../hooks/spotifyHooks';
-import './SeekBar.css';
+import { createBlockWrapper } from './../../util/bem-helpers';
+import './SeekBar.scss';
 
 function SeekBar(props) {
   const { position, duration, disabled } = props;
@@ -19,17 +20,19 @@ function SeekBar(props) {
     spotify.seek(newValue / 100 * duration);
   }
 
+  const block = createBlockWrapper('scan');
+
   return (
-    <div className="scan-wrapper">
-      <p className="scan_elapsed">{(position || position === 0) && formatTime(positionMin, positionSec)}</p>
-      <span className="scan_slider">
+    <div className={block('wrapper')}>
+      <p className={block('elapsed')}>{(position || position === 0) && formatTime(positionMin, positionSec)}</p>
+      <span className={block('slider')}>
       <Slider
         value={position / duration * 100}
         onChange={handleSeekSlide}
         disabled={disabled}
         aria-labelledby="continuous-slider" />
       </span>
-      <p className="scan_song-length">{(duration || duration === 0) && formatTime(durationMin, durationSec)}</p>
+      <p className={block('song-length')}>{(duration || duration === 0) && formatTime(durationMin, durationSec)}</p>
     </div>
   );
 }

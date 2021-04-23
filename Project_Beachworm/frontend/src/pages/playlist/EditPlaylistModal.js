@@ -10,7 +10,7 @@ import Button from '@material-ui/core/Button';
 import MuiAlert from '@material-ui/lab/Alert';
 import Snackbar from '@material-ui/core/Snackbar';
 import { createPlaylist } from './../../api/userApi';
-import { updatePlaylistSettings } from './../../api/playlistApi';
+import { copyPlaylist, updatePlaylistSettings } from './../../api/playlistApi';
 import { useAuth } from './../../hooks/authHooks';
 import './EditPlaylistModal.scss';
 
@@ -47,7 +47,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function EditPlaylistModal(props) {
-  const { open, onClose, playlist, onSubmit, defaultValues } = props;
+  const { open, onClose, playlist, onSubmit, defaultValues, copying } = props;
   const auth = useAuth();
 
   const defaultTitle = defaultValues ? defaultValues.title : 'Title';
@@ -65,13 +65,14 @@ function EditPlaylistModal(props) {
   // resets form values when form is first opened
   useEffect(() => {
     if (open) {
+      const priorTitle = copying ? playlist.title + ' (Copy)' : playlist && playlist.title;
       setFormValues({
         isPublic: playlist ? playlist.is_public : defaultIsPublic,
-        title: playlist ? playlist.title : defaultTitle,
+        title: priorTitle ? priorTitle : defaultTitle,
         description: playlist ? playlist.description : defaultDescription,
       });
     }
-  }, [defaultDescription, defaultIsPublic, defaultTitle, open, playlist])
+  }, [copying, defaultDescription, defaultIsPublic, defaultTitle, open, playlist])
 
   // getModalStyle is not a pure function, we roll the style only on the first render
   const classes = useStyles();
@@ -80,8 +81,25 @@ function EditPlaylistModal(props) {
   const handleCreateNewPlaylist = async (event) => {
     event.preventDefault();
     const { title, description, isPublic } = formValues;
-    // update current playlist
-    if (playlist) {
+    if (copying) {
+      // copy existing playlist into new playlist
+      await copyPlaylist(playlist.id, title, description, isPublic).then(() => {
+        onSubmit && onSubmit();
+        onClose && onClose();
+        setSnackbarState({
+          open: true,
+          message: `Created a new playlist "${title}" based on "${playlist.title}"`,
+          severity: 'success',
+        });
+      }, () => {
+        setSnackbarState({
+          open: true,
+          message: `Failed to copy playlist "${playlist.title}"`,
+          severity: 'error',
+        });
+      });
+    } else if (playlist) {
+      // update current playlist
       await updatePlaylistSettings(playlist.id, title, description, isPublic).then(newPlaylist => {
         onSubmit && onSubmit(newPlaylist);
         onClose && onClose();
@@ -126,6 +144,18 @@ function EditPlaylistModal(props) {
     });
   }
 
+  let headerEl;
+
+  if (playlist) {
+    if (copying) {
+      headerEl = <>Copying <em>{playlist.title}</em></>;
+    } else {
+      headerEl = <>Editing <em>{playlist.title}</em></>;
+    }
+  } else {
+    headerEl = 'Create new playlist';
+  }
+
   return (
     <Fragment>
       <Modal
@@ -140,7 +170,7 @@ function EditPlaylistModal(props) {
           <div
           style={modalStyle}
           className={["playlist-modal", classes.paper].join(' ')}>
-            <h2 className={classes.header}>{playlist ? 'Editing ' + playlist.title : 'Create new playlist'}</h2>
+            <h2 className={classes.header}>{headerEl}</h2>
             <form className={classes.modalForm} onSubmit={handleCreateNewPlaylist}>
               <TextField
                 required

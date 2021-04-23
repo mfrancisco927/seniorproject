@@ -1086,7 +1086,7 @@ class UserPlaylists(APIView):
         new_playlist.save()
         added_playlist = list(Playlist.objects.filter(id=new_playlist.id).values())
         results={'new_playlist' : added_playlist}
-        return Response(data=results, status=status.HTTP_200_OK)
+        return Response(data=results, status=status.HTTP_201_CREATED)
 
 class HomeRecommendations(APIView):
     permission_classes = (permissions.AllowAny,)
@@ -1352,16 +1352,23 @@ class PlaylistCopy(APIView):
         user_id = self.request.user.id
         profile = Profile.objects.get(user=user_id)
         playlist= Playlist.objects.get(pk=playlist_id)
-        songs= list(playlist.songs.all().values_list('song_id', flat=True))
-        new_title =  str(playlist.title) + ' (Copy)'
-        new_playlist = Playlist(title=new_title, is_public=playlist.is_public, description=playlist.description, owner=profile)
+        
+        requested_title = self.request.query_params['title']
+        is_public = self.request.query_params['is_public'] == 'true'
+        description = self.request.query_params['desc']
+
+        new_title = requested_title if requested_title else str(playlist.title) + ' (Copy)'
+        new_playlist = Playlist(title=new_title, is_public=is_public, description=description, owner=profile)
         new_playlist.save()
-        for i in range((len(songs))):
-            song = Song.objects.get(song_id = songs[i])
-            new_playlist.songs.add(song)
-        new_playlist.save()
-        msg = 'Created playlist ' + str(new_playlist.id) + ' from playlist ' + str(playlist.id)
-        return Response({'success' : msg}, status=status.HTTP_200_OK)
+
+        playlist_songs = SongPlaylist.objects.filter(Playlist__id=playlist_id).values()
+            
+        for i in range(len(playlist_songs)):
+            song = Song.objects.get(song_id=playlist_songs[i]['song_id'])
+            SongPlaylist.objects.create(Playlist=new_playlist, song=song)
+
+        serializer = PlaylistSerializer(new_playlist)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class UserImage(APIView):
     parser_class = (FileUploadParser,)
