@@ -18,6 +18,7 @@
     text-align: center;
     flex-direction: column;
     cursor: pointer;
+    min-width: 300px;
   }
   
   .song-img {

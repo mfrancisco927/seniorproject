@@ -174,10 +174,9 @@ function SongRow(props){
   const MAX_ITEMS_SHOWN = 10;
   const { width } = useWindowDimensions();
   const isMobile = width <= SCREEN_SIZE.SMALL;
-
-  const [hasOverflow, setHasOverflow] = useState(true);
-  const [canScrollLeft, setcanScrollLeft] = useState(true);
-  const [canScrollRight, setcanScrollRight] = useState(true); 
+  // const [hasOverflow, setHasOverflow] = useState(false);
+  const [canScrollLeft, setcanScrollLeft] = useState(false);
+  const [canScrollRight, setcanScrollRight] = useState(false);
 
   // //CHANGES FOR SCROLL TESTING
   // if(title === 'Recommended Genres'){
@@ -200,10 +199,7 @@ function SongRow(props){
     const overflow = scrollWidth > clientWidth;
 
     console.log(songBoxRef.current, `has overflow? ${overflow}`)
-    if(!overflow){
-      setcanScrollLeft(false);
-      setcanScrollRight(false);
-    }else{
+    if(overflow){
       checkForScrollPosition(); 
     }
   }
@@ -222,7 +218,7 @@ function SongRow(props){
   }, [])
 
   useEffect( () => {
-    console.log('scroll width changed: ', songBoxRef.current)
+    console.log('scroll width changed: ', songBoxRef.current, ' client width: ', songBoxRef.current.clientWidth, ' scroll width: ', songBoxRef.current.scrollWidth )
     checkForOverflow();
   }, [ songBoxRef.current.clientWidth], songBoxRef.current.scrollWidth)
 
