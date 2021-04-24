@@ -71,7 +71,7 @@ function SearchPage(props) {
                             loggedIn={auth.id !== null}/>
                         {auth.id && <Results name="Playlists"
                             getItems={() => searchData.playlists.items}
-                            getImageCallback={_item => DEFAULT_IMAGE_URL} // temporary
+                            getImageCallback={item => item.image ? (`${process.env.REACT_APP_API_URL}/media/` + item.image): DEFAULT_IMAGE_URL}
                             getTitle={item => item.title}
                             getSubtitle={item => (item.username || ('User ' + item.owner_id))}
                             onItemClick={item => handlePlaylistClick(item)}
@@ -169,7 +169,17 @@ function Results(props) {
                                         src={getImageCallback(item)}
                                         alt={getTitle(item)}/>
                                     ) : (
-                                        <PersonIcon className='profile_icon' />
+                                        
+                                        item.image ? 
+                                            (<img 
+                                              src={`${process.env.REACT_APP_API_URL}/media/` + item.image}
+                                              max-height="400px"
+                                              width="400px"
+                                              alt={'User ' + item.username}
+                                            />) : (
+                                              <PersonIcon className={'profile_icon'} />
+                                            )
+                                        
                                     )}
                                 </div>
                                 <h3 className="result_title" onClick={() => onItemClick(item)}>

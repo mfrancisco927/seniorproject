@@ -1,10 +1,10 @@
-import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useRef, useMemo, Fragment } from 'react';
 import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
 import SettingsIcon from '@material-ui/icons/Settings';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
 import ToggleButton from '@material-ui/lab/ToggleButton';
-import { Checkbox, Fab, Tooltip } from '@material-ui/core';
+import { Checkbox } from '@material-ui/core';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -26,7 +26,6 @@ import { useWindowDimensions, SCREEN_SIZE } from './../../hooks/responsiveHooks'
 import AccessTimeIcon from '@material-ui/icons/AccessTime';
 import './PlaylistPage.scss';
 
-import {AddIcon} from '@material-ui/icons/Add';
 
 function PlaylistPage() {
   const auth = useAuth();
@@ -233,13 +232,14 @@ function PlaylistPage() {
     })
   };
 
-  const handleImageSubmit = (event) => {
+  const handleImageSubmit = useCallback((event, index) => {
     setFileImage(event.target.files[0])
     console.log(event.target.files)
     if(event.target.files[0] !== null){
       handleImageUpload(event.target.files[0])
     }
-  }
+    
+  }, [handleImageUpload]);
 
   const DeleteCheckboxTableCell = (props) => {
     const {song, checked} = props;
@@ -425,6 +425,7 @@ function PlaylistPage() {
       {!isMobile? ( 
         <div className="playlist_banner">
           <label>
+          {ourPlaylist ? (
               <input
                 style={{display: 'none'}}
                 id="fileImage"
@@ -433,10 +434,11 @@ function PlaylistPage() {
                 accept="image/*"
                 onChange={handleImageSubmit}
               />
+            ) : (<Fragment/>)}
               <img 
                 src= {image}
-                max-height="150px"
-                width="150px"
+                max-height="250px"
+                width="250px"
                 alt={'Playlist ' + playlist.title}
               />
           </label>
@@ -475,6 +477,7 @@ function PlaylistPage() {
       ) : (
         <div className="playlist-small_banner">
           <label>
+            {ourPlaylist ? (
               <input
                 style={{display: 'none'}}
                 id="fileImage"
@@ -483,6 +486,7 @@ function PlaylistPage() {
                 accept="image/*"
                 onChange={handleImageSubmit}
               />
+            ) : (<Fragment/>)}
               <img 
                 src= {image}
                 max-height="150px"
@@ -531,7 +535,8 @@ function PlaylistPage() {
   ), [MemoizedSnackBar, MemoizedTable, durationMs, following, reloadPlaylist,
     handleEditPlaylist, handleModalClose, handleSongPlayed, handleSubmitEdit,
     handleToggleFollow, isLikedSongs, msToHourMins, ourPlaylist, playlist,
-    playlistModalState.copying, playlistModalState.open, songList.length, isMobile, image]);
+    playlistModalState.copying, playlistModalState.open, songList.length, isMobile, image, 
+    handleImageSubmit],);
 
   return playlist.id ? (
     MemoizedBody

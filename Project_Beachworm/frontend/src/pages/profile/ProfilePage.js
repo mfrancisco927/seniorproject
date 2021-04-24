@@ -3,7 +3,7 @@ import { useHistory, useParams } from 'react-router-dom';
 import { useCallback } from 'react';
 
 import { useAuth } from './../../hooks/authHooks';
-import { getProfile, getCurrentUser, followUser, unfollowUser } from './../../api/userApi';
+import { getProfile, getCurrentUser, followUser, unfollowUser, setProfileImage } from './../../api/userApi';
 
 import EditPlaylistModal from './../playlist/EditPlaylistModal';
 import TabbedGallery from './TabbedGallery';
@@ -33,6 +33,7 @@ function ProfilePage(){
   const profileId = useParams().profileId || auth.id;
   const viewingSelf = Number(profileId) === auth.id;
 
+
   // CSS BEM
   const profileBlock = createBlockWrapper('profile-header');
   const playlistTileBlock = createBlockWrapper('playlist-tile');
@@ -45,15 +46,17 @@ function ProfilePage(){
     }
 
     const loadProfileCallback = viewingSelf ? getCurrentUser : () => getProfile(profileId);
-    let tempProfile = {'playlists': [], 'following': [], 'followers': [], 'followedPlaylists': [],};
+    let tempProfile = {'playlists': [], 'following': [], 'followers': [], 'followedPlaylists': [], };
     
     // first load profile data
     await loadProfileCallback().then(async (profileData) => {
+      console.log(profileData)
       // if successful, request playlist data
       tempProfile = { ...profileData, 
         playlists: viewingSelf ? profileData.users_playlists : profileData.public_playlists,
         followedPlaylists: profileData.favorite_playlists,
       };
+     
       setFollowing(tempProfile.followers.map(user => user.user_id).includes(auth.id));
       return Promise.resolve(profileData);
     }, reject => {
@@ -66,6 +69,7 @@ function ProfilePage(){
     .catch(() => {
       setErrorLoadingProfile(true);
     }).finally(() => {
+   
       setProfileData(tempProfile);
       setDataLoaded(true);
     });
@@ -117,6 +121,21 @@ function ProfilePage(){
     setPlaylistModalState({open: true, playlist: playlist, copying: true,});
   }
 
+  const handleImageUpload = async (image) => {
+    await setProfileImage(profileId, image).then(data => {
+      updateTargetData();
+    })
+  };
+
+  const handleImageSubmit = useCallback((event, index) => {
+
+    console.log(event.target.files)
+    if(event.target.files[0] !== null){
+      handleImageUpload(event.target.files[0])
+    }
+    
+  }, [handleImageUpload]);
+
   const likedSongsElement = (
     <ImageSquare
     src={DEFAULT_IMAGE_URL}
@@ -135,7 +154,7 @@ function ProfilePage(){
 
   const makePlaylistSquare = (playlist) => (
     <ImageSquare
-      src={DEFAULT_IMAGE_URL}
+      src={playlist.image ? (`${process.env.REACT_APP_API_URL}/media/` + playlist.image): DEFAULT_IMAGE_URL}
       onClick={() => handlePlaylistClick(playlist)}>
       {playlist.title}
     </ImageSquare>
@@ -186,7 +205,7 @@ function ProfilePage(){
       text: 'Followed playlists',
       tabItemCreationCallback: (playlist) => (
         <ImageSquare
-          src={DEFAULT_IMAGE_URL}
+          src={playlist.image ? (`${process.env.REACT_APP_API_URL}/media/` + playlist.image): DEFAULT_IMAGE_URL}
           onClick={() => handlePlaylistClick(playlist)}>
           {playlist.title}
         </ImageSquare>
@@ -197,7 +216,7 @@ function ProfilePage(){
       text: 'Following',
       tabItemCreationCallback: (followedUser) => (
         <ImageSquare
-        src={DEFAULT_IMAGE_URL}
+        src={followedUser.image ? (`${process.env.REACT_APP_API_URL}/media/` + followedUser.image) : (DEFAULT_IMAGE_URL)}
         onClick={() => {
           setSelectedTabIndex(0);
           history.push(`/profile/${followedUser.user_id}`);
@@ -211,7 +230,7 @@ function ProfilePage(){
       text: 'Followers',
       tabItemCreationCallback: (follower) => (
         <ImageSquare
-        src={DEFAULT_IMAGE_URL}
+        src={follower.image ? (`${process.env.REACT_APP_API_URL}/media/` + follower.image) : (DEFAULT_IMAGE_URL)}
         onClick={() => {
           setSelectedTabIndex(0);
           history.push(`/profile/${follower.user_id}`);
@@ -244,7 +263,29 @@ function ProfilePage(){
       ) : (
         <Fragment>
           <div className={profileBlock('container')}>
-            <PersonIcon className={profileBlock('icon')} />
+          <label>
+          {viewingSelf ? (
+              <input
+                style={{display: 'none'}}
+                id="fileImage"
+                name="fileImage"
+                type="file"
+                accept="image/*"
+                onChange={handleImageSubmit}
+              />
+            ) : (<Fragment/>)}
+            {profileData.image ? 
+              (<img 
+                src={`${process.env.REACT_APP_API_URL}/media/` + profileData.image}
+                max-height="175px"
+                width="175px"
+                alt={'Playlist ' + profileData.username}
+              />) : (
+                <PersonIcon className={profileBlock('icon')} />
+              )
+            }
+          </label>
+     
             {viewingSelf ? (
               <h1 className={bemApplyModifier('self', profileBlock('username'))}>{profileData.username}</h1>
             ) : (

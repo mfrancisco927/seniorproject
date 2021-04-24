@@ -9,7 +9,7 @@ const registerEndpointUri = baseUri + 'create/';
 const profileEndpointUri = (userId) => baseUri2 + userId + '/profile/';
 const followingEndpointUri = (targetUid) => baseUri2 + 'profile/following/' + targetUid + '/';
 const getSeedEndpointUri = baseUri + 'profile/get-seeds/';
-const profileImageUri = (userId) => baseUri + userId + '/image/';
+const profileImageUri = baseUri + 'image/';
 const deactiveAccountUri = baseUri + 'deactivate/';
 
 export async function getCurrentUser() {
@@ -103,10 +103,14 @@ export async function getUserSeeds() {
 }
 
 export async function setProfileImage(userId, image) {
-  const imageEndpoint = profileImageUri(userId);
-  return await axiosInstance.post(imageEndpoint, {
-    image: image,
-  }).then((resp) => {
+  const imageEndpoint = profileImageUri;
+  let formData = new FormData();
+  if(image == null){
+    return Promise.reject();
+  }
+  formData.append('image', image)
+  return await axiosInstance.post(imageEndpoint, formData,
+    ).then((resp) => {
     return Promise.resolve(resp.data);
   }, (error) => {
     return Promise.reject(error);

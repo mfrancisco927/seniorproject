@@ -378,9 +378,21 @@ class Search(APIView):
             results['playlists']['items'] = playlists
             #add users to results
             users = list(User.objects.filter(username__icontains=query_no_whitespace, is_active=True).values())
+            
             users = clean_users(users)
+            for user in users:
+                try : 
+                    profile = Profile.objects.get(user=user['id'])
+                except :
+                    user['image'] = None
+                    continue
+                if profile.image:
+                    user['image'] = str(profile.image)
+                else:
+                    user['image'] = None
+
             results['users'] =  users
-            # print(users)
+            print(users)
             
 
 
@@ -419,9 +431,13 @@ class GetUser(APIView):
         favorite_playlists = list(profile.favorite_playlists.filter(~Q(owner=profile)).values())
         #playlists that a user owns, private and public
         users_playlists = list(Playlist.objects.filter(Q(owner=profile)).values())
+        if profile.image:
+            imagepath = str(profile.image)
+        else:
+            imagepath = None 
         results = {'user_id' : int(user_id), 'username' : self.request.user.username, 'following' : following, 'followers' : followers, 
                 'favorite_playlists' : favorite_playlists, 'users_playlists' : users_playlists, 'liked_songs' : liked_songs,
-                'disliked_songs' : disliked_songs, }
+                'disliked_songs' : disliked_songs, 'image' : imagepath}
         return Response(data=results, status=status.HTTP_200_OK)
 
 class Genre(APIView):
