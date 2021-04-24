@@ -41,7 +41,7 @@
   }
 
   .song-img:hover{
-    box-shadow: inset 10px 10px 5px rgba(49, 47, 47, 0.712);
+    box-shadow: 15px 15px 5px rgba(49, 47, 47, 0.712);
   }
 
   .loading-img-wrapper{
