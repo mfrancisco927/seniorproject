@@ -1,17 +1,17 @@
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
 import SettingsIcon from '@material-ui/icons/Settings';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
 import ToggleButton from '@material-ui/lab/ToggleButton';
-import { Checkbox } from '@material-ui/core';
+import { Checkbox, Fab, Tooltip } from '@material-ui/core';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import { getPlaylistSongs, followPlaylist, unfollowPlaylist, deleteSongFromPlaylist } from '../../api/playlistApi';
+import { getPlaylistSongs, followPlaylist, unfollowPlaylist, deleteSongFromPlaylist, getPlaylistImage, setPlaylistImage } from '../../api/playlistApi';
 import { getPlaylists } from './../../api/userApi';
 import { getRecommendationsByPlaylist } from './../../api/recommendationApi';
 import { useAuth } from './../../hooks/authHooks';
@@ -23,7 +23,10 @@ import MuiAlert from '@material-ui/lab/Alert';
 import Snackbar from '@material-ui/core/Snackbar';
 import DefaultImage from './../images/genres/placeholder.png';
 import { useWindowDimensions, SCREEN_SIZE } from './../../hooks/responsiveHooks';
+import AccessTimeIcon from '@material-ui/icons/AccessTime';
 import './PlaylistPage.scss';
+
+import {AddIcon} from '@material-ui/icons/Add';
 
 function PlaylistPage() {
   const auth = useAuth();
@@ -41,6 +44,8 @@ function PlaylistPage() {
   const [playlistModalState, setPlaylistModalState] = useState({open: false});
   const { width } = useWindowDimensions();
   const isMobile = width <= SCREEN_SIZE.SMALL;
+  const [image, setImage] = useState({})
+  const [fileImage, setFileImage] = useState();
 
   const showAlert = (message, severity) => {
     setSnackbarState({
@@ -85,6 +90,12 @@ function PlaylistPage() {
     });
   }, [playlist.id, playlist.title]);
 
+  const getImage = useCallback(async () => {
+    await getPlaylistImage(playlist.id).then(data => {
+      const retrievedImage = data.image ? (`${process.env.REACT_APP_API_URL}/media/` + data.image) : (DefaultImage);
+      setImage(retrievedImage);
+  })}, [playlist.id]);
+
   useEffect(() => {
     if (auth.id && playlist.id) {
       const updateFollowing = async () => {
@@ -95,8 +106,9 @@ function PlaylistPage() {
       
       updateFollowing();
       reloadPlaylist();
+      getImage();
     }
-  }, [auth.id, reloadPlaylist, playlist]);
+  }, [auth.id, reloadPlaylist, playlist, getImage]);
   
   const msToHourMinSecondsMillis = (ms) => {
     const MS_PER_SEC = 1000;
@@ -215,6 +227,20 @@ function PlaylistPage() {
     setPlaylistModalState({open: true, playlist: playlist, copying: true,});
   }
 
+  const handleImageUpload = async (image) => {
+    await setPlaylistImage(playlist.id, image).then(data => {
+      getImage();
+    })
+  };
+
+  const handleImageSubmit = (event) => {
+    setFileImage(event.target.files[0])
+    console.log(event.target.files)
+    if(event.target.files[0] !== null){
+      handleImageUpload(event.target.files[0])
+    }
+  }
+
   const DeleteCheckboxTableCell = (props) => {
     const {song, checked} = props;
     
@@ -290,7 +316,7 @@ function PlaylistPage() {
         <PlaylistHeaderTableCell>TITLE</PlaylistHeaderTableCell>
         <PlaylistHeaderTableCell align="right">ARTIST</PlaylistHeaderTableCell>
         <PlaylistHeaderTableCell align="right">ALBUM</PlaylistHeaderTableCell>
-        <PlaylistHeaderTableCell align="right">LENGTH</PlaylistHeaderTableCell>
+        <PlaylistHeaderTableCell align="right">DURATION</PlaylistHeaderTableCell>
         <PlaylistHeaderTableCell align="right">{isHistorySongs ? 'LISTENED' : 'ADDED'}</PlaylistHeaderTableCell>
       </TableRow>
     </TableHead>
@@ -308,7 +334,7 @@ function PlaylistPage() {
       <PlaylistHeaderTableCell>TITLE</PlaylistHeaderTableCell>
       <PlaylistHeaderTableCell align="right">ARTIST</PlaylistHeaderTableCell>
       <PlaylistHeaderTableCell align="right">ALBUM</PlaylistHeaderTableCell>
-      <PlaylistHeaderTableCell align="right">LENGTH</PlaylistHeaderTableCell>
+      <PlaylistHeaderTableCell align="right"><AccessTimeIcon fontSize='medium'/></PlaylistHeaderTableCell>
     </TableRow>
   </TableHead>
   )
@@ -398,12 +424,22 @@ function PlaylistPage() {
       />  
       {!isMobile? ( 
         <div className="playlist_banner">
-          <img 
-            src={DefaultImage}
-            height="250px"
-            width="250px"
-            alt={'Playlist ' + playlist.title}
-          />
+          <label>
+              <input
+                style={{display: 'none'}}
+                id="fileImage"
+                name="fileImage"
+                type="file"
+                accept="image/*"
+                onChange={handleImageSubmit}
+              />
+              <img 
+                src= {image}
+                max-height="150px"
+                width="150px"
+                alt={'Playlist ' + playlist.title}
+              />
+          </label>
           <div className="playlist_description">
             <p>PLAYLIST</p>
             <span className="playlist_title-header">
@@ -438,12 +474,24 @@ function PlaylistPage() {
         </div>
       ) : (
         <div className="playlist-small_banner">
-          <img 
-            src={DefaultImage}
-            height="150px"
-            width="150px"
-            alt={'Playlist ' + playlist.title}
-          />
+          <label>
+              <input
+                style={{display: 'none'}}
+                id="fileImage"
+                name="fileImage"
+                type="file"
+                accept="image/*"
+                onChange={handleImageSubmit}
+              />
+              <img 
+                src= {image}
+                max-height="150px"
+                width="150px"
+                object-fit='contain'
+                alt={'Playlist ' + playlist.title}
+              />
+          </label>
+    
           <div className="playlist-small_description">
             <p>PLAYLIST</p>
             <span className="playlist-small_title-header">
@@ -483,7 +531,7 @@ function PlaylistPage() {
   ), [MemoizedSnackBar, MemoizedTable, durationMs, following, reloadPlaylist,
     handleEditPlaylist, handleModalClose, handleSongPlayed, handleSubmitEdit,
     handleToggleFollow, isLikedSongs, msToHourMins, ourPlaylist, playlist,
-    playlistModalState.copying, playlistModalState.open, songList.length, isMobile]);
+    playlistModalState.copying, playlistModalState.open, songList.length, isMobile, image]);
 
   return playlist.id ? (
     MemoizedBody

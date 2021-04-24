@@ -99,39 +99,42 @@ def saveSong(results):
             track_image = 'https://imgur.com/a/RMIhpXF'
 
         if not db_track.exists():
-            trackEntry = Song(
-                song_id = results['items'][i]['id'],
-                title = results['items'][i]['name'],
-                album = results['items'][i]['album']['name'],
-                danceability = float(track_features[i]['danceability']),
-                energy = float(track_features[i]['energy']),
-                key = float(track_features[i]['key']),
-                loudness = float(track_features[i]['loudness']),
-                mode = float(track_features[i]['mode']),
-                speechiness = float(track_features[i]['speechiness']),
-                acousticness = float(track_features[i]['acousticness']),
-                instrumentalness = float(track_features[i]['instrumentalness']),
-                liveness = float(track_features[i]['liveness']),
-                valence = float(track_features[i]['valence']),
-                tempo = float(track_features[i]['tempo']),
-                duration_ms = float(track_features[i]['duration_ms']),
-                time_signature = int(track_features[i]['time_signature']),
-                img_640 = track_image,
-            )
-            
-            trackEntry.save()
-            for artist in results['items'][i]['artists']:
-                # print(artist['name'])
-                artist_query = Artist.objects.filter(artist_name = artist['name'])
-                #add the artist if not already there
-                if not artist_query.exists():
-                    new_artist = Artist(artist_name = artist['name'])
-                    new_artist.save()
-                #use existing artist if in db already
-                else:
-                    new_artist = artist_query.first()
-                # print(new_artist)
-                trackEntry.artists.add(new_artist)
+            try: 
+                trackEntry = Song(
+                    song_id = results['items'][i]['id'],
+                    title = results['items'][i]['name'],
+                    album = results['items'][i]['album']['name'],
+                    danceability = float(track_features[i]['danceability']),
+                    energy = float(track_features[i]['energy']),
+                    key = float(track_features[i]['key']),
+                    loudness = float(track_features[i]['loudness']),
+                    mode = float(track_features[i]['mode']),
+                    speechiness = float(track_features[i]['speechiness']),
+                    acousticness = float(track_features[i]['acousticness']),
+                    instrumentalness = float(track_features[i]['instrumentalness']),
+                    liveness = float(track_features[i]['liveness']),
+                    valence = float(track_features[i]['valence']),
+                    tempo = float(track_features[i]['tempo']),
+                    duration_ms = float(track_features[i]['duration_ms']),
+                    time_signature = int(track_features[i]['time_signature']),
+                    img_640 = track_image,
+                )
+                trackEntry.save()
+
+                for artist in results['items'][i]['artists']:
+                    # print(artist['name'])
+                    artist_query = Artist.objects.filter(artist_name = artist['name'])
+                    #add the artist if not already there
+                    if not artist_query.exists():
+                        new_artist = Artist(artist_name = artist['name'])
+                        new_artist.save()
+                    #use existing artist if in db already
+                    else:
+                        new_artist = artist_query.first()
+                    # print(new_artist)
+                    trackEntry.artists.add(new_artist)
+            except:
+                pass
 
 def curateSongs(profile, recommendations, recommendation_number) :
     # Curated_recommendations will be sent back to requestor
@@ -1410,17 +1413,17 @@ class PlaylistImage(APIView):
         else:
             return Response(image_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    # def get(self, request, playlist_id):
-    #     try: 
-    #         playlist = Playlist.objects.get(pk=playlist_id)
-    #     except:
-    #         return Response({'error': 'playlist does not exist'}, status=status.HTTP_400_BAD_REQUEST)
+    def get(self, request, playlist_id):
+        try: 
+            playlist = Playlist.objects.get(pk=playlist_id)
+        except:
+            return Response({'error': 'playlist does not exist'}, status=status.HTTP_400_BAD_REQUEST)
 
         
-    #     if playlist.image:
-    #         return Response({'image': str(playlist.image)}, status=status.HTTP_200_OK)
-    #     else:
-    #         return Response({'image' : None}, status=status.HTTP_404_NOT_FOUND)
+        if playlist.image:
+            return Response({'image': str(playlist.image)}, status=status.HTTP_200_OK)
+        else:
+            return Response({'image' : None}, status=status.HTTP_200_OK)
 
         
 
