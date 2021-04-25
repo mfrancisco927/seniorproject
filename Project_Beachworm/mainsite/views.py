@@ -1347,6 +1347,13 @@ class Deactivate(APIView):
         user.save()
         return Response({'success': msg}, status=status.HTTP_200_OK)
 
+class Reactivate(APIView):
+    permission_classes = (permissions.AllowAny,)
+    def post(self, request, user_id):
+        user = User.objects.filter(id=user_id).update(is_active=True)
+        return Response({'user_id': user_id}, status=status.HTTP_200_OK)
+        
+
 class PlaylistCopy(APIView):
     def post(self, request, playlist_id):
         user_id = self.request.user.id
