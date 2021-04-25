@@ -437,8 +437,8 @@ function PlaylistPage() {
             ) : (<Fragment/>)}
               <img 
                 src= {image}
-                max-height="225px"
-                width="225px"
+                max-height="200px"
+                width="200px"
                 alt={'Playlist ' + playlist.title}
               />
           </label>
