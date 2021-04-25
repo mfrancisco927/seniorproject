@@ -164,6 +164,7 @@ function Results(props) {
                         items.slice(0, Math.min(items.length, maxItemsShown)).map((item) => (
                             <div className='result'>
                                 <div className="result_image-wrapper" onClick={() => onItemClick(item)}>
+                                    <span className="result_spacer"/>
                                     {name !== 'Users' ? (
                                         <img className="result_image"
                                     

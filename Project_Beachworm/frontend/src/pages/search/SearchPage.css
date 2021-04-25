@@ -28,6 +28,7 @@
   }
   
   .result {
+    position: relative;
     width: 35%;
     transition-property: width;
     transition-duration: .75s;
@@ -35,20 +36,25 @@
 
   .result_image-wrapper {
     position: relative;
+    display: flex;
+    cursor: pointer;
+    align-items: center;
+    background-color: rgba(31, 31, 31, 0.1);
+  }
+
+  .result_spacer {
+    display: block;
     width: 100%;
     /* this is actually the height! padding percentages are calculated based on WIDTH
     so this trick allows you to make a percentage-based square */
     padding-bottom: 100%; 
-    height: 0;
-    overflow: hidden;
-    cursor: pointer;
   }
 
   .result_image {
-    object-fit: fill;
-    height: auto;
-    min-width: 100%;
-    max-width: 100%;
+    position: absolute;
+    object-fit: contain;
+    width: 100%;
+    height: 100%;
   }
 
   .result_image:hover {
