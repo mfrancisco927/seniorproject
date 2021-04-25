@@ -1,4 +1,4 @@
-import { Fragment, useRef, useState } from 'react';
+import { Fragment, useRef, useState, useEffect } from 'react';
 import { useAuth } from './../../hooks/authHooks';
 import LoadingImage from '../loading.svg';
 import useRadioLoaders from '../../hooks/radioLoaders';
@@ -14,6 +14,7 @@ function SearchPage(props) {
     const auth = useAuth();
     const radioLoaders = useRadioLoaders();
     const DEFAULT_IMAGE_URL = 'https://images-na.ssl-images-amazon.com/images/I/51Ib3jYSStL._AC_SY450_.jpg';
+    const resultsWrapperRef = useRef({});
 
     const handlePlaylistClick = (playlist) => {
         history.push('/playlist', {
@@ -32,7 +33,7 @@ function SearchPage(props) {
         element = 
             <Fragment>
                 <h2 className="search-page_results-header">Search results for: {searchItem}</h2>
-                    <div className='search-results-wrapper'>
+                    <div className='search-results-wrapper' ref={resultsWrapperRef}>
                         <Results name="Songs"
                             getItems={() => searchData.tracks.items}
                             getImageCallback={
@@ -43,7 +44,8 @@ function SearchPage(props) {
                             onItemClick={song => radioLoaders.loadSongRadio(song)}
                             loading={!loaded}
                             defaultText="No songs meet this search result!"
-                            loggedIn={auth.id !== null}/>
+                            loggedIn={auth.id !== null}
+                            wrapperRef={resultsWrapperRef}/>
                         <Results name="Artists"
                             getItems={() => searchData.artists.items}
                             getImageCallback={
@@ -57,7 +59,9 @@ function SearchPage(props) {
                             }
                             loading={!loaded}
                             defaultText="No artists meet this search result!"
-                            loggedIn={auth.id !== null}/>
+                            loggedIn={auth.id !== null}
+                            wrapperRef={resultsWrapperRef}/>
+
                         <Results name="Albums"
                             getItems={() => searchData.albums.items}
                             getImageCallback={
@@ -68,7 +72,8 @@ function SearchPage(props) {
                             onItemClick={album => radioLoaders.loadAlbumRadio(album)}
                             loading={!loaded}
                             defaultText="No albums meet this search result!"
-                            loggedIn={auth.id !== null}/>
+                            loggedIn={auth.id !== null}
+                            wrapperRef={resultsWrapperRef}/>
                         {auth.id && <Results name="Playlists"
                             getItems={() => searchData.playlists.items}
                             getImageCallback={_item => DEFAULT_IMAGE_URL} // temporary
@@ -77,15 +82,18 @@ function SearchPage(props) {
                             onItemClick={item => handlePlaylistClick(item)}
                             loading={!loaded}
                             defaultText="No playlists meet this search result!"
-                            loggedIn={auth.id !== null}/>}
-                        <Results name="Users"
+                            loggedIn={auth.id !== null}
+                            wrapperRef={resultsWrapperRef}/> }
+                        {auth.id && <Results name="Users"
                             getItems={() => searchData.users}
                             getTitle={item => item.username}
                             getSubtitle={() => ''}
                             onItemClick={handleUserClick}
                             loading={!loaded}
                             defaultText="No users meet this search result!"
-                            loggedIn={auth.id !== null}/>
+                            loggedIn={auth.id !== null}
+                            wrapperRef={resultsWrapperRef}/>
+                        }
                     </div>
             </Fragment>
     } else {
@@ -102,7 +110,7 @@ function SearchPage(props) {
 
 function Results(props) {
     const {name, getItems, getImageCallback, getTitle, getSubtitle, defaultText, 
-            loading, onItemClick, loggedIn } = props;
+            loading, onItemClick, loggedIn, wrapperRef } = props;
     const ORIGINAL_SHOW_VALUE = 4;
     const [ maxItemsShown, setMaxItemsShown] = useState(ORIGINAL_SHOW_VALUE);
     const items = !loading && getItems();
@@ -128,12 +136,11 @@ function Results(props) {
             targetElement.current.parentNode.classList.add("enabled");
             setExpanded(!expanded);
             setMaxItemsShown(100);
+            window.location.hash = `search-page-wrapper`
         },1000)
-
-        // setTimeout( () => {
-        //     window.location.hash = `search-page-wrapper`; //Sets users view to where the box is
-        // },2050)
-
+        
+        console.log(wrapperRef)
+        console.log(window)
     }
 
     const handleShowLess = () => {

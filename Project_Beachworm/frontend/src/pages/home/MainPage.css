@@ -17,12 +17,24 @@
     display: flex;
     text-align: center;
     flex-direction: column;
+    cursor: pointer;
+    min-width: 300px;
   }
   
   .song-img {
     object-fit: contain;
     height: 300px;
     max-width: 300px;
+    min-height: 300px;
+  }
+
+  .genre-box{
+    width: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3.5rem;
+    overflow-wrap: break-word;
   }
 
   .loading-img{
@@ -30,7 +42,7 @@
   }
 
   .song-img:hover{
-    box-shadow: inset 10px 10px 5px rgba(49, 47, 47, 0.712);
+    box-shadow: 15px 15px 5px rgba(49, 47, 47, 0.712);
   }
 
   .loading-img-wrapper{
