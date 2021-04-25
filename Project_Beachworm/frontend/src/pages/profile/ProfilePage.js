@@ -85,7 +85,7 @@ function ProfilePage(){
     const { children, onClick, ...restProps } = props;
     return (
       <div className={galleryItemBlock('')}>
-        <img className={galleryItemBlock('img')} alt="music" {...restProps} />
+        <img className={galleryItemBlock('img')} alt="music" {...restProps}/>
         <div className={galleryItemBlock('overlay')} onClick={onClick}>
           <span className={galleryItemBlock('overlay-text')}>
             {children}
@@ -277,8 +277,9 @@ function ProfilePage(){
             {profileData.image ? 
               (<img 
                 src={`${process.env.REACT_APP_API_URL}/media/` + profileData.image}
-                max-height="175px"
-                width="175px"
+                height="175px"
+                width="auto"
+                max-width='300px'
                 alt={'Playlist ' + profileData.username}
               />) : (
                 <PersonIcon className={profileBlock('icon')} />

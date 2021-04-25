@@ -166,6 +166,7 @@ function Results(props) {
                                 <div className="result_image-wrapper" onClick={() => onItemClick(item)}>
                                     {name !== 'Users' ? (
                                         <img className="result_image"
+                                    
                                         src={getImageCallback(item)}
                                         alt={getTitle(item)}/>
                                     ) : (
@@ -173,7 +174,7 @@ function Results(props) {
                                         item.image ? 
                                             (<img 
                                               src={`${process.env.REACT_APP_API_URL}/media/` + item.image}
-                                              max-height="400px"
+                                              max-height="auto"
                                               width="400px"
                                               alt={'User ' + item.username}
                                             />) : (
