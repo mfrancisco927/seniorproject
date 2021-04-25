@@ -76,7 +76,7 @@ function SearchPage(props) {
                             wrapperRef={resultsWrapperRef}/>
                         {auth.id && <Results name="Playlists"
                             getItems={() => searchData.playlists.items}
-                            getImageCallback={_item => DEFAULT_IMAGE_URL} // temporary
+                            getImageCallback={item => item.image ? (`${process.env.REACT_APP_API_URL}/media/` + item.image): DEFAULT_IMAGE_URL}
                             getTitle={item => item.title}
                             getSubtitle={item => (item.username || ('User ' + item.owner_id))}
                             onItemClick={item => handlePlaylistClick(item)}
@@ -171,12 +171,22 @@ function Results(props) {
                         items.slice(0, Math.min(items.length, maxItemsShown)).map((item) => (
                             <div className='result'>
                                 <div className="result_image-wrapper" onClick={() => onItemClick(item)}>
+                                    <span className="result_spacer"/>
                                     {name !== 'Users' ? (
                                         <img className="result_image"
+                                    
                                         src={getImageCallback(item)}
                                         alt={getTitle(item)}/>
                                     ) : (
-                                        <PersonIcon className='profile_icon' />
+                                        
+                                        item.image ? 
+                                            (<img className="result_image"
+                                              src={`${process.env.REACT_APP_API_URL}/media/` + item.image}
+                                              alt={'User ' + item.username}
+                                            />) : (
+                                              <PersonIcon className={'profile_icon'} />
+                                            )
+                                        
                                     )}
                                 </div>
                                 <h3 className="result_title" onClick={() => onItemClick(item)}>

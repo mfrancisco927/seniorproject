@@ -103,9 +103,23 @@ export async function copyPlaylist(targetPlaylistId, title, description, isPubli
 
 export async function setPlaylistImage(playlistId, image) {
   const recEndpoint = playlistImageEndpoint(playlistId);
-  return await axiosInstance.post(recEndpoint, {
-    image: image,
-  }).then((resp) => {
+  let formData = new FormData();
+  if(image == null){
+    return Promise.reject();
+  }
+  formData.append('image', image)
+  return await axiosInstance.post(recEndpoint, formData, 
+  ).then((resp) => {
+    return Promise.resolve(resp.data);
+  }, (error) => {
+    console.log(error);
+    return Promise.reject(error);
+  });
+}
+
+export async function getPlaylistImage(playlistId) {
+  const recEndpoint = playlistImageEndpoint(playlistId);
+  return await axiosInstance.get(recEndpoint).then((resp) => {
     return Promise.resolve(resp.data);
   }, (error) => {
     return Promise.reject(error);

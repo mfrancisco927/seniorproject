@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useRef, useMemo, Fragment } from 'react';
 import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
 import SettingsIcon from '@material-ui/icons/Settings';
@@ -11,7 +11,7 @@ import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import { getPlaylistSongs, followPlaylist, unfollowPlaylist, deleteSongFromPlaylist } from '../../api/playlistApi';
+import { getPlaylistSongs, followPlaylist, unfollowPlaylist, deleteSongFromPlaylist, getPlaylistImage, setPlaylistImage } from '../../api/playlistApi';
 import { getPlaylists } from './../../api/userApi';
 import { getRecommendationsByPlaylist } from './../../api/recommendationApi';
 import { useAuth } from './../../hooks/authHooks';
@@ -22,7 +22,10 @@ import { useHistory, Redirect } from 'react-router-dom';
 import MuiAlert from '@material-ui/lab/Alert';
 import Snackbar from '@material-ui/core/Snackbar';
 import DefaultImage from './../images/genres/placeholder.png';
+import { useWindowDimensions, SCREEN_SIZE } from './../../hooks/responsiveHooks';
+import AccessTimeIcon from '@material-ui/icons/AccessTime';
 import './PlaylistPage.scss';
+
 
 function PlaylistPage() {
   const auth = useAuth();
@@ -38,6 +41,10 @@ function PlaylistPage() {
   const isLikedSongs = playlist.id === 'liked';
   const isHistorySongs = playlist.id === 'history';
   const [playlistModalState, setPlaylistModalState] = useState({open: false});
+  const { width } = useWindowDimensions();
+  const isMobile = width <= SCREEN_SIZE.SMALL;
+  const [image, setImage] = useState({})
+  const [fileImage, setFileImage] = useState();
 
   const showAlert = (message, severity) => {
     setSnackbarState({
@@ -82,6 +89,12 @@ function PlaylistPage() {
     });
   }, [playlist.id, playlist.title]);
 
+  const getImage = useCallback(async () => {
+    await getPlaylistImage(playlist.id).then(data => {
+      const retrievedImage = data.image ? (`${process.env.REACT_APP_API_URL}/media/` + data.image) : (DefaultImage);
+      setImage(retrievedImage);
+  })}, [playlist.id]);
+
   useEffect(() => {
     if (auth.id && playlist.id) {
       const updateFollowing = async () => {
@@ -92,8 +105,9 @@ function PlaylistPage() {
       
       updateFollowing();
       reloadPlaylist();
+      getImage();
     }
-  }, [auth.id, reloadPlaylist, playlist]);
+  }, [auth.id, reloadPlaylist, playlist, getImage]);
   
   const msToHourMinSecondsMillis = (ms) => {
     const MS_PER_SEC = 1000;
@@ -212,6 +226,21 @@ function PlaylistPage() {
     setPlaylistModalState({open: true, playlist: playlist, copying: true,});
   }
 
+  const handleImageUpload = async (image) => {
+    await setPlaylistImage(playlist.id, image).then(data => {
+      getImage();
+    })
+  };
+
+  const handleImageSubmit = useCallback((event, index) => {
+    setFileImage(event.target.files[0])
+    console.log(event.target.files)
+    if(event.target.files[0] !== null){
+      handleImageUpload(event.target.files[0])
+    }
+    
+  }, [handleImageUpload]);
+
   const DeleteCheckboxTableCell = (props) => {
     const {song, checked} = props;
     
@@ -272,7 +301,8 @@ function PlaylistPage() {
     </Snackbar>
   ), [handleHideSnackbar, snackbarState.message, snackbarState.open, snackbarState.severity]);
 
-  const MemoizedTableHead = useMemo(() => (
+  const MemoizedTableHead = useMemo(() => {
+    return !isMobile? (
     <TableHead>
       <TableRow>
         {(ourPlaylist && !isLikedSongs && !isHistorySongs) && (
@@ -290,10 +320,28 @@ function PlaylistPage() {
         <PlaylistHeaderTableCell align="right">{isHistorySongs ? 'LISTENED' : 'ADDED'}</PlaylistHeaderTableCell>
       </TableRow>
     </TableHead>
-  ), [handleDeleteClicked, isLikedSongs, isHistorySongs, ourPlaylist]);
+  ) : (
+  <TableHead>
+    <TableRow>
+      {(ourPlaylist && !isLikedSongs && !isHistorySongs) && (
+        <PlaylistHeaderTableCell align="center" width="1">
+          <IconButton align='center' aria-label="delete"
+            onClick={handleDeleteClicked}>
+            <DeleteIcon />
+          </IconButton>
+        </PlaylistHeaderTableCell>
+      )}
+      <PlaylistHeaderTableCell>TITLE</PlaylistHeaderTableCell>
+      <PlaylistHeaderTableCell align="right">ARTIST</PlaylistHeaderTableCell>
+      <PlaylistHeaderTableCell align="right">ALBUM</PlaylistHeaderTableCell>
+      <PlaylistHeaderTableCell align="right"><AccessTimeIcon fontSize='medium'/></PlaylistHeaderTableCell>
+    </TableRow>
+  </TableHead>
+  )
+  }, [isMobile, handleDeleteClicked, isLikedSongs, isHistorySongs, ourPlaylist]);
 
   const MemoizedTableBody = useMemo(() => {
-    return (
+    return !isMobile? (
       <TableBody checkboxSelection>
         {songList.map((song, index) => (
             <PlaylistTableRow
@@ -319,17 +367,47 @@ function PlaylistPage() {
             </PlaylistTableRow>
           ))}
         </TableBody>
+    ) : (
+      <TableBody checkboxSelection>
+        {songList.map((song, index) => (
+            <PlaylistTableRow
+              key={song.title}
+              {...song.songDetails}
+              onDoubleClick={(event) => handleDoubleClick(event, index)}>
+              {(ourPlaylist && !isLikedSongs && !isHistorySongs) && <DeleteCheckboxTableCell checked={selected.includes(song.id)} song={song} />}
+              <PlaylistTableCell songDetails={song.songDetails}>
+                {song.title}
+              </PlaylistTableCell>
+              <PlaylistTableCell songDetails={song.songDetails} align="right">
+                {song.artists}
+              </PlaylistTableCell>
+              <PlaylistTableCell songDetails={song.songDetails} align="right">
+                {song.album}
+              </PlaylistTableCell>
+              <PlaylistTableCell songDetails={song.songDetails} align="center">
+                {mstominsecs(song.duration)}
+              </PlaylistTableCell>
+            </PlaylistTableRow>
+          ))}
+        </TableBody>
     );
-  }, [handleDoubleClick, isHistorySongs, isLikedSongs, mstominsecs, ourPlaylist, selected, songList]);
+  }, [isMobile, handleDoubleClick, isHistorySongs, isLikedSongs, mstominsecs, ourPlaylist, selected, songList]);
 
-  const MemoizedTable = useMemo(() => (
+  const MemoizedTable = useMemo(() => { return !isMobile? (
     <TableContainer id="playlist_songs-table-container">
       <Table aria-label="playlist song table">
         {MemoizedTableHead}
         {MemoizedTableBody}
       </Table>
     </TableContainer>
-  ), [MemoizedTableBody, MemoizedTableHead]);
+  ) : (
+    <TableContainer id="playlist_songs-table-container-small">
+      <Table aria-label="playlist song table">
+        {MemoizedTableHead}
+        {MemoizedTableBody}
+      </Table>
+    </TableContainer> 
+  )}, [isMobile, MemoizedTableBody, MemoizedTableHead]);
 
   const MemoizedBody = useMemo(() => (
     <div className="playlist_page-wrapper">
@@ -343,52 +421,122 @@ function PlaylistPage() {
         copying={playlistModalState.copying}
         onClose={handleModalClose}
         onSubmit={handleSubmitEdit} 
-      />
-      <div className="playlist_banner">
-        <img 
-          src={DefaultImage}
-          height="250px"
-          width="250px"
-          alt={'Playlist ' + playlist.title}
-        />
-        <div className="playlist_description">
-          <p>PLAYLIST</p>
-          <span className="playlist_title-header">
-            <span className="playlist_name">
-              {playlist.title}
+      />  
+      {!isMobile? ( 
+        <div className="playlist_banner">
+          <label>
+          {ourPlaylist ? (
+              <input
+                style={{display: 'none'}}
+                id="fileImage"
+                name="fileImage"
+                type="file"
+                accept="image/*"
+                onChange={handleImageSubmit}
+              />
+            ) : (<Fragment/>)}
+              <img 
+                src= {image}
+                max-height="200px"
+                width="200px"
+                alt={'Playlist ' + playlist.title}
+              />
+          </label>
+          <div className="playlist_description">
+            <p>PLAYLIST</p>
+            <span className="playlist_title-header">
+              <span className="playlist_name">
+                {playlist.title}
+              </span>
+              {ourPlaylist ? (
+                !isLikedSongs && <SettingsIcon
+                className={"edit-playlist_settings-icon"}
+                onClick={handleEditPlaylist} />
+              ) : (
+                <ToggleButton className="playlist_toggle-follow" id="toggle-follow-btn"
+                  value='follow'
+                  selected={following}
+                  onChange={handleToggleFollow}
+                  >
+                  {following ? "Following" : "Follow"}
+                </ToggleButton>
+              )}
+              <FileCopyIcon
+              className={'edit-playlist_copy-icon'}
+              onClick={() => handleCopyPlaylist(playlist)} />
             </span>
-            {ourPlaylist ? (
-              !isLikedSongs && <SettingsIcon
-              className={"edit-playlist_settings-icon"}
-              onClick={handleEditPlaylist} />
-            ) : (
-              <ToggleButton className="playlist_toggle-follow" id="toggle-follow-btn"
-                value='follow'
-                selected={following}
-                onChange={handleToggleFollow}
-                >
-                {following ? "Following" : "Follow"}
-              </ToggleButton>
+            <p><em>{playlist.description}</em></p>
+            <p>{'USER ID: ' + playlist.owner_id}</p>
+            {durationMs !== 0 && (
+              <p>
+                {`${songList.length} songs, ${msToHourMins(durationMs)}`}
+              </p>
             )}
-            <FileCopyIcon
-            className={'edit-playlist_copy-icon'}
-            onClick={() => handleCopyPlaylist(playlist)} />
-          </span>
-          <p><em>{playlist.description}</em></p>
-          <p>{'USER ID: ' + playlist.owner_id}</p>
-          {durationMs !== 0 && (
-            <p>
-              {`${songList.length} songs, ${msToHourMins(durationMs)}`}
-            </p>
-          )}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="playlist-small_banner">
+          <label>
+            {ourPlaylist ? (
+              <input
+                style={{display: 'none'}}
+                id="fileImage"
+                name="fileImage"
+                type="file"
+                accept="image/*"
+                onChange={handleImageSubmit}
+              />
+            ) : (<Fragment/>)}
+              <img 
+                src= {image}
+                max-height="150px"
+                width="150px"
+                object-fit='contain'
+                alt={'Playlist ' + playlist.title}
+              />
+          </label>
+    
+          <div className="playlist-small_description">
+            <p>PLAYLIST</p>
+            <span className="playlist-small_title-header">
+              <span className="playlist-small_name">
+                {playlist.title}
+              </span>
+              {ourPlaylist ? (
+                !isLikedSongs && <SettingsIcon
+                className={"edit-playlist_settings-icon"}
+                onClick={handleEditPlaylist} />
+              ) : (
+                <ToggleButton className="playlist_toggle-follow" id="toggle-follow-btn"
+                  value='follow'
+                  selected={following}
+                  onChange={handleToggleFollow}
+                  >
+                  {following ? "Following" : "Follow"}
+                </ToggleButton>
+              )}
+              <FileCopyIcon
+              className={'edit-playlist_copy-icon'}
+              onClick={() => handleCopyPlaylist(playlist)} />
+            </span>
+            <p><em>{playlist.description}</em></p>
+            <p>{'USER ID: ' + playlist.owner_id}</p>
+            {durationMs !== 0 && (
+              <p>
+                {`${songList.length} songs, ${msToHourMins(durationMs)}`}
+              </p>
+            )}
+          </div>
+        </div>
+      )
+      }
       {MemoizedTable}
     </div>
   ), [MemoizedSnackBar, MemoizedTable, durationMs, following, reloadPlaylist,
     handleEditPlaylist, handleModalClose, handleSongPlayed, handleSubmitEdit,
     handleToggleFollow, isLikedSongs, msToHourMins, ourPlaylist, playlist,
-    playlistModalState.copying, playlistModalState.open, songList.length]);
+    playlistModalState.copying, playlistModalState.open, songList.length, isMobile, image, 
+    handleImageSubmit],);
 
   return playlist.id ? (
     MemoizedBody
