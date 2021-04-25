@@ -173,10 +173,8 @@ function Results(props) {
                                     ) : (
                                         
                                         item.image ? 
-                                            (<img 
+                                            (<img className="result_image"
                                               src={`${process.env.REACT_APP_API_URL}/media/` + item.image}
-                                              max-height="auto"
-                                              width="400px"
                                               alt={'User ' + item.username}
                                             />) : (
                                               <PersonIcon className={'profile_icon'} />
