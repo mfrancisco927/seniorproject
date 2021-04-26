@@ -16,7 +16,7 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import VisibilityIcon from '@material-ui/icons/Visibility';
 import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
-import {useWindowDimensions, SCREEN_SIZE} from './../../hooks/responsiveHooks';
+import AddAPhotoIcon from '@material-ui/icons/AddAPhoto';
 import FavoriteIcon from '@material-ui/icons/Favorite';
 import PostAddIcon from '@material-ui/icons/PostAdd';
 import ListIcon from '@material-ui/icons/List';
@@ -293,30 +293,34 @@ function ProfilePage(){
       ) : (
         <Fragment>
           <div className={profileBlock('container')}>
-          <label>
-          {viewingSelf ? (
-              <input
-                style={{display: 'none'}}
-                id="fileImage"
-                name="fileImage"
-                type="file"
-                accept="image/*"
-                onChange={handleImageSubmit}
-              />
-            ) : (<Fragment/>)}
-            {profileData.image ? 
-              (<img 
-                src={`${process.env.REACT_APP_API_URL}/media/` + profileData.image}
-                height="175px"
-                width="auto"
-                max-width='300px'
-                alt={'Playlist ' + profileData.username}
-              />) : (
-                <PersonIcon className={profileBlock('icon')} />
-              )
-            }
-          </label>
-     
+            <label className={profileBlock('profile-img-wrapper')}>
+              {viewingSelf && (
+                <Fragment>
+                  <input
+                    style={{display: 'none'}}
+                    id="fileImage"
+                    name="fileImage"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageSubmit}
+                  />
+                  <AddAPhotoIcon className={profileBlock('upload-icon')}/>
+                </Fragment>
+              )}
+              <Fragment>
+                {profileData.image ? 
+                  (<img 
+                    src={`${process.env.REACT_APP_API_URL}/media/${profileData.image}`}
+                    height="175px"
+                    width="auto"
+                    max-width='300px'
+                    alt={'Profile for ' + profileData.username}
+                  />) : (
+                    <PersonIcon className={profileBlock('icon')} />
+                  )
+                }
+              </Fragment>
+            </label>
             {viewingSelf ? (
               <h1 className={bemApplyModifier('self', profileBlock('username'))}>{profileData.username}</h1>
             ) : (

@@ -44,6 +44,21 @@
         background-color: rgba(0, 0, 0, 0.5);
         margin-top: 0.5em;
     }
+
+    &_profile-img-wrapper {
+        position: relative;
+    }
+
+    &_upload-icon {
+        position: absolute;
+        background-color: rgba(0, 0, 0, 0.5);
+        bottom: 0;
+        right: 0;
+        transform: translate(25%, 25%);
+        padding: 6px;
+        border-radius: 50%;
+        overflow: visible;
+    }
 }
 
 .gallery-tile {

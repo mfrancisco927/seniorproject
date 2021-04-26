@@ -1,5 +1,5 @@
-import { useState, useEffect, Fragment, useRef } from 'react';
-import './MainPage.css';
+import { useState, useEffect, Fragment, useRef, useCallback } from 'react';
+import './MainPage.scss';
 import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
 import ArrowForwardIosIcon from '@material-ui/icons/ArrowForwardIos';
 import { getHomeRecommendations } from './../../api/recommendationApi';
@@ -8,6 +8,7 @@ import useRadioLoaders from '../../hooks/radioLoaders';
 import { useWindowDimensions, SCREEN_SIZE } from './../../hooks/responsiveHooks';
 import debounce from 'lodash.debounce'
 import Values from 'values.js'
+import { createBlockWrapper, bemKnownModifierApplier } from './../../util/bem-helpers';
 
 
 function MainPage() {
@@ -16,24 +17,14 @@ function MainPage() {
   const [loaded, setLoaded] = useState(false);
   const { width } = useWindowDimensions();
   const isMobile = width <= SCREEN_SIZE.SMALL;
-  const possStyles = {
+  const [possStyles] = useState({
     colors: [ '#d60d0d', '#2348ad', '#8f138d', '#0ec23e', '#e69020', '#2199b8', '#d41597', '#ffe600'],
     fonts : [ 'Caveat','Sofia','Bebas Neue', 'Abril Fatface', 'Bebas Neue', 'Teko', 'Recursive','Antonia']
-  }
+  });
   const [genreStyles, setGenreStyles] = useState([]);
+  const mobileModifier = bemKnownModifierApplier('small', isMobile);
 
-  useEffect(() => {
-    getHomeRecommendations().then((data) => {
-        console.log(`Retrieved ${data.tracks.length} tracks, ${data.artists.length} artists, ${data.genres.length} genres for home page`);
-        setData(data);
-        console.log('here')
-        getStyleRandom(data.genres.length)
-        setLoaded(true);
-      }
-    );
-  }, [])
-
-  const getStyleRandom = (numberOfGenres) =>{
+  const getStyleRandom = useCallback((numberOfGenres) =>{
     let tempList = []
     for(let i = 0; i < numberOfGenres; i++){
       let randColorString = possStyles.colors[Math.floor( Math.random() * possStyles.colors.length)]
@@ -57,43 +48,51 @@ function MainPage() {
     })
 
     setGenreStyles(tempList)
-  }
+  }, [possStyles.colors, possStyles.fonts]);
 
-  return !isMobile? (
+  useEffect(() => {
+    getHomeRecommendations().then((data) => {
+        console.log(`Retrieved ${data.tracks.length} tracks, ${data.artists.length} artists, ${data.genres.length} genres for home page`);
+        setData(data);
+        getStyleRandom(data.genres.length)
+        setLoaded(true);
+      }
+    );
+  }, [getStyleRandom])
+
+  const recTileBlock = createBlockWrapper('recommendation-tile');
+  const recTileVisualClass = mobileModifier(recTileBlock('visual'));
+
+  return (
     <Fragment>
       <link rel="stylesheet" href={`https://fonts.googleapis.com/css?family=${possStyles.fonts.join('|')}`}></link>
       <div className='song-page-wrapper'>
-      { !loaded ? 
-        (<div className='loading-img-wrapper'><img className='loading-img' src={LoadingImage} alt='Loading'/></div> ):
-        (
-          <div>
+      { !loaded ? (
+        <div className='loading-img-wrapper'>
+          <img className='loading-img' src={LoadingImage} alt='Loading'/>
+        </div>
+      ) : (
+        <div>
           <SongRow title='Recommended Tracks' 
             getItems={ () => data.tracks}
             onItemClick={song => loader.loadSongRadio(song)}
-            getImageCallback={(item, index) => {
-              if(item.album.images.length !== 0){
-                return <img  src={item.album.images[0].url} className='song-img' alt={item.name + ' by ' + item.artists.map(artist => artist.name).join(', ')} />
-                }else{
-                  return <div className='song-img genre-box' style={genreStyles[0]}>Image Missing :/</div>;
-              }
-            }
-            }
-            getTitle={ (item) => { return (<h2 className='artist-title'>{item.name}</h2>)}}            
-            getSubtitle={ (item) => {return (<h3 className='artist-subtitle' >{item.artists.map(artist => artist.name).join(', ')}</h3>) }}
+            getImageCallback={(item) => (item.album.images.length !== 0 ? (
+              <img src={item.album.images[0].url} className={recTileVisualClass} alt={item.name + ' by ' + item.artists.map(artist => artist.name).join(', ')} />
+            ) : (
+              <div className={recTileVisualClass} style={genreStyles[0]}>Image Missing :/</div>
+            ))}
+            getTitle={(item) => (<h2 className='artist-title'>{item.name}</h2>)}            
+            getSubtitle={(item) => (<h3 className='artist-subtitle' >{item.artists.map(artist => artist.name).join(', ')}</h3>)}
             />
           <SongRow title='Recommended Artists' 
             getItems={ () => data.artists}
             onItemClick={artist => loader.loadArtistRadio(artist)}
-            getImageCallback={(item, index) => {
-              if(item.images.length !== 0){
-                return <img src={item.images[0].url} className='song-img' alt={item.name} />
-                }else{
-                  return <div className='song-img genre-box' style={genreStyles[0]}>Image Missing :/</div>;
-              }
-            }
-          } 
+            getImageCallback={(item) => (item.images.length !== 0 ? (
+              <img src={item.images[0].url} className={recTileVisualClass} alt={item.name} />
+            ) : (
+              <div className={recTileVisualClass} style={genreStyles[0]}>Image Missing :/</div>
+            ))}
             getTitle={ (item) => { return <h2 className='artist-title'>{item.name}</h2> }}
-            getSubtitle={ (item) => ''}
             />
           <SongRow title='Recommended Genres' 
             getItems={ () => data.genres}
@@ -101,71 +100,17 @@ function MainPage() {
               id: item,
               name: item,
             })}
-            getImageCallback={ (item, index) => {
-              return <div className='song-img genre-box' style={genreStyles[index + 1]}>{item}</div>
-            }}
+            getImageCallback={(item, index) => (
+              <div className={[recTileVisualClass, mobileModifier('genre-tile')].join(' ')} style={genreStyles[index + 1]}>{item}</div>
+            )}
             getTitle={ (item) => {return (<h2 className='artist-title'>{item}</h2>)}}
-            getSubtitle={ item => ''}
-              />
-                  
-          </div>
+            />
+        </div>
         )
       }
       </div>
       </Fragment>
-    
-    ) : (
-      <Fragment>
-      <div className='song-page-wrapper'>
-      { !loaded ? 
-        (<div className='loading-img-wrapper'><img className='loading-img' src={LoadingImage} alt='Loading'/></div> ):
-        (
-          <div>
-          <SongRow title='Recommended Tracks' 
-            getItems={ () => data.tracks}
-            onItemClick={song => loader.loadSongRadio(song)}
-            getImageCallback={(item) => {
-              if(item.album.images.length !== 0){
-                  return item.album.images[0].url;
-                }else{
-                  return 'https://media.pitchfork.com/photos/5a71df0d85ed77242d8f1252/1:1/w_320/jpegmafiaveteran.jpg';
-              }
-            }
-            }
-            getTitle={ (item) => { return (<h2 className='artist-title'>{item.name}</h2>)}}            
-            getSubtitle={ (item) => {return (<h3 className='artist-subtitle' >{item.artists.map(artist => artist.name).join(', ')}</h3>) }}
-            />
-          <SongRow title='Recommended Artists' 
-            getItems={ () => data.artists}
-            onItemClick={artist => loader.loadArtistRadio(artist)}
-            getImageCallback={(item) => {
-              if(item.images.length !== 0){
-                  return item.images[0].url;
-                }else{
-                  return 'https://media.pitchfork.com/photos/5a71df0d85ed77242d8f1252/1:1/w_320/jpegmafiaveteran.jpg';
-              }
-            }
-          } 
-            getTitle={ (item) => { return <h2 className='artist-title'>{item.name}</h2> }}
-            getSubtitle={ (item) => ''}
-            />
-          <SongRow title='Recommended Genres' 
-            getItems={ () => data.genres}
-            onItemClick={item => loader.loadGenreRadio({
-              id: item,
-              name: item,
-            })}
-            getImageCallback={ item => 'https://media.pitchfork.com/photos/5a71df0d85ed77242d8f1252/1:1/w_320/jpegmafiaveteran.jpg'}
-            getTitle={ (item) => {return (<h2 className='artist-title'>{item}</h2>)}}
-            getSubtitle={ item => ''}
-              />
-                  
-          </div>
-        )
-      }
-      </div>
-      </Fragment>
-    );
+  );
 }
 
 function SongRow(props){
@@ -177,6 +122,7 @@ function SongRow(props){
   // const [hasOverflow, setHasOverflow] = useState(false);
   const [canScrollLeft, setcanScrollLeft] = useState(false);
   const [canScrollRight, setcanScrollRight] = useState(false);
+  const mobileModifier = bemKnownModifierApplier('small', isMobile);
 
   // //CHANGES FOR SCROLL TESTING
   // if(title === 'Recommended Genres'){
@@ -191,18 +137,18 @@ function SongRow(props){
     const {scrollLeft, scrollWidth, clientWidth} = songBoxRef.current;
     setcanScrollLeft(scrollLeft > 0);
     setcanScrollRight(scrollLeft !== scrollWidth - clientWidth);
-    console.log(songBoxRef.current, `Can scroll Left? ${canScrollLeft}, Can scroll Right? ${canScrollRight}`)
+    // console.log(songBoxRef.current, `Can scroll Left? ${canScrollLeft}, Can scroll Right? ${canScrollRight}`)
   }
 
-  const checkForOverflow = () => {
+  const checkForOverflow = useCallback(() => {
     const {scrollWidth, clientWidth} = songBoxRef.current;
     const overflow = scrollWidth > clientWidth;
 
-    console.log(songBoxRef.current, `has overflow? ${overflow}`)
+    // console.log(songBoxRef.current, `has overflow? ${overflow}`)
     if(overflow){
       checkForScrollPosition(); 
     }
-  }
+  }, []);
 
   //TODO: BUG -> For some reason, on the initial render, things just aren't set to the correct values
   //             aka: hasOverflow, canScrollRight, and canScrollLeft are all false on initial render
@@ -218,57 +164,53 @@ function SongRow(props){
   }, [])
 
   useEffect( () => {
-    console.log('scroll width changed: ', songBoxRef.current, ' client width: ', songBoxRef.current.clientWidth, ' scroll width: ', songBoxRef.current.scrollWidth )
+    // console.log('scroll width changed: ', songBoxRef.current, ' client width: ', songBoxRef.current.clientWidth, ' scroll width: ', songBoxRef.current.scrollWidth )
     checkForOverflow();
-  }, [ songBoxRef.current.clientWidth], songBoxRef.current.scrollWidth)
+  }, [checkForOverflow, songBoxRef.current.clientWidth, songBoxRef.current.scrollWidth])
 
-    return !isMobile? (
-      <div className='group-wrapper' >
-          <div className='group-header'><h2>{title}</h2></div>
-              <div className='songs-buttons-wrapper'>
-                  <ArrowBackIosIcon fontSize='large' className='pan pan-left' color={!canScrollLeft? 'disabled' : ''} onClick={() => moveRow(width * -0.3)} />
-                <div className='songs-wrapper' ref={songBoxRef}>
-                { 
-                  getItems().slice(0,Math.min(MAX_ITEMS_SHOWN, getItems().length)).map((item, index) => {
-                    return (
-                      <div className='song-wrapper' key={`wrapper-index-${index}`} onClick={ () => onItemClick(item)}>
-                          { getImageCallback(item, index) }
-                          { getTitle(item) }
-                          { getSubtitle(item) }
-                      </div>
-                    );
-                  })
-                }
-                </div>
-                <ArrowForwardIosIcon fontSize='large' disabled={!canScrollRight} color={!canScrollRight? 'disabled' : ''}  className='pan pan-right' onClick={() => moveRow(width * 0.3)}/>
+  const recGroupBlock = createBlockWrapper('recommendation-group');
+  const recTileBlock = createBlockWrapper('recommendation-tile');
 
-              
-            </div>
-        </div>
-    ) : 
-    ( 
-      <div className='group-wrapper-sm' >
-          <div className='group-header-sm'><h2>{title}</h2></div>
-                <div className='songs-wrapper-sm' ref={songBoxRef}>
-                { 
-                  getItems().slice(0,Math.min(MAX_ITEMS_SHOWN, getItems().length)).map((item, index) => {
-                    return (
-                      <div className='song-wrapper-sm' key={`wrapper-index-${index}`} onClick={ () => onItemClick(item)}>
-                          <img className='song-img-sm' src={getImageCallback(item)} alt='hello!'/> 
-                          { getTitle(item) }
-                          { getSubtitle(item) }
-                      </div>
-                    );
-                  })
-                }
-  
-            
-
-              
-            </div>
-        </div>
+  const rowImages = getItems().slice(0,Math.min(MAX_ITEMS_SHOWN, getItems().length)).map((item, index) => {
+    return (
+      <div
+      className={mobileModifier(recTileBlock('tile-content-wrapper'))}
+      key={`wrapper-index-${index}`}
+      onClick={ () => onItemClick(item)}>
+          { getImageCallback && getImageCallback(item, index) }
+          { getTitle && getTitle(item) }
+          { getSubtitle && getSubtitle(item) }
+      </div>
     );
+  });
 
+  return (
+    <div className={mobileModifier('group-wrapper')} >
+      <div className={mobileModifier('group-header')}>
+        <h2>{title}</h2>
+      </div>
+      <div className={recGroupBlock('buttons-wrapper')}>
+        {!isMobile && (
+          <ArrowBackIosIcon
+          fontSize='large'
+          className='pan pan-left'
+          color={!canScrollLeft? 'disabled' : ''}
+          onClick={() => moveRow(width * -0.3)} />
+        )}
+        <div className={mobileModifier(recGroupBlock('tiles-wrapper'))} ref={songBoxRef}>
+          {rowImages}
+        </div>
+        {!isMobile && (
+          <ArrowForwardIosIcon
+          fontSize='large'
+          disabled={!canScrollRight}
+          color={!canScrollRight? 'disabled' : ''} 
+          className='pan pan-right'
+          onClick={() => moveRow(width * 0.3)}/>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default MainPage;

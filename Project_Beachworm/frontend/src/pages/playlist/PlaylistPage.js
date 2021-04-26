@@ -3,6 +3,7 @@ import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
 import SettingsIcon from '@material-ui/icons/Settings';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
+import AddAPhotoIcon from '@material-ui/icons/AddAPhoto';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import { Checkbox } from '@material-ui/core';
 import Table from '@material-ui/core/Table';
@@ -44,7 +45,6 @@ function PlaylistPage() {
   const { width } = useWindowDimensions();
   const isMobile = width <= SCREEN_SIZE.SMALL;
   const [image, setImage] = useState({})
-  const [fileImage, setFileImage] = useState();
 
   const showAlert = (message, severity) => {
     setSnackbarState({
@@ -226,19 +226,16 @@ function PlaylistPage() {
     setPlaylistModalState({open: true, playlist: playlist, copying: true,});
   }
 
-  const handleImageUpload = async (image) => {
+  const handleImageUpload = useCallback(async (image) => {
     await setPlaylistImage(playlist.id, image).then(data => {
       getImage();
     })
-  };
+  }, [getImage, playlist.id]);
 
-  const handleImageSubmit = useCallback((event, index) => {
-    setFileImage(event.target.files[0])
-    console.log(event.target.files)
+  const handleImageSubmit = useCallback((event) => {
     if(event.target.files[0] !== null){
       handleImageUpload(event.target.files[0])
     }
-    
   }, [handleImageUpload]);
 
   const DeleteCheckboxTableCell = (props) => {
@@ -424,23 +421,26 @@ function PlaylistPage() {
       />  
       {!isMobile? ( 
         <div className="playlist_banner">
-          <label>
-          {ourPlaylist ? (
-              <input
-                style={{display: 'none'}}
-                id="fileImage"
-                name="fileImage"
-                type="file"
-                accept="image/*"
-                onChange={handleImageSubmit}
-              />
-            ) : (<Fragment/>)}
-              <img 
-                src= {image}
-                max-height="200px"
-                width="200px"
-                alt={'Playlist ' + playlist.title}
-              />
+          <label className="playlist_img-wrapper">
+            <span className="playlist_img-spacer" />
+            <img
+              className="playlist_img"
+              src={image}
+              alt={'Playlist ' + playlist.title}
+            />
+            {ourPlaylist && (
+                <Fragment>
+                  <input
+                    style={{display: 'none'}}
+                    id="fileImage"
+                    name="fileImage"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageSubmit}
+                  />
+                  <AddAPhotoIcon className="playlist_upload-icon"/>
+                </Fragment>
+              )}
           </label>
           <div className="playlist_description">
             <p>PLAYLIST</p>
@@ -476,24 +476,26 @@ function PlaylistPage() {
         </div>
       ) : (
         <div className="playlist-small_banner">
-          <label>
-            {ourPlaylist ? (
-              <input
-                style={{display: 'none'}}
-                id="fileImage"
-                name="fileImage"
-                type="file"
-                accept="image/*"
-                onChange={handleImageSubmit}
-              />
-            ) : (<Fragment/>)}
-              <img 
-                src= {image}
-                max-height="150px"
-                width="150px"
-                object-fit='contain'
-                alt={'Playlist ' + playlist.title}
-              />
+          <label className="playlist_img-wrapper">
+            <span className="playlist_img-spacer playlist_img-spacer__small" />
+            <img
+              className="playlist_img"
+              src={image}
+              alt={'Playlist ' + playlist.title}
+            />
+            {ourPlaylist && (
+              <Fragment>
+                <input
+                  style={{display: 'none'}}
+                  id="fileImage"
+                  name="fileImage"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageSubmit}
+                />
+                <AddAPhotoIcon className="playlist_upload-icon"/>
+              </Fragment>
+            )}
           </label>
     
           <div className="playlist-small_description">
