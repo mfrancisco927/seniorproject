@@ -16,6 +16,7 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import VisibilityIcon from '@material-ui/icons/Visibility';
 import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
+import {useWindowDimensions, SCREEN_SIZE} from './../../hooks/responsiveHooks';
 
 import './ProfilePage.scss';
 
@@ -33,6 +34,11 @@ function ProfilePage(){
   const profileId = useParams().profileId || auth.id;
   const viewingSelf = Number(profileId) === auth.id;
 
+<<<<<<< HEAD
+=======
+  const {width} = useWindowDimensions();
+  const isMobile = width < SCREEN_SIZE.SMALL;
+>>>>>>> isaac-profile-responsive
 
   // CSS BEM
   const profileBlock = createBlockWrapper('profile-header');
