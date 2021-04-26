@@ -8,14 +8,13 @@
 }
 
 .tab-button {
-    margin-left: 0.5em !important;
-    margin-right: 0.5em !important;
-    font-size: 1.3em !important;
     background-color: rgba(255, 255, 255, 0.19) !important;
     border-bottom-right-radius: 0% !important;
     border-bottom-left-radius: 0% !important;
     color: white !important;
 }
+
+
 
 .tab-button_selected {
     background-color: rgba(255, 255, 255, 0.35) !important;
@@ -39,17 +38,56 @@
     margin: 0 1em;
 }
 
-.gallery_row-item:first-of-type {
-    padding-left: 2em;
-    margin-left: 0;
-}
 
-.gallery_row-item:last-child {
-    padding-right: 2em;
-    margin-right: 0;
-}
 
 .gallery_empty-row-text {
     margin: 0 auto;
     font-size: 1.5em;
+}
+
+
+
+@media screen and (max-width: 960px) {
+    .tab-button{
+        margin-left: 0.5em !important;
+        margin-right: 0.5em !important;
+        opacity: 50%;
+        min-width: 10%;
+        font-size: 0.75em !important;
+        overflow: hidden;
+    }
+
+    .tab-button_selected{
+        opacity: 100%;
+        width: 50%;
+        font-size: 1.5em !important; 
+        border: none;
+        overflow: visible;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .tab-button{
+        font-size: 0.5em !important;
+    }    
+    .tab-button_selected{
+        font-size: 1.25em !important;
+    }
+}
+@media screen and (min-width: 961px) {
+    .tab-button{
+        font-size: 1.3em !important;
+        margin-left: 0.5em !important;
+        margin-right: 0.5em !important;
+    }
+
+    .gallery_row-item:first-of-type {
+        padding-left: 2em;
+        margin-left: 0;
+    }
+
+    .gallery_row-item:last-child {
+        padding-right: 2em;
+        margin-right: 0;
+    }
 }
