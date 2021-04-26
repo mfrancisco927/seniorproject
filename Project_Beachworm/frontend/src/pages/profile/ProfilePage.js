@@ -34,11 +34,6 @@ function ProfilePage(){
   const profileId = useParams().profileId || auth.id;
   const viewingSelf = Number(profileId) === auth.id;
 
-<<<<<<< HEAD
-=======
-  const {width} = useWindowDimensions();
-  const isMobile = width < SCREEN_SIZE.SMALL;
->>>>>>> isaac-profile-responsive
 
   // CSS BEM
   const profileBlock = createBlockWrapper('profile-header');
