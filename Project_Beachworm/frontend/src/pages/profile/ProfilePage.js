@@ -17,10 +17,12 @@ import VisibilityIcon from '@material-ui/icons/Visibility';
 import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
 import {useWindowDimensions, SCREEN_SIZE} from './../../hooks/responsiveHooks';
+import FavoriteIcon from '@material-ui/icons/Favorite';
+import PostAddIcon from '@material-ui/icons/PostAdd';
+import ListIcon from '@material-ui/icons/List';
+import FaceIcon from '@material-ui/icons/Face';
 
 import './ProfilePage.scss';
-
-const DEFAULT_IMAGE_URL = 'https://images-na.ssl-images-amazon.com/images/I/51Ib3jYSStL._AC_SY450_.jpg';
 
 function ProfilePage(){
   const auth = useAuth();
@@ -84,9 +86,22 @@ function ProfilePage(){
 
   const ImageSquare = (props) => {
     const { children, onClick, ...restProps } = props;
+    const imageEl = <img className={galleryItemBlock('img')} alt="music" {...restProps}/>;
+    return (
+      <Tile
+      onClick={onClick}
+      backgroundElement={imageEl}
+      {...restProps} >
+        {children}
+      </Tile>
+    );
+  }
+
+  const Tile = (props) => {
+    const { children, backgroundElement, onClick } = props;
     return (
       <div className={galleryItemBlock('')}>
-        <img className={galleryItemBlock('img')} alt="music" {...restProps}/>
+        {backgroundElement}
         <div className={galleryItemBlock('overlay')} onClick={onClick}>
           <span className={galleryItemBlock('overlay-text')}>
             {children}
@@ -122,15 +137,14 @@ function ProfilePage(){
     setPlaylistModalState({open: true, playlist: playlist, copying: true,});
   }
 
-  const handleImageUpload = async (image) => {
-    await setProfileImage(profileId, image).then(data => {
+  const handleImageUpload = useCallback(async (image) => {
+    await setProfileImage(profileId, image).then(() => {
       updateTargetData();
     })
-  };
+  }, [profileId, updateTargetData]);
 
-  const handleImageSubmit = useCallback((event, index) => {
-
-    console.log(event.target.files)
+  const handleImageSubmit = useCallback((event) => {
+    // console.log(event.target.files)
     if(event.target.files[0] !== null){
       handleImageUpload(event.target.files[0])
     }
@@ -138,27 +152,64 @@ function ProfilePage(){
   }, [handleImageUpload]);
 
   const likedSongsElement = (
-    <ImageSquare
-    src={DEFAULT_IMAGE_URL}
+    <Tile
+    backgroundElement={(
+      <FavoriteIcon className={galleryItemBlock('create-icon')}/>
+    )}
     onClick={handleLikedSongsClick}>
-      {'Liked songs'}
-    </ImageSquare>
+      Liked songs
+    </Tile>
   );
 
   const createNewPlaylistElement = (
-    <ImageSquare
-    src={DEFAULT_IMAGE_URL}
+    <Tile
+    backgroundElement={(
+      <PostAddIcon className={galleryItemBlock('liked-icon')}/>
+    )}
     onClick={() => setPlaylistModalState({open: true, playlist: null,})}>
-      {'New playlist'}
-    </ImageSquare>
+      New playlist
+    </Tile>
   );
 
-  const makePlaylistSquare = (playlist) => (
-    <ImageSquare
-      src={playlist.image ? (`${process.env.REACT_APP_API_URL}/media/` + playlist.image): DEFAULT_IMAGE_URL}
+  const ProfileTile = ({profile}) => {
+    const clickHandler = () => {
+      setSelectedTabIndex(0);
+      history.push(`/profile/${profile.user_id}`);
+    };
+
+    return profile.image ? (
+      <ImageSquare
+      src={`${process.env.REACT_APP_API_URL}/media/${profile.image}`}
+      onClick={clickHandler}>
+        {profile.username}
+      </ImageSquare>
+    ) : (
+      <Tile
+      backgroundElement={(
+        <FaceIcon className={galleryItemBlock('profile-icon')}/>
+      )}
+      onClick={clickHandler}>
+        {profile.username}
+      </Tile>
+    )
+  };
+
+  const PlaylistTile = ({playlist}) => (
+    playlist.image ? (
+      <ImageSquare
+      src={`${process.env.REACT_APP_API_URL}/media/${playlist.image}`}
       onClick={() => handlePlaylistClick(playlist)}>
-      {playlist.title}
-    </ImageSquare>
+        {playlist.title}
+      </ImageSquare>
+    ) : (
+      <Tile
+      backgroundElement={(
+        <ListIcon className={galleryItemBlock('liked-icon')}/>
+      )}
+      onClick={() => handlePlaylistClick(playlist)}>
+        {playlist.title}
+      </Tile>
+    )
   );
 
   const tabDetails = {
@@ -171,26 +222,28 @@ function ProfilePage(){
           <div className={bemApplyModifier('with-buttons', playlistTileBlock(''))}>
             {viewingSelf ? (
               <>
-                {makePlaylistSquare(playlist)}
+                <PlaylistTile playlist={playlist}/>
                 <SettingsIcon
-                  className={playlistTileBlock('settings-icon')}
+                  className={playlistTileBlock('settings-icon', 'control')}
                   onClick={() => handleEditPlaylist(playlist)} />
                 {playlist.is_public ? (
-                  <VisibilityIcon className={bemApplyModifier('public', playlistTileBlock('visibility-icon'))}
+                  <VisibilityIcon
+                  className={[bemApplyModifier('public', playlistTileBlock('visibility-icon')), playlistTileBlock('control')].join(' ')}
                   onClick={() => handleEditPlaylist(playlist)} />
                 ) : (
-                  <VisibilityOffIcon className={bemApplyModifier('private', playlistTileBlock('visibility-icon'))}
+                  <VisibilityOffIcon
+                  className={[bemApplyModifier('private', playlistTileBlock('visibility-icon')), playlistTileBlock('control')].join(' ')}
                   onClick={() => handleEditPlaylist(playlist)} />
                 )}
                 <FileCopyIcon
-                className={playlistTileBlock('copy-icon')}
+                className={[playlistTileBlock('copy-icon'), playlistTileBlock('control')].join(' ')}
                 onClick={() => handleCopyPlaylist(playlist)} />
               </>
             ) : (
               <>
-                {makePlaylistSquare(playlist)}
+                <PlaylistTile playlist={playlist}/>
                 <FileCopyIcon
-                className={playlistTileBlock('copy-icon')}
+                className={[playlistTileBlock('copy-icon'), playlistTileBlock('control')].join(' ')}
                 onClick={() => handleCopyPlaylist(playlist)} />
               </>
             )
@@ -204,41 +257,17 @@ function ProfilePage(){
     },
     'followed-playlists': {
       text: 'Followed playlists',
-      tabItemCreationCallback: (playlist) => (
-        <ImageSquare
-          src={playlist.image ? (`${process.env.REACT_APP_API_URL}/media/` + playlist.image): DEFAULT_IMAGE_URL}
-          onClick={() => handlePlaylistClick(playlist)}>
-          {playlist.title}
-        </ImageSquare>
-      ),
+      tabItemCreationCallback: (playlist) => (<PlaylistTile playlist={playlist}/>),
       emptyTabText: (viewingSelf ? "You don't " : "This user doesn't ") + 'follow any playlists!',
     },
     'following': {
       text: 'Following',
-      tabItemCreationCallback: (followedUser) => (
-        <ImageSquare
-        src={followedUser.image ? (`${process.env.REACT_APP_API_URL}/media/` + followedUser.image) : (DEFAULT_IMAGE_URL)}
-        onClick={() => {
-          setSelectedTabIndex(0);
-          history.push(`/profile/${followedUser.user_id}`);
-        }}>
-          {followedUser.username}
-        </ImageSquare>
-      ),
+      tabItemCreationCallback: (followee) => (<ProfileTile profile={followee} />),
       emptyTabText: (viewingSelf ? "You don't" : "This user doesn't") + ' follow anyone!',
     },
     'followers': {
       text: 'Followers',
-      tabItemCreationCallback: (follower) => (
-        <ImageSquare
-        src={follower.image ? (`${process.env.REACT_APP_API_URL}/media/` + follower.image) : (DEFAULT_IMAGE_URL)}
-        onClick={() => {
-          setSelectedTabIndex(0);
-          history.push(`/profile/${follower.user_id}`);
-        }}>
-          {follower.username}
-        </ImageSquare>
-      ),
+      tabItemCreationCallback: (follower) => (<ProfileTile profile={follower} />),
       emptyTabText: (viewingSelf ? "You don't" : "This user doesn't") + ' have any followers!',
     },
   }

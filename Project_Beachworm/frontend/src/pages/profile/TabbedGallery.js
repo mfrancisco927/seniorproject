@@ -1,5 +1,5 @@
 import { Button } from '@material-ui/core';
-import './TabbedGallery.css';
+import './TabbedGallery.scss';
 
 function TabbedGallery(props) {
   const { children: tabContent, tabDetails, selectedTabIndex, setSelectedTabIndex } = props;
@@ -8,7 +8,7 @@ function TabbedGallery(props) {
   const createTab = (key, index) => {
     return (
       <Button
-      className={'tab-button' + (index === selectedTabIndex ? ' tab-button_selected' : '')}
+      className={'tab-button' + (index === selectedTabIndex ? ' tab-button__selected' : '')}
       key={index}
       onClick={() => setSelectedTabIndex(index)}
       disableFocusRipple>

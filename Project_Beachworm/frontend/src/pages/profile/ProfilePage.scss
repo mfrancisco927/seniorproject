@@ -3,10 +3,8 @@
         display: flex;
         align-items: center;
         padding: 2em;
-    }
 
-    @media screen and (max-width: 600px) {
-        &_container{
+        @media screen and (max-width: 600px) {
             flex-direction: column;
         }
     }
@@ -48,29 +46,25 @@
     }
 }
 
-@media screen and (max-width: 600px) {
-    .gallery_row-wrapper{
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .gallery_row-item{
-        margin-top: 1em;
-    }
-}
-
-
 .gallery-tile {
     position: relative;
+    display: flex;
     width: 200px;
     height: 200px;
+    border-radius: 10px;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.5);
+
+    &_liked-icon.MuiSvgIcon-root, &_create-icon.MuiSvgIcon-root, &_profile-icon.MuiSvgIcon-root {
+        font-size: 11em;
+    }
 
     &_img {
         width: 100%;
         height: 100%;
+        object-fit: contain;
         border-radius: 10px;
-        object-fit: cover;
     }
 
     &_overlay {
@@ -108,34 +102,28 @@
         position: relative;
     }
 
-    &_settings-icon {
+    &_control {
         position: absolute;
-        top: 2%;
-        right: 2%;
         color: black;
-        background-color: rgba(212, 212, 212, 0.3);
+        padding: 3px;
+        background-color: rgba(255, 255, 255, 0.904);
         border-radius: 50%;
         cursor: pointer;
+    }
+
+    &_settings-icon {
+        top: 2%;
+        right: 2%;
     }
 
     &_visibility-icon {
-        position: absolute;
         bottom: 2%;
         right: 2%;
-        color: black;
-        background-color: rgba(212, 212, 212, 0.3);
-        border-radius: 50%;
-        cursor: pointer;
     }
 
     &_copy-icon {
-        position: absolute;
         bottom: 2%;
         left: 2%;
-        color: black;
-        background-color: rgba(212, 212, 212, 0.3);
-        border-radius: 50%;
-        cursor: pointer;
     }
 }
 

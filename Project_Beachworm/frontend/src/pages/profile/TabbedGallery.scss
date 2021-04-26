@@ -1,0 +1,99 @@
+
+
+
+.MuiButtonBase-root {
+    &.tab-button {
+        background-color: rgba(255, 255, 255, 0.19);
+        border-bottom-right-radius: 0%;
+        border-bottom-left-radius: 0%;
+        color: white;
+    
+        @media screen and (min-width: 961px) {
+            font-size: 1.3em;
+            margin-left: 0.5em;
+            margin-right: 0.5em;
+        }
+    
+        @media screen and (max-width: 960px) {
+            margin-left: 0.5em;
+            margin-right: 0.5em;
+            font-size: 0.75em;
+            overflow: hidden;
+        }
+        
+        @media screen and (max-width: 600px) {
+            font-size: 0.5em;
+        }
+    
+        &__selected {
+            background-color: rgba(255, 255, 255, 0.35);
+        
+            @media screen and (max-width: 960px) {
+                font-size: 1.5em;
+                width: 50%;
+                border: none;
+                overflow: visible;
+            }
+            
+            @media screen and (max-width: 600px) {
+                font-size: 1.25em;
+            }
+        }
+    }
+}
+
+
+
+.gallery {
+    &_container {
+        width: 90%;
+        margin: 0 auto 2em;
+    }
+
+    &_tabs {
+        display: flex;
+        width: 100%
+    }
+
+    &_row-wrapper {
+        display: flex;
+        overflow-x: auto;
+        overflow-y: hidden;
+        min-width: 100%;
+        padding: 2em 0;
+        border-radius: 10px;
+        background-color: rgba(255, 255, 255, 0.35);
+
+        > * {
+            margin: 0 1em;
+        }
+
+        @media screen and (max-width: 600px) {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+    }
+
+    &_empty-row-text {
+        margin: 0 auto;
+        font-size: 1.5em;
+    }
+
+    &_row-item {
+        @media screen and (max-width: 600px) {  
+            margin-top: 1em;
+        }
+
+        &:first-of-type {
+            padding-left: 2em;
+            margin-left: 0;
+        }
+
+        &:last-child {
+            padding-right: 2em;
+            margin-right: 0;
+        }
+    }
+}
+
