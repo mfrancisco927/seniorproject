@@ -16,6 +16,7 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import VisibilityIcon from '@material-ui/icons/Visibility';
 import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 import FileCopyIcon from '@material-ui/icons/FileCopy';
+import {useWindowDimensions, SCREEN_SIZE} from './../../hooks/responsiveHooks';
 
 import './ProfilePage.scss';
 
