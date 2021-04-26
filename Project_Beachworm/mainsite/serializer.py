@@ -10,12 +10,20 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
     @classmethod
     def get_token(cls, user):
+        User.objects.filter(username=user).update(is_active=True)
         token = super(MyTokenObtainPairSerializer, cls).get_token(user)
-
+        #Credit to Joe for this code, he came up with it when I was having trouble
         # Add custom claims -- things that will be "in" the token
         #  Note: UserID is already in the token
         # token['fav_color'] = user.fav_color
         return token
+
+    def validate(self,attrs):
+       User.objects.filter(username=attrs['username']).update(is_active=True)
+       data = super().validate(attrs)
+       refresh = self.get_token(self.user)
+       data['access'] = str(refresh.access_token)
+       return data
 
 class CustomTokenRefreshSerializer(TokenRefreshSerializer):
 
