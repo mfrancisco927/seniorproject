@@ -6,7 +6,7 @@ import { useAuth } from './../../hooks/authHooks';
 import { useSpotifySdk } from './../../hooks/spotifyHooks';
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
-import TextField from "material-ui/TextField";
+import TextField from '@material-ui/core/TextField';
 import "./landing.css";
 // import validator from 'validator';
 
@@ -22,10 +22,7 @@ function SignInForm () {
     const [, setError] = useState(null); // re-add error once using, just removed for warning removal
     const [signinup, setSignInUp] = useState(false);
 
-    const handleChange = (stateSetter) => {
-        // console.log(email + ' ' + username + ' ' + password);
-        return (event) => stateSetter(event.target.value);
-    };
+
 
     // const validateForm = (email, username, password) => {
     //     if(password !== confirmPassword){
@@ -72,8 +69,8 @@ function SignInForm () {
           border: 0,
           color: 'white',
           height: 48,
-          padding: '0 30px',
-          margin: 15,
+          padding: '0 1.7em',
+          margin: 5,
           boxShadow: '0 3px 5px 2px rgba(255, 105, 135, .3)',
         },
         label: {
@@ -83,9 +80,9 @@ function SignInForm () {
 
     const FullWidthButton = withStyles({
         root: {
-            margin: '0 auto 2em',
-            padding: 0,
-            width: '75%',
+            margin: 5,
+            padding: '2rem',
+            width: '55%',
         }
     })(StyledButton);
 
@@ -100,36 +97,37 @@ function SignInForm () {
                         onSubmit={(event) => createNewUser(event, email, username, password)}>
                             <TextField
                                 name="username"
-                                floatingLabelText="username"
+                                label="username"
                                 value={username}
-                                onChange={handleChange(setUsername)}
+                                onChange={event => setUsername(event.target.value)}
                                 variant="filled"
                             />
                             <br />
                             <TextField
                                 type="email"
                                 name="email"
-                                floatingLabelText="email"
+                                label="email"
                                 value={email}
-                                onChange={handleChange(setEmail)}
+                                onChange={event => setEmail(event.target.value)}
                                 variant="filled"
                             />
                             <br />
                             <TextField
                                 type="password"
                                 name="password"
-                                floatingLabelText="password"
+                                label="password"
                                 value={password}
-                                onChange={handleChange(setPassword)}
+                                onChange={event => setPassword(event.target.value)}
                                 variant="filled"
+                                placeholder="minimum 8 characters"
                             />
                             <br />
                             <TextField
                                 type="password"
                                 name="pwconfirm"
-                                floatingLabelText="confirm password"
+                                label="confirm password"
                                 value={confirmPassword}
-                                onChange={handleChange(setConfirmPassword)}
+                                onChange={event => setConfirmPassword(event.target.value)}
                                 variant="filled"
                             />
                             <br />
@@ -139,6 +137,7 @@ function SignInForm () {
                             <StyledButton onClick={() => setSignInUp(!signinup)}>
                                 SIGN IN
                             </StyledButton>
+                            <br />
                             <FullWidthButton onClick={() => history.push('/home')}>START GUEST SESSION</FullWidthButton>
                         </form>
                     </>
@@ -150,18 +149,18 @@ function SignInForm () {
                         onSubmit={(event) => signInUser(event, username, password)}>
                             <TextField
                                 name="username"
-                                floatingLabelText="username"
+                                label="username"
                                 value={username}
-                                onChange={handleChange(setUsername)}
+                                onChange={event => setUsername(event.target.value)}
                                 variant="filled"
                             />
                             <br />
                             <TextField
                                 type="password"
                                 name="password"
-                                floatingLabelText="password"
+                                label="password"
                                 value={password}
-                                onChange={handleChange(setPassword)}
+                                onChange={event => setPassword(event.target.value)}
                                 variant="filled"
                             />
                             <br />
