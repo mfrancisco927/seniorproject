@@ -861,6 +861,8 @@ class FollowPlaylist(APIView):
            return Response({"follow_playlist" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
 
         try: 
+            if int(self.request.user.id) != int(user_id):
+                return Response({"error" : "cannot add to someone else's followed playlists"}, status=status.HTTP_403_FORBIDDEN) 
             profile = Profile.objects.get(user=user_id)
         except Profile.DoesNotExist:
             return Response({"follow_playlist" : "error: user does not exist"}, status=status.HTTP_404_NOT_FOUND)
@@ -877,6 +879,8 @@ class FollowPlaylist(APIView):
             return Response({"follow_playlist" : "error: playlist does not exist"}, status=status.HTTP_404_NOT_FOUND)
 
         try: 
+            if int(self.request.user.id) != int(user_id):
+                return Response({"error" : "cannot delete from someone else's followed playlists"}, status=status.HTTP_403_FORBIDDEN) 
             profile = Profile.objects.get(user=user_id)
         except Profile.DoesNotExist:
             return Response({"follow_playlist" : "error: user does not exist"}, status=status.HTTP_404_NOT_FOUND)

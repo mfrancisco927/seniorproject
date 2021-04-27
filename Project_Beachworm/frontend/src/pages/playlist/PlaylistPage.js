@@ -189,7 +189,7 @@ function PlaylistPage() {
   const handleToggleFollow = useCallback(() => {
     const toggle = async () => {
       const callback = following ? unfollowPlaylist : followPlaylist; 
-      await callback(playlist.id, playlist.owner_id).then(() => {
+      await callback(playlist.id, auth.id).then(() => {
         showAlert(`${following ? 'Unfollowed' : 'Followed'} playlist!`, 'success');
         setFollowing(!following);
       }, () => {
