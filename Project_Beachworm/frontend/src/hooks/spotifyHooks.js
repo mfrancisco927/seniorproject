@@ -442,34 +442,34 @@ export function ProvideSpotify({ children }) {
       }
     }
 
+    const playNextCallback = useCallback(async () => {
+      console.log('Track ending detected');
+      if (autoplay) {
+        await dequeueNextSong().then(nextSong => {
+          if (nextSong) {
+            play(nextSong);
+          }
+        });
+      }
+    }, [contextPlayQueue, userPlayQueue]);
+
     useEffect(() => {
+      console.log('Registering track ending callbacks')
       setTrackEndedCallbacks({
         ...trackEndedCallbacks, 
-        'statelessSdk': async () => {
-          console.log('Track ending detected');
-          if (autoplay) {
-            const nextSong = await dequeueNextSong(shuffle);
-            if (nextSong) {
-              play(nextSong);
-            }
-          }
-        },
+        'statelessSdk': playNextCallback,
       });
-    }, []);
-
+    }, [playNextCallback]);
 
     const trackUpdateCallback = useCallback((nextState) => {
       setPlayerState(nextState);
       const trackWindow = nextState.track_window;
       setCurrentTrack(trackWindow && trackWindow.current_track);
     }, []);
-  
-    useEffect(() => {
-      addStateListeners({'statefulSdkTrackUpdate': trackUpdateCallback});
-    }, [trackUpdateCallback]);
 
     useEffect(() => {
       addStateListeners({
+        'statefulSdkTrackUpdate': trackUpdateCallback,
         'statefulSdkTrackEndDetection': (nextState) => {
           // check for the end of the track
           // spotify doesn't have any sort of "song ended" callback sadly,
@@ -483,7 +483,6 @@ export function ProvideSpotify({ children }) {
               setSessionHistoryStack([...sessionSongHistoryStack, nextState.track_window.current_track]);
           }
         },
-        'statefulSdkTrackUpdate': trackUpdateCallback,
       });
     }, [currentTrack, trackUpdateCallback]); // TODO: figure out how not to have to re-assign this every time state changes
 
