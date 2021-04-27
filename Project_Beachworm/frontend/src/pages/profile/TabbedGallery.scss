@@ -29,14 +29,14 @@
             background-color: rgba(255, 255, 255, 0.35);
         
             @media screen and (max-width: 960px) {
-                font-size: 1.5em;
+                font-size: 1.25em;
                 width: 50%;
                 border: none;
                 overflow: visible;
             }
             
             @media screen and (max-width: 600px) {
-                font-size: 1.25em;
+                font-size: 0.8em;
             }
         }
     }
@@ -85,14 +85,16 @@
             margin-top: 1em;
         }
 
-        &:first-of-type {
-            padding-left: 2em;
-            margin-left: 0;
-        }
+        @media screen and (min-width: 601px) {
+            &:first-of-type {
+                padding-left: 2em;
+                margin-left: 0;
+            }
 
-        &:last-child {
-            padding-right: 2em;
-            margin-right: 0;
+            &:last-child {
+                padding-right: 2em;
+                margin-right: 0;
+            }
         }
     }
 }

@@ -259,7 +259,7 @@ function PlayFooter() {
         </span>
       ) : (
         <span className={mobileClassName(isMobile, 'play-footer')}>
-          <AlbumArtWrapper {...mobileProps}/>
+          <AlbumArtWrapper {...mobileProps} currentTrack={currentTrack} />
           <div className="play-footer_mobile-main-content">
             <div className="play-footer_extended-song-details-row">
               <SongDetails
